@@ -26,6 +26,8 @@ import {
   type AdapterExecuteResponse,
   type AdapterOverrideCommand,
   type AdapterOverrideResponse,
+  type AdapterStatusCheckCommand,
+  type AdapterStatusCheckResponse,
 } from '../common/extension_command';
 import {ModelLoaderServiceInterface, type ChangesPerGraphAndNode, type ChangesPerNode, type ExecutionCommand} from '../common/model_loader_service_interface';
 import {
@@ -490,6 +492,36 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       result = this.processAdapterOverrideResponse(cmdResp, modelItem.label);
     }
     modelItem.status.set(ModelItemStatus.DONE);
+    return result;
+  }
+
+  private async sendStatusCheckRequest(
+    extensionId: string,
+    path: string,
+  ) {
+
+    let result: AdapterStatusCheckResponse | undefined = undefined;
+
+    const overrideCommand: AdapterStatusCheckCommand = {
+      cmdId: 'status_check',
+      extensionId,
+      modelPath: path,
+      settings: {},
+      deleteAfterConversion: false
+    };
+
+    const {cmdResp, otherError: cmdError} =
+      await this.extensionService.sendCommandToExtension<AdapterStatusCheckResponse>(
+        overrideCommand,
+      );
+    const error = cmdResp?.error || cmdError;
+
+    if (error) {
+      return undefined;
+    } else if (cmdResp) {
+      result = cmdResp;
+    }
+
     return result;
   }
 
