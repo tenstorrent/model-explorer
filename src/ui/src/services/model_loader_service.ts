@@ -339,6 +339,30 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
+  async checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResponse | undefined> {
+    try {
+      const result = await this.sendStatusCheckRequest(extensionId, modelPath);
+
+      if (result?.error) {
+        return {
+          error: result.error,
+          isDone: true,
+          progress: -1
+        };
+      }
+
+      return result;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        error: (error as Error)?.message ?? '',
+        isDone: true,
+        progress: -1
+      };
+    }
+  }
+
   private async readTextFile(path: string): Promise<string> {
     const resp = await fetch(`${READ_TEXT_FILE_API_PATH}?path=${path}`);
     const jsonObj = (await resp.json()) as ReadTextFileResponse;

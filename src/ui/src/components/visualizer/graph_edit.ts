@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,11 +10,12 @@ import type { ModelLoaderServiceInterface } from '../../common/model_loader_serv
 import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ModelItemStatus } from '../../common/types';
+import { ModelItemStatus, type ModelItem } from '../../common/types';
 import { genUid } from './common/utils';
 import { ModelGraph } from './common/model_graph';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
+import type { NodeDataProviderData, Pane } from './common/types.js';
 
 /**
  * The graph edit component.
@@ -40,6 +41,9 @@ import { NodeDataProviderExtensionService } from './node_data_provider_extension
 export class GraphEdit {
   isProcessingExecuteRequest = false;
 
+  readonly executionProgress = signal<number>(0);
+  executionTotal = 0;
+
   constructor(
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
@@ -58,6 +62,29 @@ export class GraphEdit {
         return this.modelLoaderService.getOptimizationPolicies(curExtensionId)[0] || '';
       });
     }
+  }
+
+  private poolForStatusUpdate(extensionId: string, modelPath: string) {
+    const POOL_TIME_MS = 500;
+
+    this.isProcessingExecuteRequest = true;
+
+    const updateStatus = async () => {
+      const { isDone, total, progress } = (await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath)) ?? {};
+
+      if (progress !== -1) {
+        this.executionProgress.update((prevProgress) => progress ?? prevProgress);
+        this.executionTotal = total ?? 100;
+      }
+
+      if (isDone) {
+        this.isProcessingExecuteRequest = false;
+      }
+
+      setTimeout(updateStatus, POOL_TIME_MS);
+    };
+
+    updateStatus();
   }
 
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], curPane?: Pane, perfData?: NodeDataProviderData) {
