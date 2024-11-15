@@ -118,6 +118,9 @@ export class GraphEdit {
     } else {
       this.showErrorDialog('Graph Execution Error', curModel.errorMessage ?? 'An error has occured');
     }
+  }
+
+  private getCurrentGraphInformation() {
     const curPane = this.appService.getSelectedPane();
     const curCollectionLabel = curPane?.modelGraph?.collectionLabel;
     const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
