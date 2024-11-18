@@ -115,7 +115,7 @@ export class GraphEdit {
           });
         }
 
-        const newGraphCollectionsLabels = newGraphCollections.map(({ label }) => label);
+        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
@@ -123,12 +123,12 @@ export class GraphEdit {
       });
 
       this.urlService.setUiState(undefined);
-      this.urlService.setModels(models.map(({ path, selectedAdapter }) => {
+      this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
         return {
           url: path,
           adapterId: selectedAdapter?.id
         };
-      }));
+      }) ?? []);
 
       this.modelLoaderService.graphErrors.update(() => undefined);
 
@@ -249,12 +249,12 @@ export class GraphEdit {
           });
 
           this.urlService.setUiState(undefined);
-          this.urlService.setModels(models.map(({ path, selectedAdapter }) => {
+          this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
             return {
               url: path,
               adapterId: selectedAdapter?.id
             };
-          }));
+          }) ?? []);
 
           this.modelLoaderService.changesToUpload.update(() => ({}));
           this.modelLoaderService.graphErrors.update(() => undefined);
