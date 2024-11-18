@@ -162,18 +162,13 @@ export class ExtensionService {
       }
 
       if (localStorage.getItem('mock-api') === 'true' && cmd.cmdId === 'convert') {
-        json = {
-          ...json,
-          graphs: json.graphs.map((graph: { nodes: { attrs: { key: string, value: string }[]}[]}) => ({
-            ...graph,
-            nodes: graph.nodes.map((node) => ({
-              ...node,
-              attrs: node.attrs.map(({key, value}) => ({
-                ...processAttribute(key, value)
-              }))
-            }))
-          })),
-        };
+        json.graphs?.forEach((graph: { nodes: { attrs: { key: string, value: string }[]}[]}) => {
+          graph.nodes?.forEach((node) => {
+            node.attrs?.forEach(({key, value}, index) => {
+              node.attrs[index] = processAttribute(key, value);
+            });
+          });
+        });
       }
 
       return {cmdResp: json as T};
