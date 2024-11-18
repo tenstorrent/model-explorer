@@ -82,7 +82,7 @@ export class GraphEdit {
 
       const deltaTime = Date.now() - startTime;
       if (deltaTime < TIMEOUT_MS) {
-      setTimeout(updateStatus, POOL_TIME_MS);
+        setTimeout(updateStatus, POOL_TIME_MS);
       } else {
         doneCallback('timeout');
       }
@@ -201,15 +201,24 @@ export class GraphEdit {
 
       if (curModel.status() !== ModelItemStatus.ERROR) {
         if (result) {
-          await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
+          const updateStatus= (progress: number, total: number) => {
+            this.executionProgress.update((prevProgress) => progress ?? prevProgress);
+            this.executionTotal = total ?? 100;
+          };
+          const finishUpdate = async () => {
+            await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
+            this.isProcessingExecuteRequest = false;
+          };
+
+          this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate);
         } else {
-          this.showErrorDialog('Graph Execution Error', "Graph execution didn't return any results");
+          this.showErrorDialog('Graph Execution Error', "Graph execution resulted in an error");
+          this.isProcessingExecuteRequest = false;
         }
       } else {
         this.showErrorDialog('Graph Execution Error', curModel.errorMessage ?? 'An error has occured');
+        this.isProcessingExecuteRequest = false;
       }
-
-      this.isProcessingExecuteRequest = false;
     }
   }
 
