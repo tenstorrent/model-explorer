@@ -70,7 +70,7 @@ export class GraphEdit {
     const TIMEOUT_MS = 5 * 60 * 1000;
 
     const startTime = Date.now();
-    const updateStatus = async () => {
+    const intervalId = setInterval(async () => {
       const { isDone, total = 100, progress = 0} = (await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath)) ?? {};
 
       if (progress !== -1) {
@@ -79,17 +79,15 @@ export class GraphEdit {
 
       if (isDone) {
         doneCallback('done');
-      }
-
-      const deltaTime = Date.now() - startTime;
-      if (deltaTime < TIMEOUT_MS) {
-        setTimeout(updateStatus, POOL_TIME_MS);
+        clearInterval(intervalId);
       } else {
-        doneCallback('timeout');
+        const deltaTime = Date.now() - startTime;
+        if (deltaTime > TIMEOUT_MS) {
+          doneCallback('timeout');
+          clearInterval(intervalId);
+        }
       }
-    };
-
-    updateStatus();
+    }, POOL_TIME_MS);
   }
 
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], curPane?: Pane, perfData?: NodeDataProviderData) {
