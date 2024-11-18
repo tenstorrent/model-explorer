@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,7 +41,7 @@ import type { NodeDataProviderData, Pane } from './common/types.js';
 export class GraphEdit {
   isProcessingExecuteRequest = false;
 
-  readonly executionProgress = signal<number>(0);
+  executionProgress = 0;
   executionTotal = 0;
 
   constructor(
@@ -52,6 +52,7 @@ export class GraphEdit {
     private readonly urlService: UrlService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -202,8 +203,9 @@ export class GraphEdit {
       if (curModel.status() !== ModelItemStatus.ERROR) {
         if (result) {
           const updateStatus= (progress: number, total: number) => {
-            this.executionProgress.update((prevProgress) => progress ?? prevProgress);
-            this.executionTotal = total ?? 100;
+            this.executionProgress = progress ?? this.executionProgress;
+            this.executionTotal = total;
+            this.changeDetectorRef.detectChanges();
           };
           const finishUpdate = async () => {
             await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
