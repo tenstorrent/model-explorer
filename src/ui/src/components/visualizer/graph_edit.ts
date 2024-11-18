@@ -200,7 +200,7 @@ export class GraphEdit {
 
       if (curModel.status() !== ModelItemStatus.ERROR) {
         if (result) {
-          const updateStatus= (progress: number, total: number) => {
+          const updateStatus = (progress: number, total: number) => {
             this.executionProgress = progress ?? this.executionProgress;
             this.executionTotal = total;
             this.changeDetectorRef.detectChanges();
