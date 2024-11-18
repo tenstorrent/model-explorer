@@ -64,24 +64,28 @@ export class GraphEdit {
     }
   }
 
-  private poolForStatusUpdate(extensionId: string, modelPath: string) {
+  private poolForStatusUpdate(extensionId: string, modelPath: string, updateCallback: (progress: number, total: number) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>) {
     const POOL_TIME_MS = 500;
+    const TIMEOUT_MS = 5 * 60 * 1000;
 
-    this.isProcessingExecuteRequest = true;
-
+    const startTime = Date.now();
     const updateStatus = async () => {
-      const { isDone, total, progress } = (await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath)) ?? {};
+      const { isDone, total = 100, progress = 0} = (await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath)) ?? {};
 
       if (progress !== -1) {
-        this.executionProgress.update((prevProgress) => progress ?? prevProgress);
-        this.executionTotal = total ?? 100;
+        updateCallback(progress, total);
       }
 
       if (isDone) {
-        this.isProcessingExecuteRequest = false;
+        doneCallback('done');
       }
 
+      const deltaTime = Date.now() - startTime;
+      if (deltaTime < TIMEOUT_MS) {
       setTimeout(updateStatus, POOL_TIME_MS);
+      } else {
+        doneCallback('timeout');
+      }
     };
 
     updateStatus();
