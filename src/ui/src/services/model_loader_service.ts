@@ -556,12 +556,12 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     if (resp.graphs) {
       return [{label: fileName, graphs: resp.graphs}];
     } else if (resp.graphCollections) {
-      return resp.graphCollections.map((item) => {
+      return resp.graphCollections?.map((item) => {
         return {
           label: item.label === '' ? fileName : `${fileName} (${item.label})`,
           graphs: item.graphs,
         };
-      });
+      }) ?? [];
     }
     return [];
   }
