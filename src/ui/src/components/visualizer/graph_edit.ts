@@ -17,6 +17,7 @@ import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { NodeDataProviderData, Pane } from './common/types.js';
+import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 
 /**
  * The graph edit component.
@@ -46,6 +47,8 @@ export class GraphEdit {
   executionTotal = 0;
 
   constructor(
+    @Inject('LoggingService')
+    private readonly loggingService: LoggingServiceInterface,
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
@@ -196,6 +199,7 @@ export class GraphEdit {
 
     if (curModel) {
       this.isProcessingExecuteRequest = true;
+      this.loggingService.info('Start executing model', curModel.path);
 
       const result = await this.modelLoaderService.executeModel(curModel);
 
@@ -204,10 +208,14 @@ export class GraphEdit {
           const updateStatus = (progress: number, total: number) => {
             this.executionProgress = progress ?? this.executionProgress;
             this.executionTotal = total;
+            this.loggingService.info(`Execution progress: ${progress} of ${total}`, curModel.path);
             this.changeDetectorRef.detectChanges();
           };
+          // TODO: add timeout handling
           const finishUpdate = async () => {
+            this.loggingService.info('Model execute finished', curModel.path);
             await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
+            this.loggingService.info('Model updated', curModel.path);
             this.isProcessingExecuteRequest = false;
           };
 
