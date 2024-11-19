@@ -211,11 +211,16 @@ export class GraphEdit {
             this.loggingService.info(`Execution progress: ${progress} of ${total}`, curModel.path);
             this.changeDetectorRef.detectChanges();
           };
-          // TODO: add timeout handling
-          const finishUpdate = async () => {
-            this.loggingService.info('Model execute finished', curModel.path);
-            await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
-            this.loggingService.info('Model updated', curModel.path);
+
+          const finishUpdate = async (status: 'done' | 'timeout') => {
+            if (status === 'timeout') {
+              this.loggingService.error('Model execute timeout', curModel.path);
+            } else {
+              this.loggingService.info('Model execute finished', curModel.path);
+              await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
+              this.loggingService.info('Model updated', curModel.path);
+            }
+
             this.isProcessingExecuteRequest = false;
           };
 
