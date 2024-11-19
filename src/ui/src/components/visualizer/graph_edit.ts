@@ -14,6 +14,7 @@ import { ModelItemStatus, type ModelItem } from '../../common/types';
 import { genUid } from './common/utils';
 import { ModelGraph } from './common/model_graph';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
+import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { NodeDataProviderData, Pane } from './common/types.js';
 
@@ -267,6 +268,13 @@ export class GraphEdit {
         this.showErrorDialog('Graph Loading Error', curModel.errorMessage ?? 'An error has occured');
       }
     }
+  }
+
+  handleLogDialogOpen() {
+    this.dialog.open(LoggingDialog, {
+      width: 'clamp(10rem, 60vw, 60rem)',
+      height: 'clamp(10rem, 60vh, 60rem)'
+    });
   }
 
   handleClickSelectOptimizationPolicy(evt: Event) {
