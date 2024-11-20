@@ -246,45 +246,61 @@ export class GraphEdit {
     const { curModel, curCollection, curCollectionLabel, changesToUpload, models } = this.getCurrentGraphInformation();
 
     if (curModel && curCollection && changesToUpload) {
-      const updatedGraphCollection = await this.modelLoaderService.overrideModel(
-        curModel,
-        curCollection,
-        changesToUpload
-      );
+      try {
+        this.isProcessingUploadRequest = true;
+        this.loggingService.info('Start uploading model', curModel.path);
 
-      if (curModel.status() !== ModelItemStatus.ERROR) {
-        if (updatedGraphCollection) {
-          this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-            if (!prevGraphCollections) {
-              return undefined;
-            }
+        const updatedGraphCollection = await this.modelLoaderService.overrideModel(
+          curModel,
+          curCollection,
+          changesToUpload
+        );
 
-            const collectionToUpdate = prevGraphCollections.findIndex(({ label }) => label === curCollectionLabel) ?? -1;
+        this.loggingService.info('Upload finished', curModel.path);
 
-            if (collectionToUpdate !== -1) {
-              prevGraphCollections[collectionToUpdate] = updatedGraphCollection;
-            }
+        if (curModel.status() !== ModelItemStatus.ERROR) {
+          this.loggingService.info('Updating existing models', curModel.path);
 
-            return [...prevGraphCollections];
-          });
+          if (updatedGraphCollection) {
+            this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
+              if (!prevGraphCollections) {
+                return undefined;
+              }
 
-          this.urlService.setUiState(undefined);
-          this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
-            return {
-              url: path,
-              adapterId: selectedAdapter?.id
-            };
-          }) ?? []);
+              const collectionToUpdate = prevGraphCollections.findIndex(({ label }) => label === curCollectionLabel) ?? -1;
 
-          this.modelLoaderService.changesToUpload.update(() => ({}));
-          this.modelLoaderService.graphErrors.update(() => undefined);
+              if (collectionToUpdate !== -1) {
+                prevGraphCollections[collectionToUpdate] = updatedGraphCollection;
+              }
 
-          this.showSuccessMessage('Model uploaded');
+              return [...prevGraphCollections];
+            });
+
+            this.urlService.setUiState(undefined);
+            this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
+              return {
+                url: path,
+                adapterId: selectedAdapter?.id
+              };
+            }) ?? []);
+
+            this.modelLoaderService.changesToUpload.update(() => ({}));
+            this.modelLoaderService.graphErrors.update(() => undefined);
+
+            this.showSuccessMessage('Model uploaded');
+          } else {
+            throw new Error("Graph upload didn't return any results");
+          }
         } else {
-          this.showErrorDialog('Graph Loading Error', "Graph upload didn't return any results");
+          throw new Error(curModel.errorMessage ?? 'An error has occured');
         }
-      } else {
-        this.showErrorDialog('Graph Loading Error', curModel.errorMessage ?? 'An error has occured');
+      } catch (err) {
+        const errorMessage =  (err as Error)?.message ?? 'An error has occured.';
+
+        this.loggingService.error('Graph Loading Error', errorMessage);
+        this.showErrorDialog('Graph Loading Error', errorMessage);
+      } finally {
+        this.isProcessingUploadRequest = false;
       }
     }
   }
