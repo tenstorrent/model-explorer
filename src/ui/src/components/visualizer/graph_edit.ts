@@ -42,6 +42,7 @@ import type { LoggingServiceInterface } from '../../common/logging_service_inter
 })
 export class GraphEdit {
   isProcessingExecuteRequest = false;
+  isProcessingUploadRequest = false;
 
   executionProgress = 0;
   executionTotal = 0;
@@ -69,27 +70,35 @@ export class GraphEdit {
     }
   }
 
-  private poolForStatusUpdate(extensionId: string, modelPath: string, updateCallback: (progress: number, total: number) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>) {
+  private poolForStatusUpdate(extensionId: string, modelPath: string, updateCallback: (progress: number, total: number) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>, errorCallback: (error: string) => void | Promise<void>) {
     const POOL_TIME_MS = 500;
     const TIMEOUT_MS = 5 * 60 * 1000;
 
     const startTime = Date.now();
     const intervalId = setInterval(async () => {
-      const { isDone, total = 100, progress = 0} = (await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath)) ?? {};
+      const { isDone, total = 100, progress, error } = await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath);
 
-      if (progress !== -1) {
-        updateCallback(progress, total);
+      if (error) {
+        errorCallback(error);
+        clearInterval(intervalId);
+        return;
       }
 
       if (isDone) {
         doneCallback('done');
         clearInterval(intervalId);
-      } else {
-        const deltaTime = Date.now() - startTime;
-        if (deltaTime > TIMEOUT_MS) {
-          doneCallback('timeout');
-          clearInterval(intervalId);
-        }
+        return;
+      }
+
+      const deltaTime = Date.now() - startTime;
+      if (deltaTime > TIMEOUT_MS) {
+        doneCallback('timeout');
+        clearInterval(intervalId);
+        return;
+      }
+
+      if (progress !== -1) {
+        updateCallback(progress, total);
       }
     }, POOL_TIME_MS);
   }
@@ -225,7 +234,14 @@ export class GraphEdit {
               this.isProcessingExecuteRequest = false;
             };
 
-            this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate);
+            const showError = (error: string) => {
+              this.executionProgress = 0;
+              this.isProcessingExecuteRequest = false;
+              this.loggingService.error('Graph Execution Error', error);
+              this.showErrorDialog('Graph Execution Error', error);
+            };
+
+            this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate, showError);
           } else {
             throw new Error("Graph execution resulted in an error");
           }
