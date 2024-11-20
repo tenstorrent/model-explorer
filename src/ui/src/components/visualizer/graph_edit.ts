@@ -198,39 +198,45 @@ export class GraphEdit {
     const { curModel, curPane, models } = this.getCurrentGraphInformation();
 
     if (curModel) {
-      this.isProcessingExecuteRequest = true;
-      this.loggingService.info('Start executing model', curModel.path);
+      try {
+        this.isProcessingExecuteRequest = true;
+        this.loggingService.info('Start executing model', curModel.path);
 
-      const result = await this.modelLoaderService.executeModel(curModel);
+        const result = await this.modelLoaderService.executeModel(curModel);
 
-      if (curModel.status() !== ModelItemStatus.ERROR) {
-        if (result) {
-          const updateStatus = (progress: number, total: number) => {
-            this.executionProgress = progress ?? this.executionProgress;
-            this.executionTotal = total;
-            this.loggingService.info(`Execution progress: ${progress} of ${total}`, curModel.path);
-            this.changeDetectorRef.detectChanges();
-          };
+        if (curModel.status() !== ModelItemStatus.ERROR) {
+          if (result) {
+            const updateStatus = (progress: number, total: number) => {
+              this.executionProgress = progress ?? this.executionProgress;
+              this.executionTotal = total;
+              this.loggingService.info(`Execution progress: ${progress} of ${total}`, curModel.path);
+              this.changeDetectorRef.detectChanges();
+            };
 
-          const finishUpdate = async (status: 'done' | 'timeout') => {
-            if (status === 'timeout') {
-              this.loggingService.error('Model execute timeout', curModel.path);
-            } else {
-              this.loggingService.info('Model execute finished', curModel.path);
-              await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
-              this.loggingService.info('Model updated', curModel.path);
-            }
+            const finishUpdate = async (status: 'done' | 'timeout') => {
+              if (status === 'timeout') {
+                this.loggingService.error('Model execute timeout', curModel.path);
+              } else {
+                this.loggingService.info('Model execute finished', curModel.path);
+                await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
+                this.loggingService.info('Model updated', curModel.path);
+              }
 
-            this.isProcessingExecuteRequest = false;
-          };
+              this.isProcessingExecuteRequest = false;
+            };
 
-          this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate);
+            this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate);
+          } else {
+            throw new Error("Graph execution resulted in an error");
+          }
         } else {
-          this.showErrorDialog('Graph Execution Error', "Graph execution resulted in an error");
-          this.isProcessingExecuteRequest = false;
+          throw new Error(curModel.errorMessage ?? 'An error has occured');
         }
-      } else {
-        this.showErrorDialog('Graph Execution Error', curModel.errorMessage ?? 'An error has occured');
+      } catch (err) {
+        const errorMessage = (err as Error).message ?? 'An error has occured';
+
+        this.loggingService.error('Graph Execution Error', errorMessage);
+        this.showErrorDialog('Graph Execution Error', errorMessage);
         this.isProcessingExecuteRequest = false;
       }
     }
