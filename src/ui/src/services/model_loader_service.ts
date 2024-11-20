@@ -339,28 +339,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
-  async checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResponse | undefined> {
-    try {
+  async checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResponse> {
       const result = await this.sendStatusCheckRequest(extensionId, modelPath);
 
-      if (result?.error) {
-        return {
-          error: result.error,
-          isDone: true,
-          progress: -1
-        };
-      }
-
       return result;
-    } catch (error) {
-      console.error(error);
-
-      return {
-        error: (error as Error)?.message ?? '',
-        isDone: true,
-        progress: -1
-      };
-    }
   }
 
   private async readTextFile(path: string): Promise<string> {
@@ -523,30 +505,40 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     extensionId: string,
     path: string,
   ) {
+    try {
+      const overrideCommand: AdapterStatusCheckCommand = {
+        cmdId: 'status_check',
+        extensionId,
+        modelPath: path,
+        settings: {},
+        deleteAfterConversion: false
+      };
 
-    let result: AdapterStatusCheckResponse | undefined = undefined;
+      const { cmdResp, otherError: cmdError } =
+        await this.extensionService.sendCommandToExtension<AdapterStatusCheckResponse>(
+          overrideCommand,
+        );
 
-    const overrideCommand: AdapterStatusCheckCommand = {
-      cmdId: 'status_check',
-      extensionId,
-      modelPath: path,
-      settings: {},
-      deleteAfterConversion: false
-    };
+      if (cmdError) {
+        throw new Error(cmdError);
+      }
 
-    const {cmdResp, otherError: cmdError} =
-      await this.extensionService.sendCommandToExtension<AdapterStatusCheckResponse>(
-        overrideCommand,
-      );
-    const error = cmdResp?.error || cmdError;
+      if (!cmdResp) {
+        throw new Error("Command didn't return any response");
+      }
 
-    if (error) {
-      return undefined;
-    } else if (cmdResp) {
-      result = cmdResp;
+      if (cmdResp.error) {
+        throw new Error(cmdResp.error);
+      }
+
+      return cmdResp;
+    } catch (err) {
+      return {
+        isDone: true,
+        progress: -1,
+        error: (err as Partial<Error>)?.message ?? err?.toString() ?? 'An error has occured'
+      };
     }
-
-    return result;
   }
 
   private processAdapterConvertResponse(
