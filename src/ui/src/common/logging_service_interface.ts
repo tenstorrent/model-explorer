@@ -16,8 +16,16 @@
  * ==============================================================================
  */
 
+/** Available log levels for the logger */
+export const LogLevels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  log: 3,
+  debug: 4
+} as const;
 
-export type LogLevel = 'log' | 'info' | 'warn' | 'error';
+export type LogLevel = keyof typeof LogLevels;
 
 export interface LogMessage {
   timestamp: Date;
@@ -27,9 +35,11 @@ export interface LogMessage {
 
 /** The interface of the logging service. */
 export interface LoggingServiceInterface {
+  currentlogLevel: LogLevel;
   log(...messages: string[]): void
   info(...messages: string[]): void
   warn(...messages: string[]): void
   error(...messages: string[]): void
+  debug(...messages: string[]): void
   getMessages(level?: LogLevel): LogMessage[]
 }

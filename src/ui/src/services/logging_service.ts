@@ -17,7 +17,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import type { LoggingServiceInterface, LogMessage, LogLevel } from '../common/logging_service_interface';
+import { LoggingServiceInterface, LogMessage, LogLevel, LogLevels } from '../common/logging_service_interface';
 
 /**
  * A service to manage model loading related tasks.
@@ -26,6 +26,9 @@ import type { LoggingServiceInterface, LogMessage, LogLevel } from '../common/lo
   providedIn: 'root',
 })
 export class LoggingService implements LoggingServiceInterface {
+
+  currentlogLevel = (localStorage.getItem('logLevel') as LogLevel) ?? 'log';
+
   readonly messages: LogMessage[] = [];
 
   constructor() {}
@@ -54,9 +57,13 @@ export class LoggingService implements LoggingServiceInterface {
     this.addLogMessages('error', ...messages);
   }
 
+  debug(...messages: string[]): void {
+    this.addLogMessages('debug', ...messages);
+  }
+
   getMessages(level?: LogLevel): LogMessage[] {
     if (!level) {
-      return this.messages;
+      return this.messages.filter(({ level: curLevel }) => LogLevels[curLevel] <= LogLevels[this.currentlogLevel]);
     }
 
     return this.messages.filter(({ level: curLevel }) => curLevel === level);
