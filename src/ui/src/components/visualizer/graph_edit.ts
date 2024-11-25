@@ -103,7 +103,7 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], curPane?: Pane, perfData?: NodeDataProviderData) {
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], curPane?: Pane) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
@@ -144,18 +144,20 @@ export class GraphEdit {
 
       this.modelLoaderService.graphErrors.update(() => undefined);
 
-      if (perfData) {
-        const runId = genUid();
-        const modelGraph = curPane?.modelGraph as ModelGraph;
+      newGraphCollections.forEach(({ perf_data }) => {
+        if (perf_data) {
+          const runId = genUid();
+          const modelGraph = curPane?.modelGraph as ModelGraph;
 
-        this.nodeDataProviderExtensionService.addRun(
-          runId,
-          `${modelGraph.id} (Performance Trace)`,
-          curModel.selectedAdapter?.id ?? '',
-          modelGraph,
-          perfData,
-        );
-      }
+          this.nodeDataProviderExtensionService.addRun(
+            runId,
+            `${modelGraph.id} (Performance Trace)`,
+            curModel.selectedAdapter?.id ?? '',
+            modelGraph,
+            perf_data,
+          );
+        }
+      });
 
       this.showSuccessMessage('Model updated');
     } else {
@@ -227,7 +229,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path);
-                await this.updateGraphInformation(curModel, models, curPane, result.perf_data);
+                await this.updateGraphInformation(curModel, models, curPane);
                 this.loggingService.info('Model updated', curModel.path);
               }
 
