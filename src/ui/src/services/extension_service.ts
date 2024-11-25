@@ -94,18 +94,7 @@ export class ExtensionService {
         if (localStorage.getItem('mock-api') === 'true' && cmd.cmdId === 'execute') {
           const response: AdapterExecuteResponse = {
             log_file: '',
-            stdout: '',
-            perf_data: {
-              'ttir-graph': {
-                results: {
-                  'forward0': {
-                    value: 1,
-                    bgColor: '#ff0000',
-                    textColor: '#000000'
-                  }
-                }
-              }
-            }
+            stdout: ''
           };
 
           return { cmdResp: response as T };
@@ -169,6 +158,18 @@ export class ExtensionService {
             });
           });
         });
+
+        json.perf_data = {
+          'ttir-graph': {
+            results: {
+              'forward0': {
+                value: 1,
+                bgColor: '#ff0000',
+                textColor: '#000000'
+              }
+            }
+          }
+        };
       }
 
       return {cmdResp: json as T};
