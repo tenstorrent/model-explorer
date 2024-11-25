@@ -17,7 +17,8 @@
  */
 
 import {Graph, GraphCollection,} from '../components/visualizer/common/input_graph';
-import type { ChangesPerNode, ExecutionCommand } from './model_loader_service_interface';
+import type { NodeDataProviderData } from '../components/visualizer/common/types.js';
+import type { ChangesPerNode } from './model_loader_service_interface';
 
 /** A command sent to extension. */
 export declare interface ExtensionCommand {
@@ -44,6 +45,7 @@ export declare interface AdapterConvertCommand extends ExtensionCommand {
 export declare interface AdapterConvertResponse extends ExtensionResponse {
   graphs?: Graph[];
   graphCollections?: GraphCollection[];
+  perf_data?: NodeDataProviderData;
 }
 
 /** Adapter's "override" command. */
@@ -72,7 +74,10 @@ export declare interface AdapterExecuteCommand extends ExtensionCommand {
 }
 
 /** Adapter's "execute" command response. */
-export declare interface AdapterExecuteResponse extends ExtensionResponse, ExecutionCommand {
+export declare interface AdapterExecuteResponse extends ExtensionResponse {
+  stdout: string;
+  log_file: string;
+  perf_trace?: string;
 }
 
 /** Adapter's "status check" command. */

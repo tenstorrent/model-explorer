@@ -29,7 +29,7 @@ import {
   type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
 } from '../common/extension_command';
-import {ModelLoaderServiceInterface, type ChangesPerGraphAndNode, type ChangesPerNode, type ExecutionCommand} from '../common/model_loader_service_interface';
+import {ModelLoaderServiceInterface, type ChangesPerGraphAndNode, type ChangesPerNode } from '../common/model_loader_service_interface';
 import {
   InternalAdapterExtId,
   ModelItem,
@@ -95,7 +95,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   async executeModel(modelItem: ModelItem) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let updatedPath = modelItem.path;
-    let result: ExecutionCommand | undefined = undefined;
+    let result: AdapterExecuteResponse | undefined = undefined;
 
     // User-entered file path.
     if (modelItem.type === ModelItemType.FILE_PATH) {
@@ -430,7 +430,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     path: string,
     settings: Record<string, any> = {}
   ) {
-    let result: ExecutionCommand | undefined = undefined;
+    let result: AdapterExecuteResponse | undefined = undefined;
 
     modelItem.status.set(ModelItemStatus.PROCESSING);
 
@@ -546,12 +546,13 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     fileName: string,
   ): GraphCollection[] {
     if (resp.graphs) {
-      return [{label: fileName, graphs: resp.graphs}];
+      return [{label: fileName, graphs: resp.graphs, perf_data: resp.perf_data}];
     } else if (resp.graphCollections) {
       return resp.graphCollections?.map((item) => {
         return {
           label: item.label === '' ? fileName : `${fileName} (${item.label})`,
           graphs: item.graphs,
+          perf_data: item.perf_data
         };
       }) ?? [];
     }
