@@ -426,6 +426,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
+  // TODO: externalize repeated code
   private async sendExecuteRequest(
     modelItem: ModelItem,
     path: string,
