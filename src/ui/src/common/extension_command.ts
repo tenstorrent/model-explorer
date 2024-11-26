@@ -17,7 +17,6 @@
  */
 
 import {Graph, GraphCollection,} from '../components/visualizer/common/input_graph';
-import type { NodeDataProviderData } from '../components/visualizer/common/types.js';
 import type { ChangesPerNode } from './model_loader_service_interface';
 
 /** A command sent to extension. */
@@ -26,10 +25,26 @@ export declare interface ExtensionCommand {
   extensionId: string;
 }
 
-/** A response received from the extension. */
-export interface ExtensionResponse {
-  error?: string;
+interface ExtensionGraphResponse<G extends Array<unknown>> {
+  graphs: G;
+  graphCollection?: never;
+  error?: never;
 }
+
+interface ExtensionCollectionResponse<C extends Array<unknown>> {
+  graphs?: never;
+  graphCollection: C;
+  error?: never;
+}
+
+interface ExtensionErrorResponse<E extends unknown = string> {
+  graphs?: never;
+  graphCollection?: never;
+  error: E;
+}
+
+/** A response received from the extension. */
+type ExtensionResponse<G extends Array<unknown> = Graph[], C extends Array<unknown> = GraphCollection[], E extends unknown = string> = ExtensionGraphResponse<G> | ExtensionCollectionResponse<C> | ExtensionErrorResponse<E>;
 
 /** Adapter's "convert" command. */
 export declare interface AdapterConvertCommand extends ExtensionCommand {
@@ -42,11 +57,7 @@ export declare interface AdapterConvertCommand extends ExtensionCommand {
 }
 
 /** Adapter's "convert" command response. */
-export declare interface AdapterConvertResponse extends ExtensionResponse {
-  graphs?: Graph[];
-  graphCollections?: GraphCollection[];
-  perf_data?: NodeDataProviderData;
-}
+export type AdapterConvertResponse = ExtensionResponse;
 
 /** Adapter's "override" command. */
 export declare interface AdapterOverrideCommand extends ExtensionCommand {
@@ -60,10 +71,9 @@ export declare interface AdapterOverrideCommand extends ExtensionCommand {
 }
 
 /** Adapter's "override" command response. */
-export declare interface AdapterOverrideResponse extends ExtensionResponse {
+export type AdapterOverrideResponse = ExtensionResponse<[{
   success: boolean;
-  graphs?: Graph[];
-}
+}], never>;
 
 /** Adapter's "execute" command. */
 export declare interface AdapterExecuteCommand extends ExtensionCommand {
@@ -74,11 +84,11 @@ export declare interface AdapterExecuteCommand extends ExtensionCommand {
 }
 
 /** Adapter's "execute" command response. */
-export declare interface AdapterExecuteResponse extends ExtensionResponse {
+export type AdapterExecuteResponse = ExtensionResponse<[{
   stdout: string;
   log_file: string;
   perf_trace?: string;
-}
+}], never>;
 
 /** Adapter's "status check" command. */
 export declare interface AdapterStatusCheckCommand extends ExtensionCommand {
@@ -89,10 +99,10 @@ export declare interface AdapterStatusCheckCommand extends ExtensionCommand {
 }
 
 /** Adapter's "status check" command response. */
-export declare interface AdapterStatusCheckResponse extends ExtensionResponse {
+export type AdapterStatusCheckResponse = ExtensionResponse<[{
   isDone: boolean;
   progress: number;
   total?: number;
   timeElapsed?: number;
   currentStatus?: string;
-}
+}], never>;

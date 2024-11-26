@@ -91,6 +91,7 @@ export declare interface Graph {
 
   // The level in the graph tree.
   level?: number;
+  perf_data?: NodeDataProviderData;
 }
 
 /** A single node in the graph. */
