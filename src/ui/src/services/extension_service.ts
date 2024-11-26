@@ -18,7 +18,7 @@
 
 import {Injectable, signal} from '@angular/core';
 
-import {ExtensionCommand, type AdapterExecuteResponse, type AdapterOverrideResponse, type AdapterStatusCheckResponse } from '../common/extension_command';
+import {ExtensionCommand, type AdapterExecuteResponse, type AdapterOverrideResponse, type AdapterStatusCheckResults } from '../common/extension_command';
 import {Extension, type ExtensionSettings} from '../common/types';
 import {INTERNAL_COLAB} from '../common/utils';
 
@@ -26,7 +26,7 @@ const EXTERNAL_GET_EXTENSIONS_API_PATH = '/api/v1/get_extensions';
 const EXTERNAL_SEND_CMD_GET_API_PATH = '/api/v1/send_command';
 const EXTERNAL_SEND_CMD_POST_API_PATH = '/apipost/v1/send_command';
 
-const MOCK_STATUS_UPDATE: Required<Omit<AdapterStatusCheckResponse, 'error'>> = {
+const MOCK_STATUS_UPDATE: Required<Omit<AdapterStatusCheckResults, 'error'>> = {
   isDone: false,
   progress: 0,
   total: 100,
@@ -88,13 +88,15 @@ export class ExtensionService {
             MOCK_STATUS_UPDATE.currentStatus = 'finished';
           }
 
-          return { cmdResp: MOCK_STATUS_UPDATE as T };
+          return { cmdResp: { graphs: [MOCK_STATUS_UPDATE] } as T };
         }
 
         if (localStorage.getItem('mock-api') === 'true' && cmd.cmdId === 'execute') {
           const response: AdapterExecuteResponse = {
-            log_file: '',
-            stdout: ''
+            graphs: [{
+              log_file: '',
+              stdout: ''
+            }]
           };
 
           return { cmdResp: response as T };
@@ -102,9 +104,9 @@ export class ExtensionService {
 
         if (localStorage.getItem('mock-api') === 'true' && cmd.cmdId === 'override') {
           const response: AdapterOverrideResponse = {
-            success: true,
-            // @ts-expect-error
-            graphs: cmd.settings.graphs
+            graphs: [{
+              success: true
+            }]
           };
 
           return { cmdResp: response as T };
@@ -116,6 +118,7 @@ export class ExtensionService {
         return {otherError: `Failed to convert model. ${resp.status}`};
       }
 
+      // TODO: error check if the json is parseable
       let json = await resp.json();
 
       function processAttribute(key: string, value: string) {
@@ -159,17 +162,17 @@ export class ExtensionService {
           });
         });
 
-        json.perf_data = {
-          'ttir-graph': {
-            results: {
-              'forward0': {
-                value: 1,
-                bgColor: '#ff0000',
-                textColor: '#000000'
-              }
-            }
-          }
-        };
+        // json.perf_data = {
+        //   'ttir-graph': {
+        //     results: {
+        //       'forward0': {
+        //         value: 1,
+        //         bgColor: '#ff0000',
+        //         textColor: '#000000'
+        //       }
+        //     }
+        //   }
+        // };
       }
 
       return {cmdResp: json as T};
