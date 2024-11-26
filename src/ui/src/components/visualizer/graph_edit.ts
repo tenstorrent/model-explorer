@@ -244,6 +244,20 @@ export class GraphEdit {
             };
 
             this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate, showError);
+
+            // TODO: review if we want to do this
+            if (result.perf_data) {
+              const runId = genUid();
+              const modelGraph = curPane?.modelGraph as ModelGraph;
+
+              this.nodeDataProviderExtensionService.addRun(
+                runId,
+                `${modelGraph.id} (Performance Trace)`,
+                curModel.selectedAdapter?.id ?? '',
+                modelGraph,
+                result.perf_data,
+              );
+            }
           } else {
             throw new Error("Graph execution resulted in an error");
           }

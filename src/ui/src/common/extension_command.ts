@@ -17,12 +17,16 @@
  */
 
 import {Graph, GraphCollection,} from '../components/visualizer/common/input_graph';
+import type { NodeDataProviderData } from '../components/visualizer/common/types';
 import type { ChangesPerNode } from './model_loader_service_interface';
 
 /** A command sent to extension. */
 export declare interface ExtensionCommand {
   cmdId: string;
   extensionId: string;
+  modelPath: string;
+  settings: Record<string, any>;
+  deleteAfterConversion: boolean;
 }
 
 interface ExtensionGraphResponse<G extends Array<unknown>> {
@@ -62,12 +66,10 @@ export type AdapterConvertResponse = ExtensionResponse;
 /** Adapter's "override" command. */
 export declare interface AdapterOverrideCommand extends ExtensionCommand {
   cmdId: 'override';
-  modelPath: string;
   settings: {
     graphs: Graph[];
     changes: ChangesPerNode;
   };
-  deleteAfterConversion: boolean;
 }
 
 /** Adapter's "override" command response. */
@@ -78,9 +80,6 @@ export type AdapterOverrideResponse = ExtensionResponse<[{
 /** Adapter's "execute" command. */
 export declare interface AdapterExecuteCommand extends ExtensionCommand {
   cmdId: 'execute';
-  modelPath: string;
-  settings: Record<string, any>;
-  deleteAfterConversion: boolean;
 }
 
 /** Adapter's "execute" results inside the response. */
@@ -88,6 +87,7 @@ export interface AdapterExecuteResults {
   stdout: string;
   log_file: string;
   perf_trace?: string;
+  perf_data?: NodeDataProviderData
 }
 
 /** Adapter's "execute" command response. */
@@ -96,9 +96,6 @@ export type AdapterExecuteResponse = ExtensionResponse<[AdapterExecuteResults], 
 /** Adapter's "status check" command. */
 export declare interface AdapterStatusCheckCommand extends ExtensionCommand {
   cmdId: 'status_check';
-  modelPath: string;
-  settings: Record<string, any>;
-  deleteAfterConversion: boolean;
 }
 
 /** Adapter's "status check" results inside the response. */
