@@ -27,19 +27,19 @@ export declare interface ExtensionCommand {
 
 interface ExtensionGraphResponse<G extends Array<unknown>> {
   graphs: G;
-  graphCollection?: never;
+  graphCollections?: never;
   error?: never;
 }
 
 interface ExtensionCollectionResponse<C extends Array<unknown>> {
   graphs?: never;
-  graphCollection: C;
+  graphCollections: C;
   error?: never;
 }
 
 interface ExtensionErrorResponse<E extends unknown = string> {
   graphs?: never;
-  graphCollection?: never;
+  graphCollections?: never;
   error: E;
 }
 
