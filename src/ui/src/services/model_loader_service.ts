@@ -24,6 +24,7 @@ import {
   AdapterConvertResponse,
   type AdapterExecuteCommand,
   type AdapterExecuteResponse,
+  type AdapterExecuteResults,
   type AdapterOverrideCommand,
   type AdapterOverrideResponse,
   type AdapterStatusCheckCommand,
@@ -95,7 +96,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   async executeModel(modelItem: ModelItem) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let updatedPath = modelItem.path;
-    let result: AdapterExecuteResponse | undefined = undefined;
+    let result: AdapterExecuteResults | undefined = undefined;
 
     // User-entered file path.
     if (modelItem.type === ModelItemType.FILE_PATH) {
@@ -141,7 +142,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: ChangesPerNode) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
-    let result: GraphCollection | undefined = undefined;
+    let result = false;
     let updatedPath = modelItem.path;
 
     // User-entered file path.
@@ -167,7 +168,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem.selected = false;
         modelItem.status.set(ModelItemStatus.ERROR);
         modelItem.errorMessage = uploadError;
-        return undefined;
+        return false;
       }
 
       updatedPath = path;
@@ -339,7 +340,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
-  async checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResponse> {
+  async checkExecutionStatus(extensionId: string, modelPath: string) {
       const result = await this.sendStatusCheckRequest(extensionId, modelPath);
 
       return result;
@@ -430,7 +431,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     path: string,
     settings: Record<string, any> = {}
   ) {
-    let result: AdapterExecuteResponse | undefined = undefined;
+    let result: AdapterExecuteResults | undefined = undefined;
 
     modelItem.status.set(ModelItemStatus.PROCESSING);
 
@@ -454,7 +455,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       modelItem.errorMessage = error;
       return undefined;
     } else if (cmdResp) {
-      result = cmdResp;
+      result = this.processAdapterExecuteResponse(cmdResp);
     }
 
     modelItem.status.set(ModelItemStatus.DONE);
@@ -469,7 +470,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     fieldsToUpdate: Record<string, any>
   ) {
 
-    let result: GraphCollection | undefined = undefined;
+    let result = false;
 
     modelItem.status.set(ModelItemStatus.PROCESSING);
 
@@ -493,9 +494,9 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       modelItem.selected = false;
       modelItem.status.set(ModelItemStatus.ERROR);
       modelItem.errorMessage = error;
-      return  undefined;
+      return false;
     } else if (cmdResp) {
-      result = this.processAdapterOverrideResponse(cmdResp, modelItem.label);
+      result = this.processAdapterOverrideResponse(cmdResp);
     }
     modelItem.status.set(ModelItemStatus.DONE);
     return result;
@@ -531,7 +532,11 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         throw new Error(cmdResp.error);
       }
 
-      return cmdResp;
+      return this.processAdapterStatusCheckResponse(cmdResp) ?? {
+        isDone: false,
+        progress: -1,
+        error: 'Empty response'
+      };
     } catch (err) {
       return {
         isDone: true,
@@ -546,7 +551,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     fileName: string,
   ): GraphCollection[] {
     if (resp.graphs) {
-      return [{label: fileName, graphs: resp.graphs, perf_data: resp.perf_data}];
+      return [{label: fileName, graphs: resp.graphs }];
     } else if (resp.graphCollections) {
       return resp.graphCollections?.map((item) => {
         return {
@@ -561,15 +566,19 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   private processAdapterOverrideResponse(
     resp: AdapterOverrideResponse,
-    label: string,
-  ): GraphCollection | undefined {
-    if (resp.graphs) {
-      return {
-        label,
-        graphs: resp.graphs,
-      }
-    }
+  ): boolean {
+    return resp?.graphs?.[0].success ?? false;
+  }
 
-    return undefined;
+  private processAdapterStatusCheckResponse(
+    resp: AdapterStatusCheckResponse
+  ) {
+      return resp?.graphs?.[0];
+  }
+
+  private processAdapterExecuteResponse(
+    resp: AdapterExecuteResponse
+  ) {
+    return resp?.graphs?.[0];
   }
 }
