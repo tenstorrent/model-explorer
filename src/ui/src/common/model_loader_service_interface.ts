@@ -22,7 +22,7 @@ import {GraphCollection} from '../components/visualizer/common/input_graph';
 import type { KeyValue } from '../components/visualizer/common/types';
 
 import {ModelItem} from './types';
-import type { AdapterExecuteResponse, AdapterStatusCheckResponse } from './extension_command';
+import type { AdapterExecuteResults, AdapterStatusCheckResults } from './extension_command';
 
 export type ChangesPerNode = Record<string, KeyValue[]>;
 export type ChangesPerGraphAndNode = Record<string, ChangesPerNode>;
@@ -31,9 +31,9 @@ export type ChangesPerGraphAndNode = Record<string, ChangesPerNode>;
 export interface ModelLoaderServiceInterface {
   loadModels(modelItems: ModelItem[]): Promise<void>;
   loadModel(modelItems: ModelItem): Promise<GraphCollection[]>;
-  executeModel(modelItem: ModelItem): Promise<AdapterExecuteResponse | undefined>;
-  checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResponse>;
-  overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: ChangesPerNode): Promise<GraphCollection | undefined>;
+  executeModel(modelItem: ModelItem): Promise<AdapterExecuteResults | undefined>;
+  checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResults>;
+  overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: ChangesPerNode): Promise<boolean>;
   get loadedGraphCollections(): WritableSignal<GraphCollection[] | undefined>;
   get models(): WritableSignal<ModelItem[]>;
   get changesToUpload(): WritableSignal<ChangesPerGraphAndNode>;

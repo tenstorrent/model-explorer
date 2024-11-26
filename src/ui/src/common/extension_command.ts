@@ -83,12 +83,15 @@ export declare interface AdapterExecuteCommand extends ExtensionCommand {
   deleteAfterConversion: boolean;
 }
 
-/** Adapter's "execute" command response. */
-export type AdapterExecuteResponse = ExtensionResponse<[{
+/** Adapter's "execute" results inside the response. */
+export interface AdapterExecuteResults {
   stdout: string;
   log_file: string;
   perf_trace?: string;
-}], never>;
+}
+
+/** Adapter's "execute" command response. */
+export type AdapterExecuteResponse = ExtensionResponse<[AdapterExecuteResults], never>;
 
 /** Adapter's "status check" command. */
 export declare interface AdapterStatusCheckCommand extends ExtensionCommand {
@@ -98,11 +101,15 @@ export declare interface AdapterStatusCheckCommand extends ExtensionCommand {
   deleteAfterConversion: boolean;
 }
 
-/** Adapter's "status check" command response. */
-export type AdapterStatusCheckResponse = ExtensionResponse<[{
+/** Adapter's "status check" results inside the response. */
+export interface AdapterStatusCheckResults {
   isDone: boolean;
   progress: number;
   total?: number;
   timeElapsed?: number;
   currentStatus?: string;
-}], never>;
+  error?: string;
+}
+
+/** Adapter's "status check" command response. */
+export type AdapterStatusCheckResponse = ExtensionResponse<[AdapterStatusCheckResults], never>;
