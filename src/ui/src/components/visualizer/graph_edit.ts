@@ -261,14 +261,14 @@ export class GraphEdit {
   }
 
   async handleClickUploadGraph() {
-    const { curModel, curCollection, curCollectionLabel, changesToUpload, models } = this.getCurrentGraphInformation();
+    const { curModel, curCollection, changesToUpload, models, curPane } = this.getCurrentGraphInformation();
 
     if (curModel && curCollection && changesToUpload) {
       try {
         this.isProcessingUploadRequest = true;
         this.loggingService.info('Start uploading model', curModel.path);
 
-        const updatedGraphCollection = await this.modelLoaderService.overrideModel(
+        const isUploadSuccessful = await this.modelLoaderService.overrideModel(
           curModel,
           curCollection,
           changesToUpload
@@ -279,20 +279,8 @@ export class GraphEdit {
         if (curModel.status() !== ModelItemStatus.ERROR) {
           this.loggingService.info('Updating existing models', curModel.path);
 
-          if (updatedGraphCollection) {
-            this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-              if (!prevGraphCollections) {
-                return undefined;
-              }
-
-              const collectionToUpdate = prevGraphCollections.findIndex(({ label }) => label === curCollectionLabel) ?? -1;
-
-              if (collectionToUpdate !== -1) {
-                prevGraphCollections[collectionToUpdate] = updatedGraphCollection;
-              }
-
-              return [...prevGraphCollections];
-            });
+          if (isUploadSuccessful) {
+            await this.updateGraphInformation(curModel, models, curPane);
 
             this.urlService.setUiState(undefined);
             this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
