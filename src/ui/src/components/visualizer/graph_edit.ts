@@ -70,13 +70,13 @@ export class GraphEdit {
     }
   }
 
-  private poolForStatusUpdate(extensionId: string, modelPath: string, updateCallback: (progress: number, total: number) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>, errorCallback: (error: string) => void | Promise<void>) {
+  private poolForStatusUpdate(modelItem: ModelItem, modelPath: string, updateCallback: (progress: number, total: number) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>, errorCallback: (error: string) => void | Promise<void>) {
     const POOL_TIME_MS = 500;
     const TIMEOUT_MS = 5 * 60 * 1000;
 
     const startTime = Date.now();
     const intervalId = setInterval(async () => {
-      const { isDone, total = 100, progress, error } = await this.modelLoaderService.checkExecutionStatus(extensionId, modelPath);
+      const { isDone, total = 100, progress, error } = await this.modelLoaderService.checkExecutionStatus(modelItem, modelPath);
 
       if (error) {
         errorCallback(error);
@@ -243,7 +243,7 @@ export class GraphEdit {
               this.showErrorDialog('Graph Execution Error', error);
             };
 
-            this.poolForStatusUpdate(curModel.selectedAdapter?.id ?? '', curModel.path, updateStatus, finishUpdate, showError);
+            this.poolForStatusUpdate(curModel, curModel.path, updateStatus, finishUpdate, showError);
 
             // TODO: review if we want to do this
             if (result.perf_data) {

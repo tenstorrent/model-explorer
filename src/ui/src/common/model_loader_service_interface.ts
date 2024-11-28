@@ -32,7 +32,7 @@ export interface ModelLoaderServiceInterface {
   loadModels(modelItems: ModelItem[]): Promise<void>;
   loadModel(modelItems: ModelItem): Promise<GraphCollection[]>;
   executeModel(modelItem: ModelItem): Promise<AdapterExecuteResults | undefined>;
-  checkExecutionStatus(extensionId: string, modelPath: string): Promise<AdapterStatusCheckResults>;
+  checkExecutionStatus(modelItem: ModelItem, modelPath: string): Promise<AdapterStatusCheckResults>;
   overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: ChangesPerNode): Promise<boolean>;
   get loadedGraphCollections(): WritableSignal<GraphCollection[] | undefined>;
   get models(): WritableSignal<ModelItem[]>;

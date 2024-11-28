@@ -48,7 +48,7 @@ interface ExtensionErrorResponse<E extends unknown = string> {
 }
 
 /** A response received from the extension. */
-type ExtensionResponse<G extends Array<unknown> = Graph[], C extends Array<unknown> = GraphCollection[], E extends unknown = string> = ExtensionGraphResponse<G> | ExtensionCollectionResponse<C> | ExtensionErrorResponse<E>;
+export type ExtensionResponse<G extends Array<unknown> = Graph[], C extends Array<unknown> = GraphCollection[], E extends unknown = string> = ExtensionGraphResponse<G> | ExtensionCollectionResponse<C> | ExtensionErrorResponse<E>;
 
 /** Adapter's "convert" command. */
 export declare interface AdapterConvertCommand extends ExtensionCommand {

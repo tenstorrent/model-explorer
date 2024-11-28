@@ -20,15 +20,13 @@ import {Injectable, signal} from '@angular/core';
 
 import {GRAPHS_MODEL_SOURCE_PREFIX} from '../common/consts';
 import {
-  AdapterConvertCommand,
-  AdapterConvertResponse,
-  type AdapterExecuteCommand,
+  type AdapterConvertResponse,
   type AdapterExecuteResponse,
   type AdapterExecuteResults,
-  type AdapterOverrideCommand,
   type AdapterOverrideResponse,
-  type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
+  type ExtensionCommand,
+  type ExtensionResponse,
 } from '../common/extension_command';
 import {ModelLoaderServiceInterface, type ChangesPerGraphAndNode, type ChangesPerNode } from '../common/model_loader_service_interface';
 import {
@@ -340,10 +338,22 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
-  async checkExecutionStatus(extensionId: string, modelPath: string) {
-      const result = await this.sendStatusCheckRequest(extensionId, modelPath);
+  async checkExecutionStatus(modelItem: ModelItem, modelPath: string) {
+    const result = await this.sendExtensionRequest<AdapterStatusCheckResponse>('status_check', modelItem, modelPath);
 
-      return result;
+    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
+      return {
+        isDone: true,
+        progress: -1,
+        error: modelItem.errorMessage ?? 'An error has occured'
+      };
+    }
+
+    return this.processAdapterStatusCheckResponse(result) ?? {
+      isDone: false,
+      progress: -1,
+      error: 'Empty response'
+    };
   }
 
   private async readTextFile(path: string): Promise<string> {
@@ -394,74 +404,75 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
   }
 
+  private async sendExtensionRequest<T extends ExtensionResponse<any[], any[]>>(
+    command: string,
+    modelItem: ModelItem,
+    path: string,
+    settings?: Record<string, any>,
+    deleteAfterConversion: boolean = false,
+  ) {
+    try {
+      modelItem.status.set(ModelItemStatus.PROCESSING);
+      const convertCommand: ExtensionCommand = {
+        cmdId: command,
+        extensionId: modelItem.selectedAdapter?.id || '',
+        modelPath: path,
+        settings: settings ?? {},
+        deleteAfterConversion,
+      };
+
+      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(convertCommand);
+
+      if (cmdError) {
+        throw new Error(cmdError);
+      }
+
+      if (!cmdResp) {
+        throw new Error(`Command "${command}" didn't return any response`);
+      }
+
+      if (cmdResp.error) {
+        throw new Error(cmdResp.error);
+      }
+
+      modelItem.status.set(ModelItemStatus.DONE);
+      return cmdResp;
+    } catch (err) {
+      modelItem.selected = false;
+      modelItem.errorMessage = (err as Partial<Error>)?.message ?? err?.toString() ?? `An error has occured when running command "${command}"`;
+      modelItem.status.set(ModelItemStatus.ERROR);
+
+      return undefined;
+    }
+  }
+
   private async sendConvertRequest(
     modelItem: ModelItem,
     path: string,
     fileName: string,
     deleteAfterConversion: boolean,
   ): Promise<GraphCollection[]> {
-    let result: GraphCollection[] = [];
-    modelItem.status.set(ModelItemStatus.PROCESSING);
-    const convertCommand: AdapterConvertCommand = {
-      cmdId: 'convert',
-      extensionId: modelItem.selectedAdapter?.id || '',
-      modelPath: path,
-      settings: this.settingsService.getAllSettingsValues(),
-      deleteAfterConversion,
-    };
-    const {cmdResp, otherError: cmdError} =
-      await this.extensionService.sendCommandToExtension<AdapterConvertResponse>(
-        convertCommand,
-      );
-    const error = cmdResp?.error || cmdError;
-    if (error) {
-      modelItem.selected = false;
-      modelItem.status.set(ModelItemStatus.ERROR);
-      modelItem.errorMessage = error;
+    const result = await this.sendExtensionRequest<AdapterConvertResponse>('convert', modelItem, path, this.settingsService.getAllSettingsValues(), deleteAfterConversion);
+
+    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return [];
-    } else if (cmdResp) {
-      result = this.processAdapterConvertResponse(cmdResp, fileName);
     }
-    modelItem.status.set(ModelItemStatus.DONE);
-    return result;
+
+    return this.processAdapterConvertResponse(result, fileName);
   }
 
-  // TODO: externalize repeated code
   private async sendExecuteRequest(
     modelItem: ModelItem,
     path: string,
     settings: Record<string, any> = {}
   ) {
-    let result: AdapterExecuteResults | undefined = undefined;
+    const result = await this.sendExtensionRequest<AdapterExecuteResponse>('execute', modelItem, path, settings);
 
-    modelItem.status.set(ModelItemStatus.PROCESSING);
-
-    const executeCommand: AdapterExecuteCommand = {
-      cmdId: 'execute',
-      extensionId: modelItem.selectedAdapter?.id ?? '',
-      modelPath: path,
-      settings,
-      deleteAfterConversion: false
-    }
-
-    const {cmdResp, otherError: cmdError} =
-      await this.extensionService.sendCommandToExtension<AdapterExecuteResponse>(
-        executeCommand,
-      );
-    const error = cmdResp?.error || cmdError;
-
-    if (error) {
-      modelItem.selected = false;
-      modelItem.status.set(ModelItemStatus.ERROR);
-      modelItem.errorMessage = error;
+    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return undefined;
-    } else if (cmdResp) {
-      result = this.processAdapterExecuteResponse(cmdResp);
     }
 
-    modelItem.status.set(ModelItemStatus.DONE);
-
-    return result;
+    return this.processAdapterExecuteResponse(result);
   }
 
   private async sendOverrideRequest(
@@ -471,80 +482,16 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     fieldsToUpdate: Record<string, any>
   ) {
 
-    let result = false;
+    const result = await this.sendExtensionRequest<AdapterOverrideResponse>('override', modelItem, path, {
+      graphs: graphCollection.graphs,
+      changes: fieldsToUpdate,
+    });
 
-    modelItem.status.set(ModelItemStatus.PROCESSING);
-
-    const overrideCommand: AdapterOverrideCommand = {
-      cmdId: 'override',
-      extensionId: modelItem.selectedAdapter?.id || '',
-      modelPath: path,
-      settings: {
-        graphs: graphCollection.graphs,
-        changes: fieldsToUpdate
-      },
-      deleteAfterConversion: false
-    };
-
-    const {cmdResp, otherError: cmdError} =
-      await this.extensionService.sendCommandToExtension<AdapterOverrideResponse>(
-        overrideCommand,
-      );
-    const error = cmdResp?.error || cmdError;
-    if (error) {
-      modelItem.selected = false;
-      modelItem.status.set(ModelItemStatus.ERROR);
-      modelItem.errorMessage = error;
+    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return false;
-    } else if (cmdResp) {
-      result = this.processAdapterOverrideResponse(cmdResp);
     }
-    modelItem.status.set(ModelItemStatus.DONE);
-    return result;
-  }
 
-  private async sendStatusCheckRequest(
-    extensionId: string,
-    path: string,
-  ) {
-    try {
-      const overrideCommand: AdapterStatusCheckCommand = {
-        cmdId: 'status_check',
-        extensionId,
-        modelPath: path,
-        settings: {},
-        deleteAfterConversion: false
-      };
-
-      const { cmdResp, otherError: cmdError } =
-        await this.extensionService.sendCommandToExtension<AdapterStatusCheckResponse>(
-          overrideCommand,
-        );
-
-      if (cmdError) {
-        throw new Error(cmdError);
-      }
-
-      if (!cmdResp) {
-        throw new Error("Command didn't return any response");
-      }
-
-      if (cmdResp.error) {
-        throw new Error(cmdResp.error);
-      }
-
-      return this.processAdapterStatusCheckResponse(cmdResp) ?? {
-        isDone: false,
-        progress: -1,
-        error: 'Empty response'
-      };
-    } catch (err) {
-      return {
-        isDone: true,
-        progress: -1,
-        error: (err as Partial<Error>)?.message ?? err?.toString() ?? 'An error has occured'
-      };
-    }
+    return this.processAdapterOverrideResponse(result);
   }
 
   private processAdapterConvertResponse(
