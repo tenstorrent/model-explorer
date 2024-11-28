@@ -69,8 +69,11 @@ export class ExtensionService {
         return {otherError: `Failed to convert model. ${resp.status}`};
       }
 
-      // TODO: error check if the json is parseable
       let json = await resp.json();
+
+      if (typeof json !== 'object' || json === null) {
+        return {otherError: `Failed to parse command response.`};
+      }
 
       json = mockExtensionCommand(cmd.cmdId, json);
 
