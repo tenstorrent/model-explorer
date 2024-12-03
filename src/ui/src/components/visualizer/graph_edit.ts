@@ -147,15 +147,16 @@ export class GraphEdit {
       newGraphCollections.forEach(({ perf_data }) => {
         if (perf_data) {
           const runId = genUid();
-          const modelGraph = curPane?.modelGraph as ModelGraph;
 
-          this.nodeDataProviderExtensionService.addRun(
-            runId,
-            `${modelGraph.id} (Performance Trace)`,
-            curModel.selectedAdapter?.id ?? '',
-            modelGraph,
-            perf_data,
-          );
+          if (curPane?.modelGraph) {
+            this.nodeDataProviderExtensionService.addRun(
+              runId,
+              `${curPane.modelGraph.id} (Performance Trace)`,
+              curModel.selectedAdapter?.id ?? '',
+              curPane.modelGraph,
+              perf_data,
+            );
+          }
         }
       });
 
@@ -244,20 +245,6 @@ export class GraphEdit {
             };
 
             this.poolForStatusUpdate(curModel, curModel.path, updateStatus, finishUpdate, showError);
-
-            // TODO: review if we want to do this
-            if (result.perf_data) {
-              const runId = genUid();
-              const modelGraph = curPane?.modelGraph as ModelGraph;
-
-              this.nodeDataProviderExtensionService.addRun(
-                runId,
-                `${modelGraph.id} (Performance Trace)`,
-                curModel.selectedAdapter?.id ?? '',
-                modelGraph,
-                result.perf_data,
-              );
-            }
           } else {
             throw new Error("Graph execution resulted in an error");
           }
