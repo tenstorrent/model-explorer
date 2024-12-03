@@ -85,12 +85,7 @@ export declare interface AdapterExecuteCommand extends ExtensionCommand {
 }
 
 /** Adapter's "execute" results inside the response. */
-export interface AdapterExecuteResults {
-  stdout: string;
-  log_file: string;
-  perf_trace?: string;
-  perf_data?: NodeDataProviderData
-}
+export interface AdapterExecuteResults {}
 
 /** Adapter's "execute" command response. */
 export type AdapterExecuteResponse = ExtensionResponse<[AdapterExecuteResults], never>;
@@ -108,6 +103,8 @@ export interface AdapterStatusCheckResults {
   timeElapsed?: number;
   currentStatus?: string;
   error?: string;
+  stdout?: string;
+  log_file?: string;
 }
 
 /** Adapter's "status check" command response. */

@@ -9,6 +9,8 @@ const MOCK_STATUS_UPDATE: Required<Omit<AdapterStatusCheckResults, 'error'>> = {
   total: 100,
   timeElapsed: 0,
   currentStatus: 'executing',
+  stdout: '',
+  log_file: '/fake.log'
 };
 
 /**
