@@ -22,7 +22,6 @@ import {GRAPHS_MODEL_SOURCE_PREFIX} from '../common/consts';
 import {
   type AdapterConvertResponse,
   type AdapterExecuteResponse,
-  type AdapterExecuteResults,
   type AdapterOverrideResponse,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
@@ -94,7 +93,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   async executeModel(modelItem: ModelItem) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let updatedPath = modelItem.path;
-    let result: AdapterExecuteResults | undefined = undefined;
+    let result: boolean = false;
 
     // User-entered file path.
     if (modelItem.type === ModelItemType.FILE_PATH) {
@@ -120,7 +119,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem.selected = false;
         modelItem.status.set(ModelItemStatus.ERROR);
         modelItem.errorMessage = uploadError;
-        return undefined;
+        return false;
       }
 
       updatedPath = path;
@@ -469,7 +468,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     const result = await this.sendExtensionRequest<AdapterExecuteResponse>('execute', modelItem, path, settings);
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
-      return undefined;
+      return false;
     }
 
     return this.processAdapterExecuteResponse(result);
@@ -527,6 +526,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   private processAdapterExecuteResponse(
     resp: AdapterExecuteResponse
   ) {
-    return resp?.graphs?.[0];
+    return resp.graphs?.length === 0;
   }
 }

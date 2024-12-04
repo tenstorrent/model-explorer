@@ -88,7 +88,7 @@ export declare interface AdapterExecuteCommand extends ExtensionCommand {
 export interface AdapterExecuteResults {}
 
 /** Adapter's "execute" command response. */
-export type AdapterExecuteResponse = ExtensionResponse<[AdapterExecuteResults], never>;
+export type AdapterExecuteResponse = ExtensionResponse<[], never>;
 
 /** Adapter's "status check" command. */
 export declare interface AdapterStatusCheckCommand extends ExtensionCommand {

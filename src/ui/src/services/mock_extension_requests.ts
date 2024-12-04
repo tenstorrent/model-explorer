@@ -118,10 +118,7 @@ export function mockExtensionCommand(command: string, json: any) {
 
   if (command === 'execute') {
     return {
-      graphs: [{
-        log_file: '',
-        stdout: '',
-      }],
+      graphs: [],
     } satisfies AdapterExecuteResponse;
   }
 
