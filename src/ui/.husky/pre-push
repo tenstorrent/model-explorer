@@ -1,0 +1,16 @@
+#! /bin/bash
+
+# Build the UI
+cd src/ui
+npm run build
+
+# Delete old files
+rm -rf ../server/package/src/model_explorer/web_app/
+
+# Recreate directory and move files
+mkdir -p ../server/package/src/model_explorer/web_app/
+mv ./dist/* ../server/package/src/model_explorer/web_app/
+
+# Commit changes
+git add -A
+git commit -m "chore: rebuild the project"
