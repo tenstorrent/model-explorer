@@ -8,7 +8,7 @@
     "deploy": "./scripts/build_and_update_python_package.sh",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "prepare": "husky"
+    "prepare": "cd ../../ && git config --local core.hooksPath .githooks/"
   },
   "private": true,
   "dependencies": {
