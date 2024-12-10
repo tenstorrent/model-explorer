@@ -188,8 +188,8 @@ export class GraphEdit {
       return [...new Set([...curErrors ?? [], ...messages])];
     });
     this.dialog.open(GraphErrorsDialog, {
-      width: 'clamp(10rem, 30vmin, 30rem)',
-      height: 'clamp(10rem, 30vmin, 30rem)',
+      width: 'clamp(10rem, 60vw, 60rem)',
+      height: 'clamp(10rem, 60vh, 60rem)',
       data: {
         errorMessages: [...messages],
         title
@@ -318,8 +318,8 @@ export class GraphEdit {
 
   handleLogDialogOpen() {
     this.dialog.open(LoggingDialog, {
-      width: 'clamp(10rem, 60vw, 60rem)',
-      height: 'clamp(10rem, 60vh, 60rem)'
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)'
     });
   }
 
