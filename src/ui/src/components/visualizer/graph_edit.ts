@@ -12,11 +12,10 @@ import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModelItemStatus, type ModelItem } from '../../common/types';
 import { genUid } from './common/utils';
-import { ModelGraph } from './common/model_graph';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
-import type { NodeDataProviderData, Pane } from './common/types';
+import type { Pane } from './common/types';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 
 /**
