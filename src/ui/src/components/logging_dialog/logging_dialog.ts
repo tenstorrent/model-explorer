@@ -56,7 +56,7 @@ export class LoggingDialog {
       case 'warn':
         return 'warning';
       case 'error':
-        return 'error';
+        return 'dangerous';
       case 'log':
       default:
         return 'help';
