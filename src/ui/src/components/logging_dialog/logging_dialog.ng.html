@@ -31,8 +31,7 @@ limitations under the License.
         </div>
         <div class="log-message-messages">
           @for (message of logMessage.messages; track $index) {
-            <span class="log-message-message">{{message}}</span>
-            <br>
+            <pre class="log-message-message">{{message}}</pre>
           }
         </div>
       </li>
