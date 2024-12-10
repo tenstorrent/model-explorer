@@ -69,13 +69,13 @@ export class GraphEdit {
     }
   }
 
-  private poolForStatusUpdate(modelItem: ModelItem, modelPath: string, updateCallback: (progress: number, total: number) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>, errorCallback: (error: string) => void | Promise<void>) {
+  private poolForStatusUpdate(modelItem: ModelItem, modelPath: string, updateCallback: (progress: number, total: number, stdout?: string) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout') => void | Promise<void>, errorCallback: (error: string) => void | Promise<void>) {
     const POOL_TIME_MS = 500;
     const TIMEOUT_MS = 5 * 60 * 1000;
 
     const startTime = Date.now();
     const intervalId = setInterval(async () => {
-      const { isDone, total = 100, progress, error } = await this.modelLoaderService.checkExecutionStatus(modelItem, modelPath);
+      const { isDone, total = 100, progress, error, stdout } = await this.modelLoaderService.checkExecutionStatus(modelItem, modelPath);
 
       if (error) {
         errorCallback(error);
@@ -97,7 +97,7 @@ export class GraphEdit {
       }
 
       if (progress !== -1) {
-        updateCallback(progress, total);
+        updateCallback(progress, total, stdout);
       }
     }, POOL_TIME_MS);
   }
@@ -217,10 +217,15 @@ export class GraphEdit {
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
-            const updateStatus = (progress: number, total: number) => {
+            const updateStatus = (progress: number, total: number, stdout?: string) => {
               this.executionProgress = progress ?? this.executionProgress;
               this.executionTotal = total;
-              this.loggingService.info(`Execution progress: ${progress} of ${total}`, curModel.path);
+              this.loggingService.debug(`Execution progress: ${progress} of ${total}`, curModel.path);
+
+              if (stdout) {
+                this.loggingService.info(stdout);
+              }
+
               this.changeDetectorRef.detectChanges();
             };
 
