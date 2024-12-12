@@ -144,18 +144,21 @@ export class GraphEdit {
 
       this.modelLoaderService.graphErrors.update(() => undefined);
 
+
+      const modelGraphs = this.appService.panes().map((pane) => pane.modelGraph).filter((modelGraph) => modelGraph !== undefined);
+
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           if (graph.perf_data) {
             const runId = genUid();
+            const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
 
-            // TODO: fix relationship between modelGraph and graph
-            if (curPane?.modelGraph) {
+            if (modelGraph) {
               this.nodeDataProviderExtensionService.addRun(
                 runId,
-                `${curPane.modelGraph.id} (Performance Trace)`,
+                `${modelGraph.id} (Performance Trace)`,
                 curModel.selectedAdapter?.id ?? '',
-                curPane.modelGraph,
+                modelGraph,
                 graph.perf_data,
               );
             }
