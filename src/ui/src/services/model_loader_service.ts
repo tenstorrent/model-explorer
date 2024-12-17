@@ -414,7 +414,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   ) {
     try {
       modelItem.status.set(ModelItemStatus.PROCESSING);
-      const convertCommand: ExtensionCommand = {
+      const extensionCommand: ExtensionCommand = {
         cmdId: command,
         extensionId: modelItem.selectedAdapter?.id || '',
         modelPath: path,
@@ -422,7 +422,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         deleteAfterConversion,
       };
 
-      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(convertCommand);
+      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(extensionCommand);
 
       if (cmdError) {
         throw new Error(cmdError);
