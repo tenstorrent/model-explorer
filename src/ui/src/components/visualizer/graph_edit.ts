@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import type { ChangesPerNode, ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -103,8 +103,8 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], curPane?: Pane) {
-    const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], changesToUpload: ChangesPerNode) {
+    const newGraphCollections = await this.modelLoaderService.loadModel(curModel, changesToUpload);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
@@ -213,7 +213,7 @@ export class GraphEdit {
   }
 
   async handleClickExecuteGraph() {
-    const { curModel, curPane, models } = this.getCurrentGraphInformation();
+    const { curModel, models, changesToUpload } = this.getCurrentGraphInformation();
 
     if (curModel) {
       try {
@@ -241,7 +241,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path);
-                await this.updateGraphInformation(curModel, models, curPane);
+                await this.updateGraphInformation(curModel, models, changesToUpload);
                 this.loggingService.info('Model updated', curModel.path);
               }
 
@@ -292,7 +292,7 @@ export class GraphEdit {
           this.loggingService.info('Updating existing models', curModel.path);
 
           if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models, curPane);
+            await this.updateGraphInformation(curModel, models, changesToUpload);
 
             this.urlService.setUiState(undefined);
             this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
