@@ -15,7 +15,6 @@ import { genUid } from './common/utils';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
-import type { Pane } from './common/types';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
 
@@ -184,7 +183,6 @@ export class GraphEdit {
       curModel,
       curCollection,
       curCollectionLabel,
-      curPane,
       models,
       changesToUpload,
     };
@@ -273,7 +271,7 @@ export class GraphEdit {
   }
 
   async handleClickUploadGraph() {
-    const { curModel, curCollection, changesToUpload, models, curPane } = this.getCurrentGraphInformation();
+    const { curModel, curCollection, changesToUpload, models } = this.getCurrentGraphInformation();
 
     if (curModel && curCollection && changesToUpload) {
       try {
