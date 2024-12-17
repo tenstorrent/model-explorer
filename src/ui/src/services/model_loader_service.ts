@@ -227,7 +227,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
   }
 
-  async loadModel(modelItem: ModelItem): Promise<GraphCollection[]> {
+  async loadModel(modelItem: ModelItem, changes: ChangesPerNode = {}): Promise<GraphCollection[]> {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: GraphCollection[] = [];
     let updatedPath: string | undefined;
@@ -265,6 +265,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             filePath,
             fileName,
             false,
+            { changes }
           );
           break;
       }
@@ -317,6 +318,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             path,
             file.name,
             true,
+            { changes }
           );
           break;
       }
@@ -450,8 +452,18 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     path: string,
     fileName: string,
     deleteAfterConversion: boolean,
+    settings: Record<string, any> = {},
   ): Promise<GraphCollection[]> {
-    const result = await this.sendExtensionRequest<AdapterConvertResponse>('convert', modelItem, path, this.settingsService.getAllSettingsValues(), deleteAfterConversion);
+    const result = await this.sendExtensionRequest<AdapterConvertResponse>(
+      'convert',
+      modelItem,
+      path,
+      {
+        ...this.settingsService.getAllSettingsValues(),
+        ...settings
+      },
+      deleteAfterConversion
+    );
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return [];
