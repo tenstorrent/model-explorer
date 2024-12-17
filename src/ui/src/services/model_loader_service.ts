@@ -90,7 +90,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return this.extensionService.extensionSettings.get(extensionId)?.optimizationPolicies ?? [];
   }
 
-  async executeModel(modelItem: ModelItem) {
+  async executeModel(modelItem: ModelItem, changes: ChangesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let updatedPath = modelItem.path;
     let result: boolean = false;
@@ -101,7 +101,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem,
         updatedPath,
         {
-          optimizationPolicy: this.selectedOptimizationPolicy()
+          optimizationPolicy: this.selectedOptimizationPolicy(),
+          changes
         }
       );
     }
@@ -129,7 +130,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem,
         updatedPath,
         {
-          optimizationPolicy: this.selectedOptimizationPolicy()
+          optimizationPolicy: this.selectedOptimizationPolicy(),
+          changes
         }
       );
     }

@@ -219,7 +219,7 @@ export class GraphEdit {
         this.isProcessingExecuteRequest = true;
         this.loggingService.info('Start executing model', curModel.path);
 
-        const result = await this.modelLoaderService.executeModel(curModel);
+        const result = await this.modelLoaderService.executeModel(curModel, changesToUpload);
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {

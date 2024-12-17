@@ -31,7 +31,7 @@ export type ChangesPerGraphAndNode = Record<string, ChangesPerNode>;
 export interface ModelLoaderServiceInterface {
   loadModels(modelItems: ModelItem[]): Promise<void>;
   loadModel(modelItems: ModelItem, changes?: ChangesPerNode): Promise<GraphCollection[]>;
-  executeModel(modelItem: ModelItem): Promise<boolean>;
+  executeModel(modelItem: ModelItem, changes?: ChangesPerNode): Promise<boolean>;
   checkExecutionStatus(modelItem: ModelItem, modelPath: string): Promise<AdapterStatusCheckResults>;
   overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: ChangesPerNode): Promise<boolean>;
   get loadedGraphCollections(): WritableSignal<GraphCollection[] | undefined>;
