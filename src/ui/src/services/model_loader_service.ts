@@ -90,7 +90,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return this.extensionService.extensionSettings.get(extensionId)?.optimizationPolicies ?? [];
   }
 
-  async executeModel(modelItem: ModelItem) {
+  async executeModel(modelItem: ModelItem, changes: ChangesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let updatedPath = modelItem.path;
     let result: boolean = false;
@@ -101,7 +101,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem,
         updatedPath,
         {
-          optimizationPolicy: this.selectedOptimizationPolicy()
+          optimizationPolicy: this.selectedOptimizationPolicy(),
+          changes
         }
       );
     }
@@ -129,7 +130,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem,
         updatedPath,
         {
-          optimizationPolicy: this.selectedOptimizationPolicy()
+          optimizationPolicy: this.selectedOptimizationPolicy(),
+          changes
         }
       );
     }
@@ -264,7 +266,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             modelItem,
             filePath,
             fileName,
-            false,
+            false
           );
           break;
       }
@@ -316,7 +318,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             modelItem,
             path,
             file.name,
-            true,
+            true
           );
           break;
       }
@@ -412,7 +414,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   ) {
     try {
       modelItem.status.set(ModelItemStatus.PROCESSING);
-      const convertCommand: ExtensionCommand = {
+      const extensionCommand: ExtensionCommand = {
         cmdId: command,
         extensionId: modelItem.selectedAdapter?.id || '',
         modelPath: path,
@@ -420,7 +422,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         deleteAfterConversion,
       };
 
-      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(convertCommand);
+      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(extensionCommand);
 
       if (cmdError) {
         throw new Error(cmdError);
@@ -450,8 +452,18 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     path: string,
     fileName: string,
     deleteAfterConversion: boolean,
+    settings: Record<string, any> = {},
   ): Promise<GraphCollection[]> {
-    const result = await this.sendExtensionRequest<AdapterConvertResponse>('convert', modelItem, path, this.settingsService.getAllSettingsValues(), deleteAfterConversion);
+    const result = await this.sendExtensionRequest<AdapterConvertResponse>(
+      'convert',
+      modelItem,
+      path,
+      {
+        ...this.settingsService.getAllSettingsValues(),
+        ...settings
+      },
+      deleteAfterConversion
+    );
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return [];

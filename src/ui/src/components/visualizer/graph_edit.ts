@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import type { ChangesPerNode, ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,7 +15,6 @@ import { genUid } from './common/utils';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
-import type { Pane } from './common/types';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
 
@@ -103,7 +102,7 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], curPane?: Pane) {
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
@@ -142,21 +141,30 @@ export class GraphEdit {
         };
       }) ?? []);
 
+      this.modelLoaderService.changesToUpload.update(() => ({}));
       this.modelLoaderService.graphErrors.update(() => undefined);
-
 
       const modelGraphs = this.appService.panes().map((pane) => pane.modelGraph).filter((modelGraph) => modelGraph !== undefined);
 
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           if (graph.perf_data) {
-            const runId = genUid();
             const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
 
             if (modelGraph) {
+              const runName = `${modelGraph.id} (Performance Trace)`;
+
+              this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
+                .filter(({ runName: prevRunName }) => prevRunName === runName)
+                .map(({ runId }) => runId)
+                .forEach((runId) => {
+                  this.nodeDataProviderExtensionService.deleteRun(runId);
+                });
+
+              const newRunId = genUid();
               this.nodeDataProviderExtensionService.addRun(
-                runId,
-                `${modelGraph.id} (Performance Trace)`,
+                newRunId,
+                runName,
                 curModel.selectedAdapter?.id ?? '',
                 modelGraph,
                 graph.perf_data,
@@ -184,7 +192,6 @@ export class GraphEdit {
       curModel,
       curCollection,
       curCollectionLabel,
-      curPane,
       models,
       changesToUpload,
     };
@@ -213,14 +220,14 @@ export class GraphEdit {
   }
 
   async handleClickExecuteGraph() {
-    const { curModel, curPane, models } = this.getCurrentGraphInformation();
+    const { curModel, models, changesToUpload } = this.getCurrentGraphInformation();
 
     if (curModel) {
       try {
         this.isProcessingExecuteRequest = true;
         this.loggingService.info('Start executing model', curModel.path);
 
-        const result = await this.modelLoaderService.executeModel(curModel);
+        const result = await this.modelLoaderService.executeModel(curModel, changesToUpload);
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
@@ -241,7 +248,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path);
-                await this.updateGraphInformation(curModel, models, curPane);
+                await this.updateGraphInformation(curModel, models);
                 this.loggingService.info('Model updated', curModel.path);
               }
 
@@ -273,7 +280,7 @@ export class GraphEdit {
   }
 
   async handleClickUploadGraph() {
-    const { curModel, curCollection, changesToUpload, models, curPane } = this.getCurrentGraphInformation();
+    const { curModel, curCollection, changesToUpload, models } = this.getCurrentGraphInformation();
 
     if (curModel && curCollection && changesToUpload) {
       try {
@@ -292,7 +299,7 @@ export class GraphEdit {
           this.loggingService.info('Updating existing models', curModel.path);
 
           if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models, curPane);
+            await this.updateGraphInformation(curModel, models);
 
             this.urlService.setUiState(undefined);
             this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
@@ -302,7 +309,6 @@ export class GraphEdit {
               };
             }) ?? []);
 
-            this.modelLoaderService.changesToUpload.update(() => ({}));
             this.modelLoaderService.graphErrors.update(() => undefined);
 
             this.showSuccessMessage('Model uploaded');
