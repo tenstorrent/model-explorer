@@ -141,8 +141,7 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      // TODO: remove changes from the current graph?
-      // this.modelLoaderService.changesToUpload.update(() => ({}));
+      this.modelLoaderService.changesToUpload.update(() => ({}));
       this.modelLoaderService.graphErrors.update(() => undefined);
 
       const modelGraphs = this.appService.panes().map((pane) => pane.modelGraph).filter((modelGraph) => modelGraph !== undefined);
