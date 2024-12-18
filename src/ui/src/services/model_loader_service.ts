@@ -229,7 +229,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
   }
 
-  async loadModel(modelItem: ModelItem, changes: ChangesPerNode = {}): Promise<GraphCollection[]> {
+  async loadModel(modelItem: ModelItem): Promise<GraphCollection[]> {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: GraphCollection[] = [];
     let updatedPath: string | undefined;
@@ -266,8 +266,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             modelItem,
             filePath,
             fileName,
-            false,
-            { changes }
+            false
           );
           break;
       }
@@ -319,8 +318,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             modelItem,
             path,
             file.name,
-            true,
-            { changes }
+            true
           );
           break;
       }
