@@ -150,13 +150,22 @@ export class GraphEdit {
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           if (graph.perf_data) {
-            const runId = genUid();
             const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
 
             if (modelGraph) {
+              const runName = `${modelGraph.id} (Performance Trace)`;
+
+              this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
+                .filter(({ runName: prevRunName }) => prevRunName === runName)
+                .map(({ runId }) => runId)
+                .forEach((runId) => {
+                  this.nodeDataProviderExtensionService.deleteRun(runId);
+                });
+
+              const newRunId = genUid();
               this.nodeDataProviderExtensionService.addRun(
-                runId,
-                `${modelGraph.id} (Performance Trace)`,
+                newRunId,
+                runName,
                 curModel.selectedAdapter?.id ?? '',
                 modelGraph,
                 graph.perf_data,
