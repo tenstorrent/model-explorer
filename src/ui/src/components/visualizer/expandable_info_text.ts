@@ -148,6 +148,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     const collectionLabel = this.appService.getSelectedPane()?.modelGraph?.collectionLabel;
     const nodeId = this.appService.getSelectedPane()?.selectedNodeInfo?.nodeId;
 
+    // TODO: get node by nodeId
+
     this.modelLoaderService.changesToUpload.update((changesToUpload) => {
       if (collectionLabel && nodeId) {
         changesToUpload[collectionLabel] = {...changesToUpload[collectionLabel] };
