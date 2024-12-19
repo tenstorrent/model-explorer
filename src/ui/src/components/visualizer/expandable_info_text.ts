@@ -87,7 +87,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     this.text = this.modelLoaderService
-      .changesToUpload()[this.collectionLabel ?? '']
+      .overrides()[this.collectionLabel ?? '']
       ?.[this.nodeId]
       ?.find(({ key }) => key === this.type)
       ?.value ?? this.text;
@@ -150,18 +150,18 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
     // TODO: get node by nodeId
 
-    this.modelLoaderService.changesToUpload.update((changesToUpload) => {
+    this.modelLoaderService.overrides.update((overrides) => {
       if (collectionLabel && nodeId) {
-        changesToUpload[collectionLabel] = {...changesToUpload[collectionLabel] };
+        overrides[collectionLabel] = {...overrides[collectionLabel] };
 
-        const existingChanges = changesToUpload[collectionLabel][nodeId]?.findIndex(({ key }) => key === this.type) ?? -1;
+        const existingOverrides = overrides[collectionLabel][nodeId]?.findIndex(({ key }) => key === this.type) ?? -1;
 
-        if (existingChanges !== -1) {
-          changesToUpload[collectionLabel][nodeId].splice(existingChanges, 1);
+        if (existingOverrides !== -1) {
+          overrides[collectionLabel][nodeId].splice(existingOverrides, 1);
         }
 
-        changesToUpload[collectionLabel][nodeId] = [
-          ...(changesToUpload[collectionLabel][nodeId] ?? []),
+        overrides[collectionLabel][nodeId] = [
+          ...(overrides[collectionLabel][nodeId] ?? []),
           {
             key: this.type,
             value: updatedValue
@@ -169,7 +169,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
         ];
       }
 
-      return changesToUpload;
+      return overrides;
     });
   }
 

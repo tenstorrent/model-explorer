@@ -27,7 +27,7 @@ import {
   type ExtensionCommand,
   type ExtensionResponse,
 } from '../common/extension_command';
-import {ModelLoaderServiceInterface, type ChangesPerGraphAndNode, type ChangesPerNode } from '../common/model_loader_service_interface';
+import {ModelLoaderServiceInterface, type OverridesPerGraphAndNode, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
   InternalAdapterExtId,
   ModelItem,
@@ -71,7 +71,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   readonly models = signal<ModelItem[]>([]);
 
-  readonly changesToUpload = signal<ChangesPerGraphAndNode>({});
+  readonly overrides = signal<OverridesPerGraphAndNode>({});
 
   readonly graphErrors = signal<string[] | undefined>(undefined);
 
@@ -82,15 +82,15 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     readonly extensionService: ExtensionService,
   ) {}
 
-  get hasChangesToUpload() {
-    return Object.keys(this.changesToUpload()).length > 0;
+  get hasOverrides() {
+    return Object.keys(this.overrides()).length > 0;
   }
 
   getOptimizationPolicies(extensionId: string): string[] {
     return this.extensionService.extensionSettings.get(extensionId)?.optimizationPolicies ?? [];
   }
 
-  async executeModel(modelItem: ModelItem, changes: ChangesPerNode = {}) {
+  async executeModel(modelItem: ModelItem, overrides: OverridesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let updatedPath = modelItem.path;
     let result: boolean = false;
@@ -102,7 +102,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         updatedPath,
         {
           optimizationPolicy: this.selectedOptimizationPolicy(),
-          changes
+          overrides
         }
       );
     }
@@ -131,7 +131,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         updatedPath,
         {
           optimizationPolicy: this.selectedOptimizationPolicy(),
-          changes
+          overrides
         }
       );
     }
@@ -139,7 +139,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
-  async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: ChangesPerNode) {
+  async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, overrides: OverridesPerNode) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result = false;
     let updatedPath = modelItem.path;
@@ -150,7 +150,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem,
         updatedPath,
         graphCollection,
-        fieldsToUpdate,
+        overrides,
       );
     }
     // Upload or graph jsons from server.
@@ -177,7 +177,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         modelItem,
         updatedPath,
         graphCollection,
-        fieldsToUpdate,
+        overrides,
       );
 
       if (modelItem.status() !== ModelItemStatus.ERROR) {
@@ -490,12 +490,12 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     modelItem: ModelItem,
     path: string,
     graphCollection: GraphCollection,
-    fieldsToUpdate: Record<string, any>
+    overrides: Record<string, any>
   ) {
 
     const result = await this.sendExtensionRequest<AdapterOverrideResponse>('override', modelItem, path, {
       graphs: graphCollection.graphs,
-      changes: fieldsToUpdate,
+      overrides,
     });
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
