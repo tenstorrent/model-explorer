@@ -148,7 +148,8 @@ export class GraphEdit {
 
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
-          if (graph.perf_data) {
+          const perfData = graph.overlays?.['perf_data'] ?? graph.perf_data;
+          if (perfData) {
             const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
 
             if (modelGraph) {
@@ -167,7 +168,7 @@ export class GraphEdit {
                 runName,
                 curModel.selectedAdapter?.id ?? '',
                 modelGraph,
-                graph.perf_data,
+                perfData,
               );
             }
           }
