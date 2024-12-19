@@ -148,10 +148,10 @@ export class GraphEdit {
 
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
+          const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
+
           const perfData = graph.overlays?.['perf_data'] ?? graph.perf_data;
           if (perfData) {
-            const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
-
             if (modelGraph) {
               const runName = `${modelGraph.id} (Performance Trace)`;
 
@@ -172,6 +172,8 @@ export class GraphEdit {
               );
             }
           }
+
+          // TODO: process overlays and overrides
         });
       });
 
