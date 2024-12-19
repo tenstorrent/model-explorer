@@ -58,8 +58,6 @@ export declare interface AdapterConvertCommand extends ExtensionCommand {
   settings: Record<string, any>;
   // Whether to delete the model file at `modelPath` after conversion is done.
   deleteAfterConversion: boolean;
-  perf_trace?: string;
-  perf_data?: NodeDataProviderData;
 }
 
 /** Adapter's "convert" command response. */
