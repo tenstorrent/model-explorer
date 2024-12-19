@@ -112,7 +112,7 @@ export class GraphEdit {
           newGraphCollections.forEach((graphCollection) => {
             graphCollection.graphs.forEach((graph) => {
               graph.nodes.forEach((node) => {
-                const nodeOverrides = curOverrides[graphCollection.label][node.id] ?? [];
+                const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
 
                 nodeOverrides.forEach(({ key, value }) => {
                   const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
