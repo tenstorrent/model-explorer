@@ -117,11 +117,11 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     return curModel !== undefined;
   }
 
-  splitEditableList(value: string) {
+  splitEditableList(value: string, separator = ',') {
     return value
       .replace(/^\[/iu, '')
       .replace(/\]$/iu, '')
-      .split(',')
+      .split(separator)
       .map((part) => {
         const parsedValue = Number.parseFloat(part);
 
