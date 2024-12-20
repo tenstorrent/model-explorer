@@ -150,9 +150,10 @@ export class GraphEdit {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
 
-          const perfData = graph.overlays?.['perf_data'] ?? graph.perf_data;
-          if (perfData) {
-            if (modelGraph) {
+          if (modelGraph) {
+            // TODO: cleanup this processing
+            const perfData = graph.overlays?.['perf_data'] ?? graph.perf_data;
+            if (perfData) {
               const runName = `${modelGraph.id} (Performance Trace)`;
 
               this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
@@ -171,9 +172,38 @@ export class GraphEdit {
                 perfData,
               );
             }
-          }
 
-          // TODO: process overlays and overrides
+            Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
+              this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
+                .filter(({ runName: prevRunName }) => prevRunName === runName)
+                .map(({ runId }) => runId)
+                .forEach((runId) => {
+                  this.nodeDataProviderExtensionService.deleteRun(runId);
+                });
+
+              const newRunId = genUid();
+              this.nodeDataProviderExtensionService.addRun(
+                newRunId,
+                runName,
+                curModel.selectedAdapter?.id ?? '',
+                modelGraph,
+                overlayData,
+              );
+            });
+
+            if (graph.overrides) {
+              this.modelLoaderService.overrides.update((curOverrides) => {
+                const newOverrides = { ...curOverrides };
+
+                newOverrides[graph.id ?? ''] = {
+                  ...(newOverrides[graph.id ?? ''] ?? {}),
+                  ...graph.overrides
+                };
+
+                return newOverrides;
+              });
+            }
+          }
         });
       });
 
