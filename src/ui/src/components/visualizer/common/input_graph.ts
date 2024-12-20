@@ -16,6 +16,7 @@
  * ==============================================================================
  */
 
+import type { OverridesPerNode } from '../../../common/model_loader_service_interface.js';
 import {
   GraphNodeConfig,
   GraphNodeStyle,
@@ -93,7 +94,7 @@ export declare interface Graph {
   /** @deprecated Remove after we merge the changes that use only `overlays` */
   perf_data?: NodeDataProviderData;
   overlays?: Record<string, NodeDataProviderData>;
-  overrides?: Record<string, any>;
+  overrides?: OverridesPerNode;
 
 }
 
