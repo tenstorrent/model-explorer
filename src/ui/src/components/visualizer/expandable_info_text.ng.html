@@ -83,7 +83,7 @@ limitations under the License.
             />
           }
         } @else if (hasCurModel() && editable?.input_type === 'grid') {
-          @for (item of splitEditableList(text, $any(editable)?.separator ?? 'x'); track $index) {
+          @for (item of splitEditableList(text); track $index) {
             <input
               [type]="item.type"
               [value]="item.value"
@@ -121,7 +121,7 @@ limitations under the License.
         />
       }
     } @else if (hasCurModel() && editable?.input_type === 'grid') {
-      @for (item of splitEditableList(text, $any(editable)?.separator ?? 'x'); track $index) {
+      @for (item of splitEditableList(text); track $index) {
         <input
           [type]="item.type"
           [value]="item.value"
