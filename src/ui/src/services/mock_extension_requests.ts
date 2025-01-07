@@ -1,7 +1,7 @@
 export const isMockEnabled = localStorage.getItem('mock-api') === 'true';
 
 function processAttribute(key: string, value: string) {
-  if (key.includes('grid')) {
+  if (key.includes('grid') || key.includes('shape')) {
     return {
       key,
       value,
