@@ -44,6 +44,54 @@ limitations under the License.
                   </expandable-info-text>
                 </td>
               </tr>
+              <tr>
+                <td colspan="2">
+                  <details>
+                    <summary>Children</summary>
+                    <table>
+                      <tr [class.search-match]="isSearchMatchedAttrId(item.label)">
+                        <td class="key"><hoverable-label [label]="item.label"></hoverable-label></td>
+                        <td class="value">
+                          <expandable-info-text
+                              [text]="item.value" [type]="item.label"
+                              [collectionLabel]="$any(curCollectionLabel)"
+                              [nodeId]="$any(curSelectedNodeId)"
+                              [bgColor]="item.bgColor || 'transparent'"
+                              [textColor]="item.textColor || 'black'"
+                              [editable]="item.editable">
+                          </expandable-info-text>
+                        </td>
+                      </tr>
+                      <tr [class.search-match]="isSearchMatchedAttrId(item.label)">
+                        <td class="key"><hoverable-label [label]="item.label"></hoverable-label></td>
+                        <td class="value">
+                          <expandable-info-text
+                              [text]="item.value" [type]="item.label"
+                              [collectionLabel]="$any(curCollectionLabel)"
+                              [nodeId]="$any(curSelectedNodeId)"
+                              [bgColor]="item.bgColor || 'transparent'"
+                              [textColor]="item.textColor || 'black'"
+                              [editable]="item.editable">
+                          </expandable-info-text>
+                        </td>
+                      </tr>
+                      <tr [class.search-match]="isSearchMatchedAttrId(item.label)">
+                        <td class="key"><hoverable-label [label]="item.label"></hoverable-label></td>
+                        <td class="value">
+                          <expandable-info-text
+                              [text]="item.value" [type]="item.label"
+                              [collectionLabel]="$any(curCollectionLabel)"
+                              [nodeId]="$any(curSelectedNodeId)"
+                              [bgColor]="item.bgColor || 'transparent'"
+                              [textColor]="item.textColor || 'black'"
+                              [editable]="item.editable">
+                          </expandable-info-text>
+                        </td>
+                      </tr>
+                    </table>
+                  </details>
+                </td>
+              </tr>
             }
           </table>
         </div>
