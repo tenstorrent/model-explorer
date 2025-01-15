@@ -779,7 +779,18 @@ export class InfoPanel {
           value: attrs[key],
           canShowOnNode: true,
           showOnNode: this.curShowOnOpNodeAttrIds.has(key),
-          editable: opNode.editableAttrs?.[key]
+          editable: opNode.editableAttrs?.[key],
+          // TODO: process children attributes
+          children: [
+            {
+              section: attrSection,
+              label: key,
+              value: attrs[key],
+              canShowOnNode: true,
+              showOnNode: this.curShowOnOpNodeAttrIds.has(key),
+              editable: opNode.editableAttrs?.[key],
+            }
+          ]
         });
       }
       if (attrSection.items.length > 0) {
