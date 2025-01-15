@@ -102,7 +102,8 @@ interface InfoItem {
   bgColor?: string;
   textColor?: string;
   loading?: boolean;
-  editable?: EditableAttributeTypes
+  editable?: EditableAttributeTypes;
+  children?: InfoItem[];
 }
 
 interface OutputItem {
