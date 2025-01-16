@@ -57,8 +57,6 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   @Input() bgColor = 'transparent';
   @Input() textColor = 'inherit';
   @Input() editable?: EditableAttributeTypes = undefined;
-  @Input() children?: InfoItem[] = undefined;
-  @Input() curSearchAttrMatches: SearchMatchAttr[] = [];
   @ViewChild('container') container?: ElementRef<HTMLElement>;
   @ViewChild('oneLineText') oneLineText?: ElementRef<HTMLElement>;
 
@@ -208,14 +206,6 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
   getEditableOptions(editable: EditableAttributeTypes, value: string) {
     return [...new Set([value, ...(editable as EditableValueListAttribute).options])];
-  }
-
-  isSearchMatchedAttrId(attrId: string): boolean {
-    return (
-      this.curSearchAttrMatches.find(
-        (match) => match.matchedAttrId === attrId,
-      ) != null
-    );
   }
 
   get hasOverflow(): boolean {

@@ -141,27 +141,3 @@ limitations under the License.
     <mat-icon>{{iconName}}</mat-icon>
   </div>
 </div>
-@if (children) {
-  <details>
-    <summary>Children</summary>
-    <table>
-      @for (child of children; track child.id || child.label) {
-        <tr [class.search-match]="isSearchMatchedAttrId(child.label)">
-          <td class="key"><hoverable-label [label]="child.label"></hoverable-label></td>
-          <td class="value">
-            <expandable-info-text
-                [text]="child.value" [type]="child.label"
-                [collectionLabel]="$any(collectionLabel)"
-                [nodeId]="$any(nodeId)"
-                [bgColor]="child.bgColor || 'transparent'"
-                [textColor]="child.textColor || 'black'"
-                [editable]="child.editable"
-                [children]="child.children"
-                [curSearchAttrMatches]="curSearchAttrMatches">
-            </expandable-info-text>
-          </td>
-        </tr>
-      }
-    </table>
-  </details>
-}

@@ -1,0 +1,36 @@
+<tr [class.search-match]="isSearchMatchedAttrId(label)">
+  <td class="key"><hoverable-label [label]="label"></hoverable-label></td>
+  <td class="value">
+    <expandable-info-text
+      [text]="value" [type]="label"
+      [collectionLabel]="$any(collectionLabel)"
+      [nodeId]="$any(nodeId)"
+      [bgColor]="bgColor || 'transparent'"
+      [textColor]="textColor || 'black'"
+      [editable]="editable">
+    </expandable-info-text>
+  </td>
+  </tr>
+  @if (children) {
+  <tr>
+    <td colspan="2">
+    <details>
+      <summary>Children</summary>
+      <table class="metadata-table info-attrs">
+        @for (child of children; track child.id || child.label) {
+          <expandable-info-entry
+            [value]="child.value" [label]="child.label"
+            [collectionLabel]="collectionLabel"
+            [nodeId]="nodeId"
+            [bgColor]="child.bgColor || 'transparent'"
+            [textColor]="child.textColor || 'black'"
+            [editable]="child.editable"
+            [children]="child.children"
+            [curSearchAttrMatches]="curSearchAttrMatches">
+          </expandable-info-entry>
+        }
+      </table>
+    </details>
+    </td>
+  </tr>
+  }
