@@ -35,13 +35,16 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {AppService} from './app_service';
 import { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import type { EditableAttributeTypes, EditableValueListAttribute } from './common/input_graph';
-import type { OpNode } from './common/model_graph.js';
+import type { OpNode } from './common/model_graph';
+import type { InfoItem } from './info_panel';
+import { HoverableLabel } from './hoverable_label';
+import type { SearchMatchAttr } from './common/types';
 
 /** Expandable info text component. */
 @Component({
   selector: 'expandable-info-text',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatTooltipModule],
+  imports: [CommonModule, MatIconModule, MatTooltipModule, HoverableLabel],
   templateUrl: './expandable_info_text.ng.html',
   styleUrls: ['./expandable_info_text.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,6 +57,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   @Input() bgColor = 'transparent';
   @Input() textColor = 'inherit';
   @Input() editable?: EditableAttributeTypes = undefined;
+  @Input() children?: InfoItem[] = undefined;
+  @Input() curSearchAttrMatches: SearchMatchAttr[] = [];
   @ViewChild('container') container?: ElementRef<HTMLElement>;
   @ViewChild('oneLineText') oneLineText?: ElementRef<HTMLElement>;
 
@@ -203,6 +208,14 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
   getEditableOptions(editable: EditableAttributeTypes, value: string) {
     return [...new Set([value, ...(editable as EditableValueListAttribute).options])];
+  }
+
+  isSearchMatchedAttrId(attrId: string): boolean {
+    return (
+      this.curSearchAttrMatches.find(
+        (match) => match.matchedAttrId === attrId,
+      ) != null
+    );
   }
 
   get hasOverflow(): boolean {

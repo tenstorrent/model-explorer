@@ -91,7 +91,7 @@ enum SectionLabel {
   GROUP_OUTPUTS = 'layer outputs',
 }
 
-interface InfoItem {
+export interface InfoItem {
   id?: string;
   section: InfoSection;
   label: string;
@@ -225,7 +225,7 @@ export class InfoPanel {
     },
   ];
 
-  private curSearchAttrMatches: SearchMatchAttr[] = [];
+  curSearchAttrMatches: SearchMatchAttr[] = [];
   private curSearchInputMatches: SearchMatchInputMetadata[] = [];
   private curSearchOutputMatches: SearchMatchOutputMetadata[] = [];
   private savedWidth = 0;
