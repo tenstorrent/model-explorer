@@ -1,6 +1,9 @@
-<tr [class.search-match]="isSearchMatchedAttrId(label)">
-  <td class="key"><hoverable-label [label]="label"></hoverable-label></td>
-  <td class="value">
+<div [class]="{
+  'seach-match': isSearchMatchedAttrId(label),
+  'attr-container': true
+}">
+  <span class="key"><hoverable-label [label]="label"></hoverable-label></span>
+  <span class="value">
     <expandable-info-text
       [text]="value" [type]="label"
       [collectionLabel]="$any(collectionLabel)"
@@ -9,28 +12,24 @@
       [textColor]="textColor || 'black'"
       [editable]="editable">
     </expandable-info-text>
-  </td>
-  </tr>
-  @if (children) {
-  <tr>
-    <td colspan="2">
-    <details>
-      <summary>Children</summary>
-      <table class="metadata-table info-attrs">
-        @for (child of children; track child.id || child.label) {
-          <expandable-info-entry
-            [value]="child.value" [label]="child.label"
-            [collectionLabel]="collectionLabel"
-            [nodeId]="nodeId"
-            [bgColor]="child.bgColor || 'transparent'"
-            [textColor]="child.textColor || 'black'"
-            [editable]="child.editable"
-            [children]="child.children"
-            [curSearchAttrMatches]="curSearchAttrMatches">
-          </expandable-info-entry>
-        }
-      </table>
-    </details>
-    </td>
-  </tr>
-  }
+  </span>
+</div>
+@if (children) {
+  <details class="children-container">
+    <summary>Children</summary>
+    <div>
+      @for (child of children; track child.id || child.label) {
+        <expandable-info-entry
+          [value]="child.value" [label]="child.label"
+          [collectionLabel]="collectionLabel"
+          [nodeId]="nodeId"
+          [bgColor]="child.bgColor || 'transparent'"
+          [textColor]="child.textColor || 'black'"
+          [editable]="child.editable"
+          [children]="child.children"
+          [curSearchAttrMatches]="curSearchAttrMatches">
+        </expandable-info-entry>
+      }
+    </div>
+  </details>
+}
