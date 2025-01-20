@@ -1,0 +1,46 @@
+@use 'variables';
+
+.attr-container {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  grid-template-rows: auto;
+  font-size: 12px;
+  margin: 0 12px;
+  word-break: break-all;
+  max-width: calc(100% - 28px);
+  align-items: start;
+
+  &.search-match {
+    background-color: variables.$search-match-color;
+  }
+
+  span.key {
+    color: #999;
+    padding-right: 6px;
+    white-space: nowrap;
+    min-width: 100px;
+    width: 100px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span.value {
+    justify-self: stretch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:has(expandable-info-text.expanded) {
+      white-space: normal;
+    }
+  }
+}
+
+.children-container {
+  margin: 2px 0 2px 12px;
+
+  & summary {
+    color: #999;
+  }
+}
