@@ -163,17 +163,19 @@ export class GraphEdit {
 
           if (modelGraph) {
             Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
+              const formattedRunName = runName === 'perf_data' ? `${modelGraph.id} (Performance Trace)` : runName;
+              const newRunId = genUid();
+
               this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
-                .filter(({ runName: prevRunName }) => prevRunName === runName)
+                .filter(({ runName: prevRunName }) => prevRunName === formattedRunName)
                 .map(({ runId }) => runId)
                 .forEach((runId) => {
                   this.nodeDataProviderExtensionService.deleteRun(runId);
                 });
 
-              const newRunId = genUid();
               this.nodeDataProviderExtensionService.addRun(
                 newRunId,
-                runName,
+                formattedRunName,
                 curModel.selectedAdapter?.id ?? '',
                 modelGraph,
                 overlayData,
