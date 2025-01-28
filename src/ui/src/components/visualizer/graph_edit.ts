@@ -162,28 +162,6 @@ export class GraphEdit {
           const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
 
           if (modelGraph) {
-            // TODO: cleanup this processing
-            const perfData = graph.overlays?.['perf_data'] ?? graph.perf_data;
-            if (perfData) {
-              const runName = `${modelGraph.id} (Performance Trace)`;
-
-              this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
-                .filter(({ runName: prevRunName }) => prevRunName === runName)
-                .map(({ runId }) => runId)
-                .forEach((runId) => {
-                  this.nodeDataProviderExtensionService.deleteRun(runId);
-                });
-
-              const newRunId = genUid();
-              this.nodeDataProviderExtensionService.addRun(
-                newRunId,
-                runName,
-                curModel.selectedAdapter?.id ?? '',
-                modelGraph,
-                perfData,
-              );
-            }
-
             Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
               this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
                 .filter(({ runName: prevRunName }) => prevRunName === runName)
