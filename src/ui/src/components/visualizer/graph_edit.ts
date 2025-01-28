@@ -108,7 +108,10 @@ export class GraphEdit {
       }
 
       if (progress !== -1) {
-        updateCallback(progress, total, intervalFormatter(deltaTime), stdout);
+        // Regular expression adapted from: https://github.com/chalk/ansi-regex
+        const formattedStdout = stdout?.replaceAll(new RegExp(`[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?(?:\\u0007|\\u001B\\u005C|\\u009C))|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))`,'giu'), '');
+
+        updateCallback(progress, total, intervalFormatter(deltaTime), formattedStdout);
       }
     }, POOL_TIME_MS);
   }
