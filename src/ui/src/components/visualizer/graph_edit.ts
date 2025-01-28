@@ -73,6 +73,17 @@ export class GraphEdit {
     const POOL_TIME_MS = 5 * 1000;
     const TIMEOUT_MS = 1 * 60 * 60 * 1000;
 
+    type DurationFormat = (duration: number) => string;
+    let intervalFormatter: DurationFormat = (duration) => duration.toString();
+    if ('DurationFormat' in Intl) {
+      // @ts-expect-error This is not included in typescript's definition yet
+      intervalFormatter = (duration) => new Intl.DurationFormat('en-US', { style: 'digital' })?.format({
+        minutes: Math.floor((duration / 1000 / 60)),
+        seconds: Math.floor((duration / 1000) % 60),
+        milliseconds: Math.floor(((duration / 1000) % 1) * 1000)
+      });
+    }
+
     const startTime = Date.now();
     const intervalId = setInterval(async () => {
       const { isDone, total = 100, progress, error, stdout } = await this.modelLoaderService.checkExecutionStatus(modelItem, modelPath);
