@@ -69,34 +69,35 @@ export class GraphEdit {
     }
   }
 
+  private poolForStatusUpdate(modelItem: ModelItem, modelPath: string, updateCallback: (progress: number, total: number, elapsedTime: string, stdout?: string) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout', elapsedTime: string) => void | Promise<void>, errorCallback: (error: string, elapsedTime: string) => void | Promise<void>) {
     const POOL_TIME_MS = 5 * 1000;
     const TIMEOUT_MS = 1 * 60 * 60 * 1000;
 
     const startTime = Date.now();
     const intervalId = setInterval(async () => {
       const { isDone, total = 100, progress, error, stdout } = await this.modelLoaderService.checkExecutionStatus(modelItem, modelPath);
+      const deltaTime = Date.now() - startTime;
 
       if (error) {
-        errorCallback(error);
+        errorCallback(error, intervalFormatter(deltaTime));
         clearInterval(intervalId);
         return;
       }
 
       if (isDone) {
-        doneCallback('done');
+        doneCallback('done', intervalFormatter(deltaTime));
         clearInterval(intervalId);
         return;
       }
 
-      const deltaTime = Date.now() - startTime;
       if (deltaTime > TIMEOUT_MS) {
-        doneCallback('timeout');
+        doneCallback('timeout', intervalFormatter(deltaTime));
         clearInterval(intervalId);
         return;
       }
 
       if (progress !== -1) {
-        updateCallback(progress, total, stdout);
+        updateCallback(progress, total, intervalFormatter(deltaTime), stdout);
       }
     }, POOL_TIME_MS);
   }
@@ -263,10 +264,10 @@ export class GraphEdit {
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
-            const updateStatus = (progress: number, total: number, stdout?: string) => {
+            const updateStatus = (progress: number, total: number, elapsedTime: string, stdout?: string) => {
               this.executionProgress = progress ?? this.executionProgress;
               this.executionTotal = total;
-              this.loggingService.debug(`Execution progress: ${progress} of ${total}`, curModel.path);
+              this.loggingService.debug(`Execution progress: ${progress} of ${total}`, curModel.path, `Elapsed time: ${elapsedTime}`);
 
               if (stdout) {
                 this.loggingService.info(stdout);
@@ -275,11 +276,11 @@ export class GraphEdit {
               this.changeDetectorRef.detectChanges();
             };
 
-            const finishUpdate = async (status: 'done' | 'timeout') => {
+            const finishUpdate = async (status: 'done' | 'timeout', elapsedTime: string) => {
               if (status === 'timeout') {
-                this.loggingService.error('Model execute timeout', curModel.path);
+                this.loggingService.error('Model execute timeout', curModel.path, `Elapsed time: ${elapsedTime}`);
               } else {
-                this.loggingService.info('Model execute finished', curModel.path);
+                this.loggingService.info('Model execute finished', curModel.path, `Elapsed time: ${elapsedTime}`);
                 await this.updateGraphInformation(curModel, models);
                 this.loggingService.info('Model updated', curModel.path);
               }
@@ -287,10 +288,10 @@ export class GraphEdit {
               this.isProcessingExecuteRequest = false;
             };
 
-            const showError = (error: string) => {
+            const showError = (error: string, elapsedTime: string) => {
               this.executionProgress = 0;
               this.isProcessingExecuteRequest = false;
-              this.loggingService.error('Graph Execution Error', error);
+              this.loggingService.error('Graph Execution Error', error, `Elapsed time: ${elapsedTime}`);
               this.showErrorDialog('Graph Execution Error', error);
             };
 
