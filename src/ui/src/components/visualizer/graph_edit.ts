@@ -157,6 +157,7 @@ export class GraphEdit {
 
       this.modelLoaderService.overrides.update(() => ({}));
       this.modelLoaderService.graphErrors.update(() => undefined);
+      this.appService.addGraphCollections(newGraphCollections);
 
       const modelGraphs = this.appService.panes().map((pane) => pane.modelGraph).filter((modelGraph) => modelGraph !== undefined);
 
