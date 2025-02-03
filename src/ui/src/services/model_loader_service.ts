@@ -258,7 +258,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             modelItem,
             modelItem.path,
             file.name,
-            true
+            false
           );
           break;
       }
