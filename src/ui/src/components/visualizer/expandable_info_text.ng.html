@@ -71,7 +71,7 @@ limitations under the License.
 
       @default {
         <div class="text-content">
-          @if (hasCurModel()) {
+          @if (hasCurModel() && editable?.input_type) {
             @switch (editable?.input_type) {
               @case ('value_list') {
                 <select (change)="handleTextChange($event)">
@@ -118,7 +118,7 @@ limitations under the License.
     }
   </div>
   <div class="one-line-text" #oneLineText>
-    @if (hasCurModel()) {
+    @if (hasCurModel() && editable?.input_type) {
       @switch (editable?.input_type) {
         @case ('value_list') {
           <select (change)="handleTextChange($event)">
