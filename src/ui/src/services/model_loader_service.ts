@@ -237,7 +237,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         // For other adapters
         default:
           // Upload the file
-          // FIXME: this is a temp fix
           if (!modelItem.isUploaded) {
             modelItem.status.set(ModelItemStatus.UPLOADING);
             const {path, error: uploadError} = await this.uploadModelFile(file);
