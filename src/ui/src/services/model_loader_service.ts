@@ -443,17 +443,28 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     resp: AdapterConvertResponse,
     fileName: string,
   ): GraphCollection[] {
+    const graphCollections = resp.graphCollections?.map((item) => {
+      return {
+        label: item.label === '' ? fileName : `${fileName} (${item.label})`,
+        graphs: item.graphs
+      };
+    }) ?? [];
+
     if (resp.graphs) {
-      return [{label: fileName, graphs: resp.graphs }];
-    } else if (resp.graphCollections) {
-      return resp.graphCollections?.map((item) => {
-        return {
-          label: item.label === '' ? fileName : `${fileName} (${item.label})`,
-          graphs: item.graphs
-        };
-      }) ?? [];
+      graphCollections.push({label: fileName, graphs: resp.graphs });
     }
-    return [];
+
+    graphCollections.forEach((graphCollection) => graphCollection.graphs.forEach((graph) => {
+      if (!graph?.overlays) {
+        graph.overlays = {};
+      }
+
+      if (graph?.perf_data) {
+        graph.overlays['perf_data'] = graph.perf_data;
+      }
+    }));
+
+    return graphCollections;
   }
 
   private processAdapterOverrideResponse(

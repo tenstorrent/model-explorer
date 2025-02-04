@@ -92,6 +92,8 @@ export declare interface Graph {
   // The level in the graph tree.
   level?: number;
   overlays?: Record<string, NodeDataProviderData>;
+  /** @deprecated */
+  perf_data?: NodeDataProviderData;
   overrides?: OverridesPerNode;
 
 }
