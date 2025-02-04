@@ -69,6 +69,10 @@ export function mockExtensionCommand(command: string, json: any) {
         node.attrs?.forEach(({key, value}, index) => {
           node.attrs[index] = processAttribute(key, value);
         });
+
+        if (!node.attrs?.find(({ key }) => key.includes('memory'))) {
+          node.attrs.push(processAttribute('memory', '50'));
+        }
       });
 
       if (!graph.overlays) {
