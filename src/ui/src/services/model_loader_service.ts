@@ -201,8 +201,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
           result = await this.sendConvertRequest(
             modelItem,
             filePath,
-            fileName,
-            false
+            fileName
           );
           break;
       }
@@ -257,8 +256,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
           result = await this.sendConvertRequest(
             modelItem,
             modelItem.path,
-            file.name,
-            false
+            file.name
           );
           break;
       }
@@ -350,7 +348,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     modelItem: ModelItem,
     path: string,
     settings?: Record<string, any>,
-    deleteAfterConversion: boolean = false,
   ) {
     try {
       modelItem.status.set(ModelItemStatus.PROCESSING);
@@ -359,7 +356,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         extensionId: modelItem.selectedAdapter?.id || '',
         modelPath: path,
         settings: settings ?? {},
-        deleteAfterConversion,
+        deleteAfterConversion: false,
       };
 
       const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(extensionCommand);
@@ -391,7 +388,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     modelItem: ModelItem,
     path: string,
     fileName: string,
-    deleteAfterConversion: boolean,
     settings: Record<string, any> = {},
   ): Promise<GraphCollection[]> {
     const result = await this.sendExtensionRequest<AdapterConvertResponse>(
@@ -402,7 +398,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         ...this.settingsService.getAllSettingsValues(),
         ...settings
       },
-      deleteAfterConversion
     );
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
