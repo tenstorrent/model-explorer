@@ -187,7 +187,7 @@ export type AttributeDisplayType = 'memory';
 
 export interface Attribute extends KeyValue {
   editable?: EditableAttributeTypes;
-  display_type: AttributeDisplayType;
+  display_type?: AttributeDisplayType;
 }
 
 export type EditableAttributeList = Attribute[];
