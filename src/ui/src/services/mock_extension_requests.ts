@@ -1,6 +1,14 @@
 export const isMockEnabled = localStorage.getItem('mock-api') === 'true';
 
 function processAttribute(key: string, value: string) {
+  if (key.includes('memory')) {
+    return {
+      key,
+      value,
+      display_type: 'memory'
+    }
+  }
+
   if (key.includes('grid') || key.includes('shape')) {
     return {
       key,
