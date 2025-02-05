@@ -168,7 +168,11 @@ limitations under the License.
     } @else {
       @switch (displayType) {
         @case ('memory') {
-          <div class="percentage-meter" [attr.data-percentage]="text + '%'" [style]="{ '--percentage': text + '%' }"></div>
+          @if (isPercentage(text)) {
+            <div class="percentage-meter" [attr.data-percentage]="formatPercentage(text)" [style]="{ '--percentage': formatPercentage(text) }"></div>
+          } @else {
+            {{text}}
+          }
         }
 
         @default {
