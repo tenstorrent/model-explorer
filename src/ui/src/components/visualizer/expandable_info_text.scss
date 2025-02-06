@@ -170,7 +170,7 @@
 
     display: inline-block;
     position: relative;
-    border: solid thin #999;
+    border: solid thin #00639b;
     border-radius: 4px;
     font-size: 10px;
     width: calc(100% - 12px);
@@ -191,7 +191,7 @@
     &::before {
       clip-path: inset(0 calc(100% - var(--percentage)) 0 0);
       color: white;
-      background: variables.$selection-color;
+      background: #d7f1ff;
     }
 
     &::after {
