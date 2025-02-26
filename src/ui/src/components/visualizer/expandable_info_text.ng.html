@@ -166,19 +166,7 @@ limitations under the License.
         }
       }
     } @else {
-      @switch (displayType) {
-        @case ('memory') {
-          @if (isPercentage(text)) {
-            <div class="percentage-meter" [attr.data-percentage]="formatPercentage(text)" [style]="{ '--percentage': formatPercentage(text) }"></div>
-          } @else {
-            {{text}}
-          }
-        }
-
-        @default {
-          {{text}}
-        }
-      }
+      {{text}}
     }
   </div>
   <div class="icon-container toggle" (click)="handleToggleExpand($event)">
