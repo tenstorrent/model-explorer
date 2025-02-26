@@ -141,22 +141,26 @@ export class GraphEdit {
         }
 
         const newGraphCollectionsLabels = (newGraphCollections ?? [])?.reduce<string[]>((labels, collection) => {
-          let newLabel = collection.label;
+          let suffix = '';
 
           switch (operation) {
             case 'upload':
-              newLabel = `${collection.label} - Uploaded changes`
+              suffix = 'Uploaded changes';
               break;
             case 'execute':
               const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium', dateStyle: 'medium' });
-              newLabel = `${collection.label} - Execution ${formatter.format(new Date())}`;
+              suffix = `Execution ${formatter.format(new Date())}`;
               break;
             default:
               break;
           }
 
-          collection.label = newLabel;
-          labels.push(newLabel);
+          collection.label = `${collection.label}${suffix ? ` - ${suffix}` : ''}`;
+          labels.push(collection.label);
+
+          collection.graphs.forEach((graph) => {
+            graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
+          });
 
           return labels;
         }, []);
