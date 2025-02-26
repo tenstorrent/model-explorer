@@ -122,25 +122,8 @@ export class GraphEdit {
     if (curModel.status() !== ModelItemStatus.ERROR) {
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
         const curOverrides = this.modelLoaderService.overrides();
-        if (Object.keys(curOverrides).length > 0) {
-          newGraphCollections.forEach((graphCollection) => {
-            graphCollection.graphs.forEach((graph) => {
-              graph.nodes.forEach((node) => {
-                const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
 
-                nodeOverrides.forEach(({ key, value }) => {
-                  const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
-
-                  if (nodeToUpdate) {
-                    nodeToUpdate.value = value;
-                  }
-                });
-              });
-            });
-          });
-        }
-
-        const newGraphCollectionsLabels = (newGraphCollections ?? [])?.reduce<string[]>((labels, collection) => {
+        newGraphCollections.forEach((graphCollection) => {
           let suffix = '';
 
           switch (operation) {
@@ -155,15 +138,26 @@ export class GraphEdit {
               break;
           }
 
-          collection.label = `${collection.label}${suffix ? ` - ${suffix}` : ''}`;
-          labels.push(collection.label);
+          graphCollection.label = `${graphCollection.label}${suffix ? ` - ${suffix}` : ''}`;
 
-          collection.graphs.forEach((graph) => {
+          graphCollection.graphs.forEach((graph) => {
             graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
-          });
 
-          return labels;
-        }, []);
+            graph.nodes.forEach((node) => {
+              const nodeOverrides = curOverrides?.[graphCollection.label]?.[node.id]?.attributes ?? [];
+
+              nodeOverrides.forEach(({ key, value }) => {
+                const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
+
+                if (nodeToUpdate) {
+                  nodeToUpdate.value = value;
+                }
+              });
+            });
+          });
+        });
+
+        const newGraphCollectionsLabels = newGraphCollections.map(({ label }) => label);
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
