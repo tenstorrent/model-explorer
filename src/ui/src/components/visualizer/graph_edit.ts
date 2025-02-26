@@ -116,31 +116,48 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], operation: 'upload' | 'execute') {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
         const curOverrides = this.modelLoaderService.overrides();
-        if (Object.keys(curOverrides).length > 0) {
-          newGraphCollections.forEach((graphCollection) => {
-            graphCollection.graphs.forEach((graph) => {
-              graph.nodes.forEach((node) => {
-                const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
 
-                nodeOverrides.forEach(({ key, value }) => {
-                  const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
+        newGraphCollections.forEach((graphCollection) => {
+          let suffix = '';
 
-                  if (nodeToUpdate) {
-                    nodeToUpdate.value = value;
-                  }
-                });
+          switch (operation) {
+            case 'upload':
+              suffix = 'Uploaded changes';
+              break;
+            case 'execute':
+              const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium' });
+              suffix = `Execution ${formatter.format(new Date())}`;
+              break;
+            default:
+              break;
+          }
+
+          graphCollection.label = `${graphCollection.label}${suffix ? ` - ${suffix}` : ''}`;
+
+          graphCollection.graphs.forEach((graph) => {
+            graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
+
+            graph.nodes.forEach((node) => {
+              const nodeOverrides = curOverrides?.[graphCollection.label]?.[node.id]?.attributes ?? [];
+
+              nodeOverrides.forEach(({ key, value }) => {
+                const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
+
+                if (nodeToUpdate) {
+                  nodeToUpdate.value = value;
+                }
               });
             });
           });
-        }
+        });
 
-        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
+        const newGraphCollectionsLabels = newGraphCollections.map(({ label }) => label);
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
@@ -276,7 +293,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path, `Elapsed time: ${elapsedTime}`);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path, `Elapsed time: ${elapsedTime}`);
-                await this.updateGraphInformation(curModel, models);
+                await this.updateGraphInformation(curModel, models, 'execute');
                 this.loggingService.info('Model updated', curModel.path);
               }
 
@@ -327,7 +344,7 @@ export class GraphEdit {
           this.loggingService.info('Updating existing models', curModel.path);
 
           if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models);
+            await this.updateGraphInformation(curModel, models, 'upload');
 
             this.urlService.setUiState(undefined);
             this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
