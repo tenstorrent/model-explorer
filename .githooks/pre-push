@@ -2,7 +2,6 @@
 
 # Build the UI
 cd src/ui
-pwd
 npm run deploy
 
 # Check for changes
