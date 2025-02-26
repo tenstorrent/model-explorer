@@ -219,6 +219,10 @@ export class GraphEdit {
         });
       });
 
+      if (operation === 'execute' && newGraphCollections[0]?.graphs?.[0]) {
+        this.appService.openGraphInSplitPane(newGraphCollections[0].graphs[0]);
+      }
+
       this.showSuccessMessage('Model updated');
     } else {
       this.showErrorDialog('Graph Execution Error', curModel.errorMessage ?? 'An error has occured');
