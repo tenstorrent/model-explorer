@@ -190,11 +190,11 @@ export interface EditableGridAttribute {
 
 export type EditableAttributeTypes = EditableIntAttribute | EditableValueListAttribute | EditableGridAttribute;
 
-export type AttributeDisplayType = 'memory';
-
 export interface Attribute extends KeyValue {
   editable?: EditableAttributeTypes;
   display_type?: AttributeDisplayType;
 }
 
 export type EditableAttributeList = Attribute[];
+
+export type AttributeDisplayType = 'memory';
