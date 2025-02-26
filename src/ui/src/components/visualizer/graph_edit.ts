@@ -116,7 +116,7 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], operation: 'upload' | 'execute') {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
@@ -140,7 +140,23 @@ export class GraphEdit {
           });
         }
 
-        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
+        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => {
+          let newLabel = label;
+
+          switch (operation) {
+            case 'upload':
+              newLabel = `${label} - Uploaded changes`
+              break;
+            case 'execute':
+              const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium', dateStyle: 'medium' });
+              newLabel = `${label} - Execution ${formatter.format(new Date())}`;
+              break;
+            default:
+              break;
+          }
+
+          return newLabel;
+        }) ?? [];
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
@@ -276,7 +292,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path, `Elapsed time: ${elapsedTime}`);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path, `Elapsed time: ${elapsedTime}`);
-                await this.updateGraphInformation(curModel, models);
+                await this.updateGraphInformation(curModel, models, 'execute');
                 this.loggingService.info('Model updated', curModel.path);
               }
 
@@ -327,7 +343,7 @@ export class GraphEdit {
           this.loggingService.info('Updating existing models', curModel.path);
 
           if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models);
+            await this.updateGraphInformation(curModel, models, 'upload');
 
             this.urlService.setUiState(undefined);
             this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
