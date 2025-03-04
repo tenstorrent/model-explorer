@@ -100,6 +100,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     setTimeout(() => {
       this.updateHasOverflow();
       this.changeDetectorRef.markForCheck();
+      this.applyOverrides();
     });
   }
 
@@ -181,6 +182,21 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
       return overrides;
     });
+  }
+
+  applyOverrides(){
+    const modelGraph = this.appService.getSelectedPane()?.modelGraph;
+    const nodeId = this.appService.getSelectedPane()?.selectedNodeInfo?.nodeId ?? '';
+
+    if (!modelGraph) {
+      return;
+    }
+
+    const override = this.modelLoaderService.overrides()[modelGraph.collectionLabel]?.[nodeId]?.attributes.find(({ key }) => key === this.type);
+
+    if (override) {
+      this.text = override.value;
+    }
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
