@@ -197,6 +197,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     if (override) {
       this.text = override.value;
     }
+
+    // TODO: revert override if there is none
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
