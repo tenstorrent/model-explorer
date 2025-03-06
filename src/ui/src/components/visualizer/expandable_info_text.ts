@@ -145,32 +145,33 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     const nodeId = this.appService.getSelectedPane()?.selectedNodeInfo?.nodeId ?? '';
     const [, namedLocation] = Object.entries((modelGraph?.nodesById?.[nodeId] as OpNode | undefined)?.attrs ?? {}).find(([key]) => key === 'named_location') ?? [];
 
-    this.modelLoaderService.overrides.update((overrides) => {
+    this.modelLoaderService.initialValues.update((initialValues) => {
       if (modelGraph?.collectionLabel && nodeId) {
-        overrides[modelGraph.collectionLabel] = {...overrides[modelGraph.collectionLabel] };
+        if (!initialValues[modelGraph.collectionLabel]) {
+          initialValues[modelGraph.collectionLabel] = {};
+        }
 
-
-        if (!overrides[modelGraph.collectionLabel][nodeId]) {
-          overrides[modelGraph.collectionLabel][nodeId] = {
+        if (!initialValues[modelGraph.collectionLabel][nodeId]) {
+          initialValues[modelGraph.collectionLabel][nodeId] = {
             named_location: namedLocation ?? nodeId,
             attributes: []
           };
         }
 
-        const existingOverrides = overrides[modelGraph.collectionLabel][nodeId].attributes.findIndex(({ key }) => key === this.type) ?? -1;
+        const existingEntryIndex = initialValues[modelGraph.collectionLabel][nodeId].attributes.findIndex(({ key }) => key === this.type);
 
-        if (existingOverrides !== -1) {
-          overrides[modelGraph.collectionLabel][nodeId].attributes.splice(existingOverrides, 1);
-        }
-
-        overrides[modelGraph.collectionLabel][nodeId].attributes = [
-          ...(overrides[modelGraph.collectionLabel][nodeId].attributes ?? []),
-          {
+        // Only update initial values if they are not set already
+        // That way there is no loss of the initial value
+        if (existingEntryIndex === -1) {
+          initialValues[modelGraph.collectionLabel][nodeId].attributes.push({
             key: this.type,
             value: updatedValue
-          }
-        ];
+          })
+        }
       }
+
+      return initialValues;
+    });
 
     // TODO: update actual graph data
   }
