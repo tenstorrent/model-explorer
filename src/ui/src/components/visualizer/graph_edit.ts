@@ -121,24 +121,25 @@ export class GraphEdit {
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const curOverrides = this.modelLoaderService.overrides();
-        if (Object.keys(curOverrides).length > 0) {
-          newGraphCollections.forEach((graphCollection) => {
-            graphCollection.graphs.forEach((graph) => {
-              graph.nodes.forEach((node) => {
-                const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
+        // TODO: re-apply overrides and keep track of initial values
+        // const curOverrides = this.modelLoaderService.initialValues();
+        // if (Object.keys(curOverrides).length > 0) {
+        //   newGraphCollections.forEach((graphCollection) => {
+        //     graphCollection.graphs.forEach((graph) => {
+        //       graph.nodes.forEach((node) => {
+        //         const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
 
-                nodeOverrides.forEach(({ key, value }) => {
-                  const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
+        //         nodeOverrides.forEach(({ key, value }) => {
+        //           const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
 
-                  if (nodeToUpdate) {
-                    nodeToUpdate.value = value;
-                  }
-                });
-              });
-            });
-          });
-        }
+        //           if (nodeToUpdate) {
+        //             nodeToUpdate.value = value;
+        //           }
+        //         });
+        //       });
+        //     });
+        //   });
+        // }
 
         const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
@@ -155,7 +156,6 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update(() => ({}));
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
@@ -187,16 +187,17 @@ export class GraphEdit {
             });
 
             if (graph.overrides) {
-              this.modelLoaderService.overrides.update((curOverrides) => {
-                const newOverrides = { ...curOverrides };
+              // TODO: re-apply overrides and initial values
+              // this.modelLoaderService.initialValues.update((curOverrides) => {
+              //   const newOverrides = { ...curOverrides };
 
-                newOverrides[graph.id ?? ''] = {
-                  ...(newOverrides[graph.id ?? ''] ?? {}),
-                  ...graph.overrides
-                };
+              //   newOverrides[graph.id ?? ''] = {
+              //     ...(newOverrides[graph.id ?? ''] ?? {}),
+              //     ...graph.overrides
+              //   };
 
-                return newOverrides;
-              });
+              //   return newOverrides;
+              // });
             }
           }
         });
