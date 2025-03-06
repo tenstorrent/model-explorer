@@ -97,10 +97,11 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges() {
+    this.applyOverrides();
+
     setTimeout(() => {
       this.updateHasOverflow();
       this.changeDetectorRef.markForCheck();
-      this.applyOverrides();
     });
   }
 
@@ -196,9 +197,11 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
     if (override) {
       this.text = override.value;
+    } else {
+      // Force a re-check
+      // this.text = this.text;
+      // this.changeDetectorRef.markForCheck();
     }
-
-    // TODO: revert override if there is none
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
