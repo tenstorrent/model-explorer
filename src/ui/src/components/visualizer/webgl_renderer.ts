@@ -28,6 +28,7 @@ import {
   effect,
   ElementRef,
   EventEmitter,
+  Inject,
   inject,
   Input,
   NgZone,
@@ -45,7 +46,6 @@ import {MatTooltip, MatTooltipModule} from '@angular/material/tooltip';
 import {setAnchorHref} from 'safevalues/dom';
 import * as three from 'three';
 
-import {AppService} from './app_service';
 import {
   GLOBAL_KEY,
   LAYOUT_MARGIN_X,
@@ -133,6 +133,7 @@ import {
 } from './webgl_rounded_rectangles';
 import {LabelData, WebglTexts} from './webgl_texts';
 import {WorkerService} from './worker_service';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 const NODE_BORDER_WIDTH = 1.2;
 const SELECTED_NODE_BORDER_WIDTH = 2;
@@ -257,7 +258,6 @@ export class WebglRenderer implements OnInit, OnDestroy {
   @ViewChild('dragToSelectDragArea', {static: true})
   dragToSelectDragArea!: DragArea;
 
-  readonly appService: AppService = inject(AppService);
   private readonly threejsService: ThreejsService = inject(ThreejsService);
 
   readonly SELECTED_NODE_BORDER_COLOR = new THREE.Color('#1A73E8');
@@ -271,9 +271,7 @@ export class WebglRenderer implements OnInit, OnDestroy {
   readonly GROUP_NODE_LABEL_SEPARATOR_COLOR = new THREE.Color('#DADCE0');
   readonly GROUP_NODE_ICON_COLOR = new THREE.Color('#444746');
   readonly GROUP_NODE_PIN_TO_TOP_SEPARATOR_COLOR = new THREE.Color('#bbb');
-  readonly EDGE_COLOR = new THREE.Color(
-    this.appService.config()?.edgeColor || '#aaa',
-  );
+  readonly EDGE_COLOR = new THREE.Color('#aaa');
   readonly EDGE_COLOR_INCOMING = new THREE.Color('#009e73');
   readonly EDGE_TEXT_COLOR_INCOMING = new THREE.Color('#125341');
   readonly EDGE_COLOR_OUTGOING = new THREE.Color('#d55e00');
@@ -464,6 +462,8 @@ export class WebglRenderer implements OnInit, OnDestroy {
     private readonly webglRendererSubgraphSelectionService: WebglRendererSubgraphSelectionService,
     readonly webglRendererThreejsService: WebglRendererThreejsService,
     private readonly workerService: WorkerService,
+    @Inject('AppService')
+    readonly appService: AppServiceInterface,
   ) {
     this.webglRendererAttrsTableService.init(this);
     this.webglRendererEdgeTextsService.init(this);
@@ -477,6 +477,8 @@ export class WebglRenderer implements OnInit, OnDestroy {
     this.webglRendererSnapshotService.init(this);
     this.webglRendererSubgraphSelectionService.init(this);
     this.webglRendererThreejsService.init(this);
+
+    this.EDGE_COLOR = new THREE.Color(this.appService.config()?.edgeColor || '#aaa');
 
     this.workerService.worker.addEventListener(
       'message',

@@ -25,6 +25,7 @@ import {
   computed,
   effect,
   EventEmitter,
+  Inject,
   Input,
   Output,
   ViewChild,
@@ -35,7 +36,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {Bubble} from '../bubble/bubble';
-import {AppService} from './app_service';
 import {type ModelGraph} from './common/model_graph';
 import {
   PopupPanelData,
@@ -49,6 +49,7 @@ import {SnapshotManager} from './snapshot_manager';
 import {SubgraphBreadcrumbs} from './subgraph_breadcrumbs';
 import {ViewOnNode} from './view_on_node';
 import {WebglRenderer} from './webgl_renderer';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /** A wrapper panel around various renderers. */
 @Component({
@@ -99,7 +100,8 @@ export class RendererWrapper {
   private curSubgraphBreadcrumbs: SubgraphBreadcrumbItem[] = [];
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     effect(() => {

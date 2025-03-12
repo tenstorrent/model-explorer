@@ -24,6 +24,7 @@ import {
   Component,
   computed,
   effect,
+  Inject,
   Input,
   Signal,
   ViewChild,
@@ -33,7 +34,6 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 
 import {Bubble} from '../bubble/bubble';
 import {BubbleClick} from '../bubble/bubble_click';
-import {AppService} from './app_service';
 import {
   LOCAL_STORAGE_KEY_SHOW_ON_EDGE_ITEM_TYPES,
   LOCAL_STORAGE_KEY_SHOW_ON_NODE_ITEM_TYPES,
@@ -48,6 +48,7 @@ import {
 import {getRunName} from './common/utils';
 import {LocalStorageService} from './local_storage_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 interface ShowOnNodeItem {
   type: string;
@@ -128,7 +129,8 @@ export class ViewOnNode {
   opened = false;
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly localStorageService: LocalStorageService,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,

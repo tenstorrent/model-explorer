@@ -54,6 +54,7 @@ import {
 import {LocalStorageService} from './local_storage_service';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /**
  * A service to manage shared data and their updates.
@@ -61,8 +62,10 @@ import {WorkerService} from './worker_service';
  * It uses signals to store shared data. Various components can react to changes
  * to these signals.
  */
-@Injectable()
-export class AppService {
+@Injectable({
+  providedIn: 'root',
+})
+export class AppService implements AppServiceInterface {
   readonly curGraphCollections = signal<GraphCollection[]>([]);
 
   readonly curToLocateNodeInfo = signal<LocateNodeInfo | undefined>(undefined);

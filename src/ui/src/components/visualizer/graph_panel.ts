@@ -23,6 +23,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  Inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -33,7 +34,6 @@ import {
   effect,
 } from '@angular/core';
 
-import {AppService} from './app_service';
 import {type ModelGraph} from './common/model_graph';
 import {PopupPanelData, RendererOwner} from './common/types';
 import {LegendsPanel} from './legends_panel';
@@ -41,6 +41,7 @@ import {PopupPanel} from './popup_panel';
 import {RendererWrapper} from './renderer_wrapper';
 import {SelectionPanel} from './selection_panel';
 import {SubgraphSelectionService} from './subgraph_selection_service';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /** A wrapper panel around the graph renderer. */
 @Component({
@@ -82,7 +83,8 @@ export class GraphPanel implements OnInit, OnChanges, AfterViewInit, OnDestroy {
 
   constructor(
     private readonly root: ElementRef<HTMLElement>,
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly subgraphSelectionService: SubgraphSelectionService,
   ) {

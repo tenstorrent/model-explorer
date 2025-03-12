@@ -21,6 +21,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  Inject,
   Output,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
@@ -29,13 +30,13 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 
 import {OpenInNewTabButton} from '../open_in_new_tab_button/open_in_new_tab_button';
 
-import {AppService} from './app_service';
 import {GraphSelector} from './graph_selector';
 import {Logo} from './logo';
 import {NewVersionChip} from './new_version_chip';
 import {NodeDataProviderDropdown} from './node_data_provider_dropdown';
 import {NodeStyler} from './node_styler';
 import { GraphEdit } from './graph_edit';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /** The title bar component. */
 @Component({
@@ -61,7 +62,10 @@ import { GraphEdit } from './graph_edit';
 export class TitleBar {
   @Output() readonly titleClicked = new EventEmitter<void>();
 
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface
+  ) {}
 
   get disableTitleTooltip(): boolean {
     return this.appService.testMode;
