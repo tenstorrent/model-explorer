@@ -22,7 +22,6 @@ import {
   computed,
   ElementRef,
   EventEmitter,
-  Inject,
   Input,
   OnDestroy,
   OnInit,
@@ -31,11 +30,11 @@ import {
 } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 
+import {AppService} from './app_service';
 import {type GroupNode, type ModelGraph} from './common/model_graph';
 import {RendererOwner, type Point} from './common/types';
 import {PopupPanelTransformer} from './popup_panel_transformer';
 import {RendererWrapper} from './renderer_wrapper';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 const DEFAULT_WIDTH = 400;
 const DEFAULT_HEIGHT = 400;
@@ -90,8 +89,7 @@ export class PopupPanel implements OnInit, OnDestroy {
   };
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     readonly root: ElementRef<HTMLElement>,
   ) {}
 

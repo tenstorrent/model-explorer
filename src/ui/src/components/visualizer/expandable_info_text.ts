@@ -32,10 +32,10 @@ import {
 } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {AppService} from './app_service';
 import { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import type { AttributeDisplayType, EditableAttributeTypes, EditableValueListAttribute } from './common/input_graph';
 import type { OpNode } from './common/model_graph';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /** Expandable info text component. */
 @Component({
@@ -66,8 +66,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   constructor(
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 

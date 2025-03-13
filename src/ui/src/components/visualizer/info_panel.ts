@@ -25,7 +25,6 @@ import {
   effect,
   ElementRef,
   HostBinding,
-  Inject,
   Input,
   QueryList,
   ViewChildren,
@@ -40,6 +39,7 @@ import {takeUntil} from 'rxjs/operators';
 
 import {Bubble} from '../bubble/bubble';
 
+import {AppService} from './app_service';
 import {TENSOR_TAG_METADATA_KEY, TENSOR_VALUES_KEY} from './common/consts';
 import {GroupNode, ModelGraph, ModelNode, OpNode} from './common/model_graph';
 import {
@@ -70,7 +70,6 @@ import {NodeDataProviderSummaryPanel} from './node_data_provider_summary_panel';
 import {Paginator} from './paginator';
 import {SplitPaneService} from './split_pane_service';
 import type { AttributeDisplayType, EditableAttributeTypes } from './common/input_graph.js';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 interface InfoSection {
   label: SectionLabel;
@@ -232,8 +231,7 @@ export class InfoPanel {
   private savedWidth = 0;
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly infoPanelService: InfoPanelService,

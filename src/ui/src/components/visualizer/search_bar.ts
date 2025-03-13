@@ -24,7 +24,6 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  Inject,
   Input,
   ViewChild,
 } from '@angular/core';
@@ -37,12 +36,12 @@ import {debounceTime, tap} from 'rxjs/operators';
 
 import {Bubble} from '../bubble/bubble';
 
+import {AppService} from './app_service';
 import {type ModelGraph, ModelNode} from './common/model_graph';
 import {SearchMatches, SearchMatchType, SearchResults} from './common/types';
 import {getRegexMatchesForNode, isOpNode} from './common/utils';
 import {genIoTreeData, IoTree, TreeNode} from './io_tree';
 import {Paginator} from './paginator';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 interface SearchResultTypeOption {
   matchType: SearchMatchType;
@@ -122,8 +121,7 @@ export class SearchBar {
   private curPageIndex = 0;
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly destroyRef: DestroyRef,
   ) {

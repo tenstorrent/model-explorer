@@ -23,9 +23,7 @@ import {PaneState, VisualizerUiState} from './common/visualizer_ui_state';
 /**
  * A service to manage UI state.
  */
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class UiStateService {
   readonly curUiState = signal<VisualizerUiState>({
     paneStates: [this.createInitialPaneState()],

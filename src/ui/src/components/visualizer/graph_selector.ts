@@ -37,11 +37,12 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatSelect, MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {setAnchorHref} from 'safevalues/dom';
+import {AppService} from './app_service';
 import {Graph, GraphCollection} from './common/input_graph';
 import {exportToResource} from './common/utils';
 import {GraphSelectorPanel} from './graph_selector_panel';
+import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import { MatButtonModule } from '@angular/material/button';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /** A graph collection in the dropdown menu. */
 export interface GraphCollectionItem {
@@ -170,8 +171,9 @@ export class GraphSelector {
   });
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    @Inject('ModelLoaderService')
+    private readonly modelLoaderService: ModelLoaderServiceInterface,
+    private readonly appService: AppService,
     private readonly overlay: Overlay,
     private readonly viewContainerRef: ViewContainerRef,
   ) {

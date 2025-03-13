@@ -21,17 +21,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  Inject,
   Input,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {setAnchorHref} from 'safevalues/dom';
 
+import {AppService} from './app_service';
 import {EXPORT_SELECTED_NODES_CMD} from './common/consts';
 import {exportToResource} from './common/utils';
 import {SubgraphSelectionService} from './subgraph_selection_service';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /** A component to show actions for selected nodes. */
 @Component({
@@ -53,8 +52,7 @@ export class SelectionPanel {
   });
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly subgraphSelectionService: SubgraphSelectionService,
   ) {
     this.hasSelectedNodes = this.subgraphSelectionService.hasSelectedNodes;

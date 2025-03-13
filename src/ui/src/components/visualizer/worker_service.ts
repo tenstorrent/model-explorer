@@ -21,9 +21,7 @@ import {Injectable} from '@angular/core';
 /**
  * Service to manage web worker.
  */
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class WorkerService {
   readonly worker: Worker;
 
