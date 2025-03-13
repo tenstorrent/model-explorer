@@ -214,12 +214,14 @@ export class GraphEdit {
     const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
     const models = this.modelLoaderService.models();
     const curModel = models.find(({ label }) => label === curCollectionLabel);
+    const overrides = this.modelLoaderService.overrides()[curCollectionLabel ?? ''];
 
     return {
       curModel,
       curCollection,
       curCollectionLabel,
-      models
+      models,
+      overrides,
     };
   }
 
@@ -246,14 +248,14 @@ export class GraphEdit {
   }
 
   async handleClickExecuteGraph() {
-    const { curModel, curCollection, models } = this.getCurrentGraphInformation();
+    const { curModel, models, overrides } = this.getCurrentGraphInformation();
 
-    if (curModel && curCollection) {
+    if (curModel) {
       try {
         this.isProcessingExecuteRequest = true;
         this.loggingService.info('Start executing model', curModel.path);
 
-        const result = await this.modelLoaderService.executeModel(curModel, curCollection, this.modelLoaderService.initialValues());
+        const result = await this.modelLoaderService.executeModel(curModel, overrides);
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
@@ -306,9 +308,9 @@ export class GraphEdit {
   }
 
   async handleClickUploadGraph() {
-    const { curModel, curCollection, models } = this.getCurrentGraphInformation();
+    const { curModel, curCollection, overrides, models } = this.getCurrentGraphInformation();
 
-    if (curModel && curCollection) {
+    if (curModel && curCollection && overrides) {
       try {
         this.isProcessingUploadRequest = true;
         this.loggingService.info('Start uploading model', curModel.path);
@@ -316,7 +318,7 @@ export class GraphEdit {
         const isUploadSuccessful = await this.modelLoaderService.overrideModel(
           curModel,
           curCollection,
-          this.modelLoaderService.initialValues()
+          overrides
         );
 
         this.loggingService.info('Upload finished', curModel.path);
