@@ -87,9 +87,18 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       });
       this.resizeObserver.observe(this.container.nativeElement);
     }
+
+    this.text = this.modelLoaderService
+      .overrides()[this.collectionLabel ?? '']
+      ?.[this.nodeId]
+      ?.attributes
+      ?.find(({ key }) => key === this.type)
+      ?.value ?? this.text;
   }
 
   ngOnChanges() {
+    this.applyOverrides();
+
     setTimeout(() => {
       this.updateHasOverflow();
       this.changeDetectorRef.markForCheck();
@@ -172,7 +181,27 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
         ];
       }
 
-    // TODO: update actual graph data
+      return overrides;
+    });
+  }
+
+  applyOverrides(){
+    const modelGraph = this.appService.getSelectedPane()?.modelGraph;
+    const nodeId = this.appService.getSelectedPane()?.selectedNodeInfo?.nodeId ?? '';
+
+    if (!modelGraph) {
+      return;
+    }
+
+    const override = this.modelLoaderService.overrides()[modelGraph.collectionLabel]?.[nodeId]?.attributes.find(({ key }) => key === this.type);
+
+    if (override) {
+      this.text = override.value;
+    } else {
+      // Force a re-check
+      // this.text = this.text;
+      // this.changeDetectorRef.markForCheck();
+    }
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
