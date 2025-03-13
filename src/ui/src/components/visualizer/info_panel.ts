@@ -517,7 +517,7 @@ export class InfoPanel {
     // HACK: Added a random number to force re-renders.
     const randomHexNumber = Math.random().toString(16).replace('0.', '');
 
-    return `${this.curSelectedNodeId}-${item.id || item.label}-${item.value}-${randomHexNumber}`;
+    return `${this.curSelectedNodeId ?? ''}-${item.id ?? ''}-${item.label}-${item.value}-${randomHexNumber}`;
   }
 
   getOutputToggleVisible(item: OutputItem): boolean {
