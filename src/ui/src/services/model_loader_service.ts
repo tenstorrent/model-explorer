@@ -27,7 +27,7 @@ import {
   type ExtensionCommand,
   type ExtensionResponse,
 } from '../common/extension_command';
-import {ModelLoaderServiceInterface, type InitialValuesPerGraphAndNode } from '../common/model_loader_service_interface';
+import {ModelLoaderServiceInterface, type OverridesPerGraphAndNode, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
   InternalAdapterExtId,
   ModelItem,
@@ -72,7 +72,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   readonly models = signal<ModelItem[]>([]);
 
-  readonly initialValues = signal<InitialValuesPerGraphAndNode>({});
+  readonly overrides = signal<OverridesPerGraphAndNode>({});
 
   readonly graphErrors = signal<string[] | undefined>(undefined);
 
@@ -84,58 +84,16 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   ) {}
 
   get hasOverrides() {
-    return Object.keys(this.initialValues()).length > 0;
+    return Object.keys(this.overrides()).length > 0;
   }
 
   getOptimizationPolicies(extensionId: string): string[] {
     return this.extensionService.extensionSettings.get(extensionId)?.optimizationPolicies ?? [];
   }
 
-  private applyOverrides(graphCollection: GraphCollection, initialValues: InitialValuesPerGraphAndNode) {
-    const overrides: InitialValuesPerGraphAndNode = {};
-    const overridenGraphCollection = structuredClone(graphCollection);
-
-    for (const [graphId, nodes] of Object.entries(initialValues)) {
-      if (!overrides[graphId]) {
-        overrides[graphId] = {};
-      }
-
-      for (const [nodeId, { named_location, attributes }] of Object.entries(nodes)) {
-        if (!overrides[graphId][nodeId]) {
-          overrides[graphId][nodeId] = {
-            named_location,
-            attributes: []
-          }
-        }
-
-        for (const attribute of attributes) {
-          const graphAttribute = overridenGraphCollection
-            .graphs.find(({ id }) => id === graphId)
-            ?.nodes.find(({ id }) => id === nodeId)
-            ?.attrs?.find(({ key }) => key === attribute.key);
-
-            if (graphAttribute) {
-              const initialValue = attribute.value;
-              const overrideValue = graphAttribute.value;
-
-              overrides[graphId][nodeId].attributes.push({ key: attribute.key, value: overrideValue });
-              graphAttribute.value = initialValue;
-            }
-        }
-      }
-    }
-
-    return {
-      overrides,
-      overridenGraphCollection
-    }
-  }
-
-  async executeModel(modelItem: ModelItem, graphCollection: GraphCollection, initialValues: InitialValuesPerGraphAndNode = {}) {
+  async executeModel(modelItem: ModelItem, overrides: OverridesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: boolean = false;
-
-    const { overrides } = this.applyOverrides(graphCollection, initialValues);
 
     result = await this.sendExecuteRequest(
       modelItem,
@@ -149,18 +107,16 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return result;
   }
 
-  async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, initialValues: InitialValuesPerGraphAndNode) {
+  async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, overrides: OverridesPerNode) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result = false;
-
-    const { overrides, overridenGraphCollection } = this.applyOverrides(graphCollection, initialValues);
 
     // Send request to backend for processing.
     result = await this.sendOverrideRequest(
       modelItem,
       modelItem.path,
-      overridenGraphCollection,
-      overrides
+      graphCollection,
+      overrides,
     );
 
     if (modelItem.status() !== ModelItemStatus.ERROR) {
