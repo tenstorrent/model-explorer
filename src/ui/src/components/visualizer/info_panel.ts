@@ -514,10 +514,14 @@ export class InfoPanel {
   }
 
   getAttributeTrackingId(item: InfoItem) {
-    // HACK: Added a random number to force re-renders.
-    const randomHexNumber = Math.random().toString(16).replace('0.', '');
+    let refreshTrigger = '';
 
-    return `${this.curSelectedNodeId ?? ''}-${item.id ?? ''}-${item.label}-${item.value}-${randomHexNumber}`;
+    if (item.editable) {
+      // HACK: Added a random number to force re-renders if the attribute is editable.
+      refreshTrigger = Math.random().toString(16).replace('0.', '');
+    }
+
+    return `${this.curSelectedNodeId ?? ''}-${item.section.label}-${item.id ?? ''}-${item.label}-${item.value}-${refreshTrigger}`;
   }
 
   getOutputToggleVisible(item: OutputItem): boolean {
