@@ -202,6 +202,24 @@ export class GraphSelector {
     });
   }
 
+  getCurrentGraphInformation() {
+    const curPane = this.appService.getSelectedPane();
+    const curCollectionLabel = curPane?.modelGraph?.collectionLabel;
+    const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
+    const models = this.modelLoaderService.models();
+    const curModel = models.find(({ label }) => label === curCollectionLabel);
+    const changesToUpload = this.modelLoaderService.overrides()[curCollectionLabel ?? ''];
+
+    return {
+      curModel,
+      curCollection,
+      curCollectionLabel,
+      curPane,
+      models,
+      changesToUpload,
+    };
+  }
+
   handleGraphSelectorOpenedChanged(opened: boolean) {
     // Clear filter text when the selector is closed.
     if (!opened) {
