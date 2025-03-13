@@ -515,6 +515,10 @@ export class InfoPanel {
     }
   }
 
+  getAttributeTrackingId(item: InfoItem) {
+    return `${this.curSelectedNodeId}-${item.id || item.label}-${item.value}`;
+  }
+
   getOutputToggleVisible(item: OutputItem): boolean {
     return this.splitPaneService.getOutputVisible(
       item.sourceOpNode.id,
