@@ -17,7 +17,7 @@
  */
 
 import {Graph, GraphCollection,} from '../components/visualizer/common/input_graph';
-import type { InitialValuesPerNode as OverridesPerNode } from './model_loader_service_interface';
+import type { OverridesPerNode } from './model_loader_service_interface';
 
 /** A command sent to extension. */
 export declare interface ExtensionCommand {

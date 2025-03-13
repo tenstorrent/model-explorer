@@ -16,7 +16,7 @@
  * ==============================================================================
  */
 
-import type { InitialValuesPerNode as OverridesPerNode } from '../../../common/model_loader_service_interface.js';
+import type { OverridesPerNode } from '../../../common/model_loader_service_interface.js';
 import {
   GraphNodeConfig,
   GraphNodeStyle,
