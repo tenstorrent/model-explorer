@@ -180,7 +180,7 @@ export interface EditableValueListAttribute {
 
 export interface EditableGridAttribute {
   input_type: 'grid';
-  visual_separator?: string;
+  separator?: string;
   min_value: number;
   max_value: number;
   step: number;

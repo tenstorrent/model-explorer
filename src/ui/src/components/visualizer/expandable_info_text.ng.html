@@ -89,24 +89,24 @@ limitations under the License.
                     [attr.data-index]="$index"
                     [step]="$any(editable)?.step ?? 1"
                     [min]="$any(editable)?.min_value ?? 0"
-                    [max]="$any(editable)?.max_value ?? 100"
+                    [max]="$any(editable)?.max_value ?? maxIntValue"
                     (change)="handleTextChange($event)"
                   />
                 }
               }
 
               @case ('grid') {
-                @for (item of splitEditableList(text); track $index) {
+                @for (item of splitEditableList(text, $any(editable)?.separator ?? 'x'); track $index) {
                   <input
                     [type]="item.type"
                     [value]="item.value"
                     [attr.data-index]="$index"
                     [step]="$any(editable)?.step ?? 1"
                     [min]="$any(editable)?.min_value ?? 0"
-                    [max]="$any(editable)?.max_value ?? 100"
+                    [max]="$any(editable)?.max_value ?? maxIntValue"
                     (change)="handleTextChange($event)"
                   />
-                  <span class="text-separator">&nbsp;{{$any(editable)?.visual_separator ?? 'x'}}&nbsp;</span>
+                  <span class="text-separator">&nbsp;{{$any(editable)?.separator ?? 'x'}}&nbsp;</span>
                 }
               }
             }
@@ -144,24 +144,24 @@ limitations under the License.
               [attr.data-index]="$index"
               [step]="$any(editable)?.step ?? 1"
               [min]="$any(editable)?.min_value ?? 0"
-              [max]="$any(editable)?.max_value ?? 100"
+              [max]="$any(editable)?.max_value ?? maxIntValue"
               (change)="handleTextChange($event)"
             />
           }
         }
 
         @case ('grid') {
-          @for (item of splitEditableList(text); track $index) {
+          @for (item of splitEditableList(text, $any(editable)?.separator ?? 'x'); track $index) {
             <input
               [type]="item.type"
               [value]="item.value"
               [attr.data-index]="$index"
               [step]="$any(editable)?.step ?? 1"
               [min]="$any(editable)?.min_value ?? 0"
-              [max]="$any(editable)?.max_value ?? 100"
+              [max]="$any(editable)?.max_value ?? maxIntValue"
               (change)="handleTextChange($event)"
             />
-            <span class="text-separator">&nbsp;{{$any(editable)?.visual_separator ?? 'x'}}&nbsp;</span>
+            <span class="text-separator">&nbsp;{{$any(editable)?.separator ?? 'x'}}&nbsp;</span>
           }
         }
       }
