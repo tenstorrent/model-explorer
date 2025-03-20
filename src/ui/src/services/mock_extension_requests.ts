@@ -1,7 +1,19 @@
+import type { AdapterExecuteResponse, AdapterStatusCheckResponse, AdapterStatusCheckResults, ExtensionCommand } from '../common/extension_command.js';
 import type { GraphCollection } from '../components/visualizer/common/input_graph.js';
 import type { NodeAttribute } from '../custom_element/index.js';
 
 export const isMockEnabled = localStorage.getItem('mock-api') === 'true';
+
+const MOCK_STATUS_UPDATE: Required<Omit<AdapterStatusCheckResults, 'error'>> = {
+  isDone: false,
+  progress: 0,
+  total: 100,
+  timeElapsed: 0,
+  currentStatus: 'executing',
+  stdout: '',
+  log_file: '/fake.log'
+};
+
 
 function processAttribute(attr: NodeAttribute): NodeAttribute {
   if (attr.editable) {
@@ -109,4 +121,47 @@ export function mockExtensionCommand(command: string, json: any) {
   }
 
   return json;
+}
+
+
+/**
+ * @deprecated
+ * @todo Revert mock API changes!
+ */
+export function interceptExtensionCommand(command: ExtensionCommand) {
+  if (!isMockEnabled) {
+    return undefined;
+  }
+
+  if (command.cmdId === 'execute') {
+    const responseBody = JSON.stringify({
+      graphs: [],
+    } satisfies AdapterExecuteResponse);
+
+    return new Response(responseBody, { status: 200 });
+  }
+
+  if (command.cmdId === 'status_check') {
+    if (MOCK_STATUS_UPDATE.isDone) {
+      MOCK_STATUS_UPDATE.isDone = false;
+      MOCK_STATUS_UPDATE.progress = 0;
+      MOCK_STATUS_UPDATE.currentStatus = 'executing';
+      MOCK_STATUS_UPDATE.timeElapsed = 0;
+    }
+
+    MOCK_STATUS_UPDATE.timeElapsed = MOCK_STATUS_UPDATE.timeElapsed + Math.trunc(Math.random() * 100);
+    MOCK_STATUS_UPDATE.progress += Math.trunc(Math.random() * 10);
+
+    if (MOCK_STATUS_UPDATE.progress >= MOCK_STATUS_UPDATE.total) {
+      MOCK_STATUS_UPDATE.isDone = true;
+      MOCK_STATUS_UPDATE.progress = MOCK_STATUS_UPDATE.total;
+      MOCK_STATUS_UPDATE.currentStatus = 'finished';
+    }
+
+    const responseBody = JSON.stringify({ graphs: [MOCK_STATUS_UPDATE] } satisfies AdapterStatusCheckResponse);
+
+    return new Response(responseBody, { status: 200 });
+  }
+
+  return undefined;
 }
