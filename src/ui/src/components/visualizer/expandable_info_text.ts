@@ -241,30 +241,6 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     return `${parsedValue * 100}%`;
   }
 
-  isPercentage(value: string) {
-    const parsedValue = Number.parseFloat(value);
-
-    if (Number.isNaN(parsedValue)) {
-      return false;
-    }
-
-    if (parsedValue < 0 || parsedValue > 1) {
-      return false;
-    }
-
-    return true;
-  }
-
-  formatPercentage(value: string) {
-    const parsedValue = Number.parseFloat(value);
-
-    if (Number.isNaN(parsedValue)) {
-      return '0%';
-    }
-
-    return `${parsedValue * 100}%`;
-  }
-
   get maxIntValue() {
     return Number.MAX_SAFE_INTEGER;
   }
