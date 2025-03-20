@@ -24,6 +24,7 @@ import {
   IncomingEdge,
   MetadataItem,
   NodeAttributeList,
+  type KeyValue,
   type NodeDataProviderData,
 } from './types';
 
