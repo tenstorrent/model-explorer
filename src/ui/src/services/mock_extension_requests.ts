@@ -1,28 +1,32 @@
 import type { GraphCollection } from '../components/visualizer/common/input_graph.js';
-import type { NodeAttribute, NodeAttributeValue } from '../custom_element/index.js';
+import type { NodeAttribute } from '../custom_element/index.js';
 
 export const isMockEnabled = localStorage.getItem('mock-api') === 'true';
 
-function processAttribute(key: string, value: NodeAttributeValue): NodeAttribute {
-  if (typeof value !== 'string') {
+function processAttribute(attr: NodeAttribute): NodeAttribute {
+  if (attr.editable) {
+    return attr;
+  }
+
+  if (typeof attr.value !== 'string') {
     return {
-      key,
-      value
+      key: attr.key,
+      value: attr.value
     };
   }
 
-  if (key.includes('memory')) {
+  if (attr.key.includes('memory')) {
     return {
-      key,
-      value,
+      key: attr.key,
+      value: attr.value,
       display_type: 'memory'
     }
   }
 
-  if (key.includes('grid') || key.includes('shape')) {
+  if (attr.key.includes('grid')) {
     return {
-      key,
-      value,
+      key: attr.key,
+      value: attr.value,
       editable: {
         input_type: 'grid',
         separator: 'x',
@@ -33,12 +37,10 @@ function processAttribute(key: string, value: NodeAttributeValue): NodeAttribute
     };
   }
 
-  if (value.startsWith('[')) {
-    const arr = value.split(',');
-
+  if (attr.value.startsWith('[')) {
     return {
-      key,
-      value,
+      key: attr.key,
+      value: attr.value,
       editable: {
         input_type: 'int_list',
         min_value: 0,
@@ -48,13 +50,16 @@ function processAttribute(key: string, value: NodeAttributeValue): NodeAttribute
     };
   }
 
-  if (value.startsWith('(')) {
-    return { key, value };
+  if (attr.value.startsWith('(')) {
+    return {
+      key: attr.key,
+      value: attr.value
+    };
   }
 
   return {
-    key,
-    value,
+    key: attr.key,
+    value: attr.value,
     editable: {
       input_type: 'value_list',
       options: ['foo', 'bar', 'baz']
@@ -69,12 +74,16 @@ function processAttribute(key: string, value: NodeAttributeValue): NodeAttribute
 export function mockGraphCollectionAttributes<T extends GraphCollection>(json: T) {
   json.graphs?.forEach((graph) => {
     graph.nodes?.forEach((node) => {
-      node.attrs?.forEach(({key, value}, index) => {
-        node.attrs![index] = processAttribute(key, value);
+      node.attrs?.forEach((nodeAttribute, index) => {
+        node.attrs![index] = processAttribute(nodeAttribute);
       });
 
       if (!node.attrs?.find(({ key }) => key.includes('memory'))) {
-        node.attrs?.push(processAttribute('memory', '0.5'));
+        node.attrs?.push(processAttribute({ key: 'memory', value: '0.5' }));
+      }
+
+      if (!node.attrs?.find(({ key }) => key.includes('grid'))) {
+        node.attrs?.push(processAttribute({ key: 'grid', value: '1x1' }));
       }
     });
 
