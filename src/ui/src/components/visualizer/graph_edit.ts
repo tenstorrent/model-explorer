@@ -148,7 +148,7 @@ export class GraphEdit {
               suffix = 'Uploaded changes';
               break;
             case 'execute':
-              const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium', dateStyle: 'medium' });
+              const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium' });
               suffix = `Execution ${formatter.format(new Date())}`;
               break;
             default:
