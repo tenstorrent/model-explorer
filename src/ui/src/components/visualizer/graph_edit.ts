@@ -140,23 +140,26 @@ export class GraphEdit {
           });
         }
 
-        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => {
-          let newLabel = label;
+        const newGraphCollectionsLabels = (newGraphCollections ?? [])?.reduce<string[]>((labels, collection) => {
+          let newLabel = collection.label;
 
           switch (operation) {
             case 'upload':
-              newLabel = `${label} - Uploaded changes`
+              newLabel = `${collection.label} - Uploaded changes`
               break;
             case 'execute':
               const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium', dateStyle: 'medium' });
-              newLabel = `${label} - Execution ${formatter.format(new Date())}`;
+              newLabel = `${collection.label} - Execution ${formatter.format(new Date())}`;
               break;
             default:
               break;
           }
 
-          return newLabel;
-        }) ?? [];
+          collection.label = newLabel;
+          labels.push(newLabel);
+
+          return labels;
+        }, []);
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
