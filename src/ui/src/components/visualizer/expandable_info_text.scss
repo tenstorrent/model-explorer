@@ -191,8 +191,8 @@
 
     &::before {
       clip-path: inset(0 calc(100% - var(--percentage)) 0 0);
-      color: white;
-      background: variables.$selection-color;
+      color: #00639b;
+      background: #d7f1ff;
     }
 
     &::after {
