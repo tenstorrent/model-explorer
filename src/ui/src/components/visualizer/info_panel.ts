@@ -612,6 +612,10 @@ export class InfoPanel {
     return this.curModelGraph?.collectionLabel;
   }
 
+  get curModelGraphId(): string | undefined {
+    return this.curModelGraph?.id;
+  }
+
   get showInputPaginator(): boolean {
     return (
       this.inputItems.length > this.ioPageSize &&

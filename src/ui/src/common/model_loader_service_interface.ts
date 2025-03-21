@@ -25,7 +25,8 @@ import {ModelItem} from './types';
 import type { AdapterStatusCheckResults } from './extension_command';
 
 export type OverridesPerNode = Record<string, { named_location: string, attributes: KeyValue[] }>;
-export type OverridesPerGraphAndNode = Record<string, OverridesPerNode>;
+export type OverridesPerGraph = Record<string, OverridesPerNode>;
+export type OverridesPerCollection = Record<string, OverridesPerGraph>;
 
 /** The interface of model load service. */
 export interface ModelLoaderServiceInterface {
@@ -36,7 +37,7 @@ export interface ModelLoaderServiceInterface {
   overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: OverridesPerNode): Promise<boolean>;
   get loadedGraphCollections(): WritableSignal<GraphCollection[] | undefined>;
   get models(): WritableSignal<ModelItem[]>;
-  get overrides(): WritableSignal<OverridesPerGraphAndNode>;
+  get overrides(): WritableSignal<OverridesPerCollection>;
   getOptimizationPolicies(extensionId: string): string[];
   get selectedOptimizationPolicy(): WritableSignal<string>;
   get graphErrors(): WritableSignal<string[] | undefined>;

@@ -27,7 +27,7 @@ import {
   type ExtensionCommand,
   type ExtensionResponse,
 } from '../common/extension_command';
-import {ModelLoaderServiceInterface, type OverridesPerGraphAndNode, type OverridesPerNode } from '../common/model_loader_service_interface';
+import {ModelLoaderServiceInterface, type OverridesPerCollection, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
   InternalAdapterExtId,
   ModelItem,
@@ -72,7 +72,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   readonly models = signal<ModelItem[]>([]);
 
-  readonly overrides = signal<OverridesPerGraphAndNode>({});
+  readonly overrides = signal<OverridesPerCollection>({});
 
   readonly graphErrors = signal<string[] | undefined>(undefined);
 

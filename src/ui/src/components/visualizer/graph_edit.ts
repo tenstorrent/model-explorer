@@ -122,11 +122,12 @@ export class GraphEdit {
     if (curModel.status() !== ModelItemStatus.ERROR) {
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
         const curOverrides = this.modelLoaderService.overrides();
+
         if (Object.keys(curOverrides).length > 0) {
           newGraphCollections.forEach((graphCollection) => {
             graphCollection.graphs.forEach((graph) => {
               graph.nodes.forEach((node) => {
-                const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
+                const nodeOverrides = curOverrides[graphCollection.label][graph.id][node.id]?.attributes ?? [];
 
                 nodeOverrides.forEach(({ key, value }) => {
                   const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
@@ -155,6 +156,7 @@ export class GraphEdit {
         };
       }) ?? []);
 
+      // TODO: don't remove overrides
       this.modelLoaderService.overrides.update(() => ({}));
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
@@ -190,8 +192,12 @@ export class GraphEdit {
               this.modelLoaderService.overrides.update((curOverrides) => {
                 const newOverrides = { ...curOverrides };
 
-                newOverrides[graph.id ?? ''] = {
-                  ...(newOverrides[graph.id ?? ''] ?? {}),
+                if (!collection.label || !graph.id) {
+                  return newOverrides;
+                }
+
+                newOverrides[collection.label][graph.id] = {
+                  ...(newOverrides[collection.label][graph.id ?? ''] ?? {}),
                   ...graph.overrides
                 };
 
@@ -248,14 +254,14 @@ export class GraphEdit {
   }
 
   async handleClickExecuteGraph() {
-    const { curModel, models, overrides } = this.getCurrentGraphInformation();
+    const { curModel, models, overrides, curCollectionLabel } = this.getCurrentGraphInformation();
 
     if (curModel) {
       try {
         this.isProcessingExecuteRequest = true;
         this.loggingService.info('Start executing model', curModel.path);
 
-        const result = await this.modelLoaderService.executeModel(curModel, overrides);
+        const result = await this.modelLoaderService.executeModel(curModel, overrides?.[curCollectionLabel ?? '']);
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
@@ -318,7 +324,7 @@ export class GraphEdit {
         const isUploadSuccessful = await this.modelLoaderService.overrideModel(
           curModel,
           curCollection,
-          overrides
+          overrides[curCollection.label]
         );
 
         this.loggingService.info('Upload finished', curModel.path);
