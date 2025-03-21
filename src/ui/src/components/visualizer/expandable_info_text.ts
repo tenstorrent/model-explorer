@@ -163,7 +163,9 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     const modelGraph = this.appService.getSelectedPane()?.modelGraph;
-    const [, namedLocation] = Object.entries((modelGraph?.nodesById?.[this.nodeId] as OpNode | undefined)?.attrs ?? {}).find(([key]) => key === 'named_location') ?? [];
+    const curNodeAttributes = (modelGraph?.nodesById?.[this.nodeId] as OpNode | undefined)?.attrs ?? {};
+    const namedLocation = (curNodeAttributes['named_location'] ?? '') as string;
+    const fullLocation = (curNodeAttributes['full_location'] ?? '') as string;
 
     this.modelLoaderService.overrides.update((overrides) => {
       if (!this.collectionLabel || !this.graphId || !this.nodeId) {
@@ -182,8 +184,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
       if (!overrides[this.collectionLabel][this.graphId][this.nodeId]) {
         overrides[this.collectionLabel][this.graphId][this.nodeId] = {
-          // TODO: test if this breaks
-          named_location: (namedLocation as string) ?? this.nodeId,
+          named_location: namedLocation || this.nodeId,
+          full_location: fullLocation,
           attributes: []
         };
       }
