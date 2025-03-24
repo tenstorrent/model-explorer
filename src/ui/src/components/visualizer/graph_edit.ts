@@ -158,8 +158,6 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      // TODO: don't remove overrides
-      this.modelLoaderService.overrides.update(() => ({}));
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
