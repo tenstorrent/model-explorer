@@ -116,7 +116,7 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  // TODO: refactor, graph needs to be updated and modelgraph coming from app service needs to be updated also
+  // TODO: update modelgraph on app service to reflect changes
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
