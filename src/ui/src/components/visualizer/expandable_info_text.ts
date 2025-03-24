@@ -94,7 +94,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       .overrides()
       ?.[this.collectionLabel]
       ?.[this.graphId]
-      ?.[this.nodeId]
+      ?.[this.nodeFullLocation]
       ?.attributes
       ?.find(({ key }) => key === this.type)
       ?.value
@@ -163,13 +163,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       }).join(this.editable?.separator ?? 'x')}`;
     }
 
-    const modelGraph = this.appService.getSelectedPane()?.modelGraph;
-    const curNodeAttributes = (modelGraph?.nodesById?.[this.nodeId] as OpNode | undefined)?.attrs ?? {};
-    const namedLocation = (curNodeAttributes['named_location'] ?? '') as string;
-    const fullLocation = (curNodeAttributes['full_location'] ?? '') as string;
-
     this.modelLoaderService.overrides.update((overrides) => {
-      if (!this.collectionLabel || !this.graphId || !this.nodeId) {
+      if (!this.collectionLabel || !this.graphId || !this.nodeFullLocation) {
         return overrides;
       }
 
@@ -183,22 +178,22 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
         overrides[this.collectionLabel][this.graphId] = {}
       }
 
-      if (!overrides[this.collectionLabel][this.graphId][this.nodeId]) {
-        overrides[this.collectionLabel][this.graphId][this.nodeId] = {
-          named_location: namedLocation || this.nodeId,
-          full_location: fullLocation,
+      if (!overrides[this.collectionLabel][this.graphId][this.nodeFullLocation]) {
+        overrides[this.collectionLabel][this.graphId][this.nodeFullLocation] = {
+          named_location: this.nodeNamedLocation,
+          full_location: this.nodeFullLocation,
           attributes: []
         };
       }
 
-      const existingOverrides = overrides[this.collectionLabel][this.graphId][this.nodeId].attributes.findIndex(({ key }) => key === this.type) ?? -1;
+      const existingOverrides = overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes.findIndex(({ key }) => key === this.type) ?? -1;
 
       if (existingOverrides !== -1) {
-        overrides[this.collectionLabel][this.graphId][this.nodeId].attributes.splice(existingOverrides, 1);
+        overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes.splice(existingOverrides, 1);
       }
 
-      overrides[this.collectionLabel][this.graphId][this.nodeId].attributes = [
-        ...(overrides[this.collectionLabel][this.graphId][this.nodeId].attributes ?? []),
+      overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes = [
+        ...(overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes ?? []),
         {
           key: this.type,
           value: updatedValue

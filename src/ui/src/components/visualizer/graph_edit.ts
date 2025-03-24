@@ -129,7 +129,7 @@ export class GraphEdit {
             graphCollection.graphs.forEach((graph) => {
               graph.nodes.forEach((node) => {
                 const nodeFullLocation = (node.attrs?.find(({ key }) => key === 'full_location')?.value ?? '') as string;
-                const nodeOverrides = Object.values(curOverrides[graphCollection.label][graph.id]).find(({ full_location }) => full_location === nodeFullLocation)?.attributes ?? [];
+                const nodeOverrides = curOverrides[graphCollection.label][graph.id][nodeFullLocation]?.attributes ?? [];
 
                 nodeOverrides.forEach(({ key, value }) => {
                   const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
