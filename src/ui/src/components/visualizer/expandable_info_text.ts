@@ -51,7 +51,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   @Input() type = '';
   @Input() collectionLabel = '';
   @Input() graphId = '';
-  @Input() nodeId = '';
+  @Input() nodeFullLocation = '';
+  @Input() nodeNamedLocation = '';
   @Input() bgColor = 'transparent';
   @Input() textColor = 'inherit';
   @Input() editable?: EditableAttributeTypes = undefined;

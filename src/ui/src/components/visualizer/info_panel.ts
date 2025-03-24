@@ -608,6 +608,14 @@ export class InfoPanel {
     return this.curSelectedNode ? this.curSelectedNode.id : undefined;
   }
 
+  get curSelectedNodeFullLocation(): string | undefined {
+    return this.curSelectedNode ? ((this.curSelectedNode as OpNode)?.attrs?.['full_location'] as string) ?? this.curSelectedNode.id : undefined;
+  }
+
+  get curSelectedNodeNamedLocation(): string | undefined {
+    return this.curSelectedNode ? ((this.curSelectedNode as OpNode)?.attrs?.['named_location'] as string) ?? this.curSelectedNode.id : undefined;
+  }
+
   get curCollectionLabel(): string | undefined {
     return this.curModelGraph?.collectionLabel;
   }
