@@ -132,10 +132,10 @@ export class GraphEdit {
                 const nodeOverrides = curOverrides[graphCollection.label][graph.id][nodeFullLocation]?.attributes ?? [];
 
                 nodeOverrides.forEach(({ key, value }) => {
-                  const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
+                  const attrToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
 
-                  if (nodeToUpdate) {
-                    nodeToUpdate.value = value;
+                  if (attrToUpdate) {
+                    attrToUpdate.value = value;
                   }
                 });
               });
