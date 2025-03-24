@@ -49,7 +49,6 @@ import {
   KeyValuePairs,
   NodeAttributeValueType,
   NodeDataProviderRunInfo,
-  NodeIdsNodeAttributeValue,
   OutgoingEdge,
   SearchMatchAttr,
   SearchMatchInputMetadata,
