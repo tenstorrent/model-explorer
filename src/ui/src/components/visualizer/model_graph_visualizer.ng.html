@@ -24,7 +24,7 @@ limitations under the License.
   } @else {
     <!-- Title bar at the top. -->
     @if (showTitleBar) {
-      <title-bar (titleClicked)="titleClicked.emit()" [appService]="appService">
+      <title-bar (titleClicked)="titleClicked.emit()">
         <ng-content></ng-content>
       </title-bar>
     }
@@ -34,7 +34,7 @@ limitations under the License.
       @if (hasNoGraphs) {
         <div class="no-graphs-message">No graphs</div>
       } @else {
-        <split-panes-container [appService]="appService"></split-panes-container>
+        <split-panes-container></split-panes-container>
       }
     </div>
   }
