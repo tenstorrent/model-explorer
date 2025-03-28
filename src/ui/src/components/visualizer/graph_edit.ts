@@ -116,7 +116,6 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  // TODO: update modelgraph on app service to reflect changes
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
@@ -150,7 +149,8 @@ export class GraphEdit {
 
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
-          const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
+          // TODO: find a better way to reference the model graph
+          const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
           if (modelGraph) {
             Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
