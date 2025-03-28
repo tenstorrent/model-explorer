@@ -122,27 +122,6 @@ export class GraphEdit {
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const curOverrides = this.modelLoaderService.overrides();
-
-        if (Object.keys(curOverrides).length > 0) {
-          newGraphCollections.forEach((graphCollection) => {
-            graphCollection.graphs.forEach((graph) => {
-              graph.nodes.forEach((node) => {
-                const nodeFullLocation = (node.attrs?.find(({ key }) => key === 'full_location')?.value ?? '') as string;
-                const nodeOverrides = curOverrides[graphCollection.label][graph.id][nodeFullLocation]?.attributes ?? [];
-
-                nodeOverrides.forEach(({ key, value }) => {
-                  const attrToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
-
-                  if (attrToUpdate) {
-                    attrToUpdate.value = value;
-                  }
-                });
-              });
-            });
-          });
-        }
-
         const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
@@ -187,23 +166,6 @@ export class GraphEdit {
                 overlayData,
               );
             });
-
-            if (graph.overrides) {
-              this.modelLoaderService.overrides.update((curOverrides) => {
-                const newOverrides = { ...curOverrides };
-
-                if (!collection.label || !graph.id) {
-                  return newOverrides;
-                }
-
-                newOverrides[collection.label][graph.id] = {
-                  ...(newOverrides[collection.label][graph.id ?? ''] ?? {}),
-                  ...graph.overrides
-                };
-
-                return newOverrides;
-              });
-            }
           }
         });
       });
