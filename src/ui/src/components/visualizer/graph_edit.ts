@@ -186,7 +186,7 @@ export class GraphEdit {
   private getCurrentGraphInformation() {
     const curPane = this.appService.getSelectedPane();
     const curCollectionLabel = curPane?.modelGraph?.collectionLabel;
-    const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
+    const curCollection = this.appService.curGraphCollections().find(({ label }) => label === curCollectionLabel);
     const models = this.modelLoaderService.models();
     const curModel = models.find(({ label }) => label === curCollectionLabel);
     const graphOverrides = this.modelLoaderService.overrides()
