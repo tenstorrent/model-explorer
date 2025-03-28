@@ -116,31 +116,14 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
+  // TODO: update modelgraph on app service to reflect changes
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
+      const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
+
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const curOverrides = this.modelLoaderService.overrides();
-        if (Object.keys(curOverrides).length > 0) {
-          newGraphCollections.forEach((graphCollection) => {
-            graphCollection.graphs.forEach((graph) => {
-              graph.nodes.forEach((node) => {
-                const nodeOverrides = curOverrides[graphCollection.label][node.id]?.attributes ?? [];
-
-                nodeOverrides.forEach(({ key, value }) => {
-                  const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
-
-                  if (nodeToUpdate) {
-                    nodeToUpdate.value = value;
-                  }
-                });
-              });
-            });
-          });
-        }
-
-        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
@@ -155,7 +138,11 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update(() => ({}));
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
+
+        return Object.fromEntries(filteredOverrides);
+      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
@@ -185,19 +172,6 @@ export class GraphEdit {
                 overlayData,
               );
             });
-
-            if (graph.overrides) {
-              this.modelLoaderService.overrides.update((curOverrides) => {
-                const newOverrides = { ...curOverrides };
-
-                newOverrides[graph.id ?? ''] = {
-                  ...(newOverrides[graph.id ?? ''] ?? {}),
-                  ...graph.overrides
-                };
-
-                return newOverrides;
-              });
-            }
           }
         });
       });
@@ -214,14 +188,17 @@ export class GraphEdit {
     const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
     const models = this.modelLoaderService.models();
     const curModel = models.find(({ label }) => label === curCollectionLabel);
-    const overrides = this.modelLoaderService.overrides()[curCollectionLabel ?? ''];
+    const graphOverrides = this.modelLoaderService.overrides()
+      ?.[curCollectionLabel ?? '']
+      ?.[curPane?.modelGraph?.id ?? '']
+      ?? {};
 
     return {
       curModel,
       curCollection,
       curCollectionLabel,
       models,
-      overrides,
+      graphOverrides,
     };
   }
 
@@ -248,14 +225,14 @@ export class GraphEdit {
   }
 
   async handleClickExecuteGraph() {
-    const { curModel, models, overrides } = this.getCurrentGraphInformation();
+    const { curModel, models, graphOverrides } = this.getCurrentGraphInformation();
 
     if (curModel) {
       try {
         this.isProcessingExecuteRequest = true;
         this.loggingService.info('Start executing model', curModel.path);
 
-        const result = await this.modelLoaderService.executeModel(curModel, overrides);
+        const result = await this.modelLoaderService.executeModel(curModel, graphOverrides);
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
@@ -308,9 +285,9 @@ export class GraphEdit {
   }
 
   async handleClickUploadGraph() {
-    const { curModel, curCollection, overrides, models } = this.getCurrentGraphInformation();
+    const { curModel, curCollection, graphOverrides, models } = this.getCurrentGraphInformation();
 
-    if (curModel && curCollection && overrides) {
+    if (curModel && curCollection && graphOverrides) {
       try {
         this.isProcessingUploadRequest = true;
         this.loggingService.info('Start uploading model', curModel.path);
@@ -318,7 +295,7 @@ export class GraphEdit {
         const isUploadSuccessful = await this.modelLoaderService.overrideModel(
           curModel,
           curCollection,
-          overrides
+          graphOverrides
         );
 
         this.loggingService.info('Upload finished', curModel.path);
