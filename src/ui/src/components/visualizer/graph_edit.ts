@@ -121,8 +121,9 @@ export class GraphEdit {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
+      const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
+
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
         const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
         const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
 
@@ -137,6 +138,11 @@ export class GraphEdit {
         };
       }) ?? []);
 
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
+
+        return Object.fromEntries(filteredOverrides);
+      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
