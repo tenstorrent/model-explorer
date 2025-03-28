@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,6 +41,8 @@ import type { Graph } from './common/input_graph';
 })
 export class GraphEdit {
   @Input({ required: true }) appService!: AppService;
+  isProcessingExecuteRequest = signal(false);
+  isProcessingUploadRequest = signal(false);
 
   executionProgress = 0;
   executionTotal = 0;
@@ -228,7 +230,7 @@ export class GraphEdit {
 
     if (curModel) {
       try {
-        this.isProcessingExecuteRequest = true;
+        this.isProcessingExecuteRequest.update(() => true);
         this.loggingService.info('Start executing model', curModel.path);
 
         const result = await this.modelLoaderService.executeModel(curModel, graphOverrides);
@@ -256,12 +258,12 @@ export class GraphEdit {
                 this.loggingService.info('Model updated', curModel.path);
               }
 
-              this.isProcessingExecuteRequest = false;
+              this.isProcessingExecuteRequest.update(() => false);
             };
 
             const showError = (error: string, elapsedTime: string) => {
               this.executionProgress = 0;
-              this.isProcessingExecuteRequest = false;
+              this.isProcessingExecuteRequest.update(() => false);
               this.loggingService.error('Graph Execution Error', error, `Elapsed time: ${elapsedTime}`);
               this.showErrorDialog('Graph Execution Error', error);
             };
@@ -278,7 +280,7 @@ export class GraphEdit {
 
         this.loggingService.error('Graph Execution Error', errorMessage);
         this.showErrorDialog('Graph Execution Error', errorMessage);
-        this.isProcessingExecuteRequest = false;
+        this.isProcessingExecuteRequest.update(() => false);
       }
     }
   }
@@ -288,7 +290,7 @@ export class GraphEdit {
 
     if (curModel && curCollection && graphOverrides) {
       try {
-        this.isProcessingUploadRequest = true;
+        this.isProcessingUploadRequest.update(() => true);
         this.loggingService.info('Start uploading model', curModel.path);
 
         const isUploadSuccessful = await this.modelLoaderService.overrideModel(
@@ -328,7 +330,7 @@ export class GraphEdit {
         this.loggingService.error('Graph Loading Error', errorMessage);
         this.showErrorDialog('Graph Loading Error', errorMessage);
       } finally {
-        this.isProcessingUploadRequest = false;
+        this.isProcessingUploadRequest.update(() => false);
       }
     }
   }
