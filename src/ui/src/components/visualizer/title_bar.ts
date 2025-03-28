@@ -21,6 +21,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  Input,
   Output,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
@@ -59,9 +60,10 @@ import { GraphEdit } from './graph_edit';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TitleBar {
+  @Input({ required: true }) appService!: AppService;
   @Output() readonly titleClicked = new EventEmitter<void>();
 
-  constructor(private readonly appService: AppService) {}
+  constructor() {}
 
   get disableTitleTooltip(): boolean {
     return this.appService.testMode;

@@ -40,8 +40,7 @@ import type { Graph } from './common/input_graph';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GraphEdit {
-  isProcessingExecuteRequest = false;
-  isProcessingUploadRequest = false;
+  @Input({ required: true }) appService!: AppService;
 
   executionProgress = 0;
   executionTotal = 0;

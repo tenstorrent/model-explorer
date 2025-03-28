@@ -27,6 +27,7 @@ import {
   DestroyRef,
   effect,
   ElementRef,
+  Input,
   QueryList,
   Signal,
   ViewChild,
@@ -87,6 +88,7 @@ interface ProcessingTask {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SplitPanesContainer implements AfterViewInit {
+  @Input({ required: true }) appService!: AppService;
   @ViewChild('panesContainer') panesContainer!: ElementRef<HTMLElement>;
   @ViewChild('noMappedNodeMessage')
   noMappedNodeMessage?: ElementRef<HTMLElement>;
@@ -105,7 +107,6 @@ export class SplitPanesContainer implements AfterViewInit {
 
   constructor(
     private readonly changeDetectorRef: ChangeDetectorRef,
-    private readonly appService: AppService,
     private readonly destroyRef: DestroyRef,
     private readonly syncNavigationService: SyncNavigationService,
     private readonly workerService: WorkerService,
@@ -339,6 +340,6 @@ export class SplitPanesContainer implements AfterViewInit {
     ele.classList.add('show');
     this.hideNoMappedNodeMessageTimeoutId = setTimeout(() => {
       ele.classList.remove('show');
-    }, 3000);
+    }, 3000) as unknown as number;
   }
 }
