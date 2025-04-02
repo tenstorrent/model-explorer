@@ -16,12 +16,11 @@
  * ==============================================================================
  */
 
-import {computed, Injectable, signal} from '@angular/core';
+import {computed, Inject, Injectable, signal} from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 
 import {IS_EXTERNAL} from '../../common/flags';
 
-import {AppService} from './app_service';
 import {COLOR_NAME_TO_HEX} from './common/consts';
 import {ModelGraph} from './common/model_graph';
 import {
@@ -32,6 +31,7 @@ import {
   ThresholdItem,
 } from './common/types';
 import {genUid, isOpNode} from './common/utils';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 interface Rgb {
   r: number;
@@ -77,7 +77,10 @@ export class NodeDataProviderExtensionService {
     }),
   );
 
-  constructor(private readonly appService: AppService) {
+  constructor(
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
+  ) {
     this.leftPaneModelGraph$.subscribe((modelGraph) => {
       if (modelGraph == null) {
         return;

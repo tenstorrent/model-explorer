@@ -27,6 +27,7 @@ import {
   DestroyRef,
   effect,
   ElementRef,
+  Inject,
   QueryList,
   Signal,
   ViewChild,
@@ -39,7 +40,6 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {combineLatest, fromEvent} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {Bubble} from '../bubble/bubble';
-import {AppService} from './app_service';
 import {Pane} from './common/types';
 import {
   ALL_PROCESSING_LABELS,
@@ -51,6 +51,7 @@ import {SplitPane} from './split_pane';
 import {SyncNavigationButton} from './sync_navigation_button';
 import {SyncNavigationService} from './sync_navigation_service';
 import {WorkerService} from './worker_service';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 interface ProcessingTask {
   label: string;
@@ -105,7 +106,8 @@ export class SplitPanesContainer implements AfterViewInit {
 
   constructor(
     private readonly changeDetectorRef: ChangeDetectorRef,
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly destroyRef: DestroyRef,
     private readonly syncNavigationService: SyncNavigationService,
     private readonly workerService: WorkerService,

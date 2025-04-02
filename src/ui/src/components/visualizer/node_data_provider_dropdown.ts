@@ -22,6 +22,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  Inject,
   ViewChild,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
@@ -32,13 +33,13 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {Bubble} from '../bubble/bubble';
 import {BubbleClick} from '../bubble/bubble_click';
 
-import {AppService} from './app_service';
 import {ModelGraph} from './common/model_graph';
 import {NodeDataProviderData} from './common/types';
 import {genUid} from './common/utils';
 import {Extension} from './extension_service';
 import {LocalStorageService} from './local_storage_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** The drop down menu for add per-node data. */
 @Component({
@@ -77,7 +78,8 @@ export class NodeDataProviderDropdown {
   readonly remoteSourceLoading;
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly localStorageService: LocalStorageService,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,

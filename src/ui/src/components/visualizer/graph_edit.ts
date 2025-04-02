@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +7,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
-import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModelItemStatus, type ModelItem } from '../../common/types';
@@ -17,6 +16,7 @@ import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /**
  * The graph edit component.
@@ -52,7 +52,8 @@ export class GraphEdit {
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly urlService: UrlService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,

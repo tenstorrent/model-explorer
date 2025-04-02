@@ -22,11 +22,12 @@ import {
   ChangeDetectorRef,
   Component,
   effect,
+  Inject,
   Input,
 } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 
-import {AppService} from './app_service';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /**
  * The panel that shows the lengends.
@@ -47,7 +48,8 @@ export class LegendsPanel {
   hasArtificialLayers = false;
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     effect(() => {

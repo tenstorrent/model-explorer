@@ -24,6 +24,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
   Output,
@@ -45,7 +46,6 @@ import {
 
 import {Bubble} from '../bubble/bubble';
 
-import {AppService} from './app_service';
 import {TENSOR_TAG_METADATA_KEY, TENSOR_VALUES_KEY} from './common/consts';
 import {ModelNode, NodeType, OpNode} from './common/model_graph';
 import {
@@ -57,6 +57,7 @@ import {
 } from './common/types';
 import {isOpNode} from './common/utils';
 import {MENU_ANIMATIONS} from './ui_utils';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** Holds data for a node in the tree. */
 export interface TreeNode {
@@ -168,7 +169,8 @@ export class IoTree implements OnChanges {
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
