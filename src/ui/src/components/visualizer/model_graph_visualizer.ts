@@ -220,6 +220,7 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit() {
+    // TODO: review this method
     this.appService.config.set(this.config || {});
     this.appService.addGraphCollections(this.graphCollections);
     this.appService.curInitialUiState.set(this.initialUiState);
@@ -334,9 +335,10 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['graphCollections']) {
       if (!changes['graphCollections'].isFirstChange()) {
-        this.appService.reset();
+        // TODO: check if all the steps are needed/should be applied
+        this.appService.cleanUp();
         this.uiStateService.reset();
-        this.cleanUp();
+        // TODO: check this
         this.ngOnInit();
       }
     }
