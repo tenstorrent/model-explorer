@@ -242,6 +242,8 @@ export class AppService implements AppServiceInterface {
     snapshot?: SnapshotData,
     initialLayout = true,
   ) {
+    debugger;
+
     if (paneIndex === 1 && this.panes().length === 1) {
       this.openGraphInSplitPane(graph);
       return;
@@ -1009,16 +1011,22 @@ export class AppService implements AppServiceInterface {
     }
   }
 
-  reset() {
+  cleanUp() {
     this.workerService.worker.postMessage({eventType: WorkerEventType.CLEANUP});
-
-    this.curGraphCollections.set([]);
     this.curToLocateNodeInfo.set(undefined);
     this.curSelectedRenderer.set(undefined);
+  }
+
+  reset() {
+    this.cleanUp();
+
+    this.curGraphCollections.set([]);
     this.config.set(undefined);
     this.curInitialUiState.set(undefined);
+
     this.panes.set([{id: genUid(), widthFraction: 1}]);
     this.selectedPaneId.set(this.panes()[0].id);
+
     this.remoteNodeDataPaths.set([]);
     this.groupNodeChildrenCountThresholdFromUrl = null;
     this.paneIdToGraph = {};
