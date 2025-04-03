@@ -437,7 +437,7 @@ export class WebglRenderer implements OnInit, OnDestroy {
 
   constructor(
     @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    readonly appService: AppServiceInterface,
     readonly changeDetectorRef: ChangeDetectorRef,
     private readonly destroyRef: DestroyRef,
     private readonly ngZone: NgZone,
