@@ -22,16 +22,17 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  Inject,
   Input,
   OnInit,
 } from '@angular/core';
-import {AppService} from './app_service';
 import type {Pane} from './common/types';
 import {EdgeOverlaysService} from './edge_overlays_service';
 import {GraphPanel} from './graph_panel';
 import {InfoPanel} from './info_panel';
 import {SplitPaneService} from './split_pane_service';
 import {SubgraphSelectionService} from './subgraph_selection_service';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** A wrapper panel around the graph renderer. */
 @Component({
@@ -65,7 +66,8 @@ export class SplitPane implements OnInit {
   @Input({required: true}) pane!: Pane;
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly edgeOverlaysService: EdgeOverlaysService,
   ) {}

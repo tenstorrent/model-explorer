@@ -16,10 +16,9 @@
  * ==============================================================================
  */
 
-import {inject, Injectable} from '@angular/core';
+import {Inject, inject, Injectable} from '@angular/core';
 import * as three from 'three';
 
-import {AppService} from './app_service';
 import {DEFAULT_EDGE_LABEL_FONT_SIZE} from './common/consts';
 import {ModelEdge} from './common/model_graph';
 import {FontWeight} from './common/types';
@@ -28,6 +27,7 @@ import {ThreejsService} from './threejs_service';
 import {WebglRenderer} from './webgl_renderer';
 import {WebglRendererThreejsService} from './webgl_renderer_threejs_service';
 import {LabelData, WebglTexts} from './webgl_texts';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 const THREE = three;
 
@@ -42,7 +42,10 @@ export class WebglRendererEdgeTextsService {
   private webglRenderer!: WebglRenderer;
   private webglRendererThreejsService!: WebglRendererThreejsService;
 
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
+  ) {}
 
   init(webglRenderer: WebglRenderer) {
     this.webglRenderer = webglRenderer;

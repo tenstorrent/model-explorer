@@ -22,7 +22,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
+  Inject,
   ViewChild,
   computed,
   inject,
@@ -37,13 +37,13 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {Bubble} from '../bubble/bubble';
 import {BubbleClick} from '../bubble/bubble_click';
 
-import {AppService} from './app_service';
 import {
   SYNC_NAVIGATION_MODE_LABELS,
   SyncNavigationMode,
 } from './common/sync_navigation';
 import {LocalStorageService} from './local_storage_service';
 import {SyncNavigationService} from './sync_navigation_service';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** The button to manage sync navigation. */
 @Component({
@@ -66,7 +66,6 @@ import {SyncNavigationService} from './sync_navigation_service';
 export class SyncNavigationButton {
   @ViewChild(BubbleClick) dropdown?: BubbleClick;
 
-  private readonly appService = inject(AppService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly syncNavigationService = inject(SyncNavigationService);
@@ -99,8 +98,10 @@ export class SyncNavigationButton {
 
   uploadedFileName = '';
 
-  constructor() {
-
+  constructor(
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
+  ) {
     // Populate sync modes.
     //
     // Show "component input" mode only if there is sync navigation data passed

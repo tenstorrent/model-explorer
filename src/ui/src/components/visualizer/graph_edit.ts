@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +7,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
-import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModelItemStatus, type ModelItem } from '../../common/types';
@@ -17,6 +16,7 @@ import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
+import type { AppServiceInterface } from '../../common/app_service_interface.js';
 
 /**
  * The graph edit component.
@@ -40,8 +40,8 @@ import type { Graph } from './common/input_graph';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GraphEdit {
-  isProcessingExecuteRequest = false;
-  isProcessingUploadRequest = false;
+  isProcessingExecuteRequest = signal(false);
+  isProcessingUploadRequest = signal(false);
 
   executionProgress = 0;
   executionTotal = 0;
@@ -52,7 +52,8 @@ export class GraphEdit {
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly urlService: UrlService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
@@ -116,7 +117,6 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  // TODO: update modelgraph on app service to reflect changes
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
@@ -150,7 +150,8 @@ export class GraphEdit {
 
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
-          const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
+          // TODO: find a better way to reference the model graph
+          const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
           if (modelGraph) {
             Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
@@ -185,7 +186,7 @@ export class GraphEdit {
   private getCurrentGraphInformation() {
     const curPane = this.appService.getSelectedPane();
     const curCollectionLabel = curPane?.modelGraph?.collectionLabel;
-    const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
+    const curCollection = this.appService.curGraphCollections().find(({ label }) => label === curCollectionLabel);
     const models = this.modelLoaderService.models();
     const curModel = models.find(({ label }) => label === curCollectionLabel);
     const graphOverrides = this.modelLoaderService.overrides()
@@ -229,7 +230,7 @@ export class GraphEdit {
 
     if (curModel) {
       try {
-        this.isProcessingExecuteRequest = true;
+        this.isProcessingExecuteRequest.update(() => true);
         this.loggingService.info('Start executing model', curModel.path);
 
         const result = await this.modelLoaderService.executeModel(curModel, graphOverrides);
@@ -257,12 +258,12 @@ export class GraphEdit {
                 this.loggingService.info('Model updated', curModel.path);
               }
 
-              this.isProcessingExecuteRequest = false;
+              this.isProcessingExecuteRequest.update(() => false);
             };
 
             const showError = (error: string, elapsedTime: string) => {
               this.executionProgress = 0;
-              this.isProcessingExecuteRequest = false;
+              this.isProcessingExecuteRequest.update(() => false);
               this.loggingService.error('Graph Execution Error', error, `Elapsed time: ${elapsedTime}`);
               this.showErrorDialog('Graph Execution Error', error);
             };
@@ -279,7 +280,7 @@ export class GraphEdit {
 
         this.loggingService.error('Graph Execution Error', errorMessage);
         this.showErrorDialog('Graph Execution Error', errorMessage);
-        this.isProcessingExecuteRequest = false;
+        this.isProcessingExecuteRequest.update(() => false);
       }
     }
   }
@@ -289,7 +290,7 @@ export class GraphEdit {
 
     if (curModel && curCollection && graphOverrides) {
       try {
-        this.isProcessingUploadRequest = true;
+        this.isProcessingUploadRequest.update(() => true);
         this.loggingService.info('Start uploading model', curModel.path);
 
         const isUploadSuccessful = await this.modelLoaderService.overrideModel(
@@ -329,7 +330,7 @@ export class GraphEdit {
         this.loggingService.error('Graph Loading Error', errorMessage);
         this.showErrorDialog('Graph Loading Error', errorMessage);
       } finally {
-        this.isProcessingUploadRequest = false;
+        this.isProcessingUploadRequest.update(() => false);
       }
     }
   }

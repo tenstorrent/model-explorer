@@ -263,7 +263,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
 
     this.models.update((curModels) => {
-      const filteredModels = curModels.filter(({ label }) => label === modelItem.label);
+      const filteredModels = curModels.filter(({ path }) => path !== modelItem.path);
 
       return [
         ...filteredModels,

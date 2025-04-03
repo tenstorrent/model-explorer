@@ -23,6 +23,7 @@ import {
   Component,
   DestroyRef,
   effect,
+  Inject,
   Input,
   OnChanges,
   SimpleChanges,
@@ -34,7 +35,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {debounceTime} from 'rxjs/operators';
-import {AppService} from './app_service';
 import {NODE_DATA_PROVIDER_SHOW_ON_NODE_TYPE_PREFIX} from './common/consts';
 import {GroupNode, ModelGraph, OpNode} from './common/model_graph';
 import {
@@ -51,6 +51,7 @@ import {
 import {InfoPanelService, SortingDirection} from './info_panel_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
 import {Paginator} from './paginator';
+import type { AppServiceInterface } from '../../common/app_service_interface';
 
 interface Row {
   // Node id.
@@ -157,7 +158,8 @@ export class NodeDataProviderSummaryPanel implements OnChanges {
   private readonly orderedNodesCache: Record<string, OpNode[]> = {};
 
   constructor(
-    private readonly appService: AppService,
+    @Inject('AppService')
+    private readonly appService: AppServiceInterface,
     private readonly destroyRef: DestroyRef,
     private readonly infoPanelService: InfoPanelService,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
