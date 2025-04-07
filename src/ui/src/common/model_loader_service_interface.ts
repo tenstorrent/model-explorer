@@ -36,6 +36,7 @@ export interface ModelLoaderServiceInterface {
   checkExecutionStatus(modelItem: ModelItem, modelPath: string): Promise<AdapterStatusCheckResults>;
   overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: OverridesPerNode): Promise<boolean>;
   get loadedGraphCollections(): WritableSignal<GraphCollection[] | undefined>;
+  get selectedGraphId(): WritableSignal<string | undefined>;
   get models(): WritableSignal<ModelItem[]>;
   get overrides(): WritableSignal<OverridesPerCollection>;
   getOptimizationPolicies(extensionId: string): string[];

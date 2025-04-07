@@ -70,6 +70,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     undefined,
   );
 
+  readonly selectedGraphId = signal<string | undefined>(undefined);
+
   readonly models = signal<ModelItem[]>([]);
 
   readonly overrides = signal<OverridesPerCollection>({});
