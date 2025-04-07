@@ -25,7 +25,6 @@ import {
   Component,
   computed,
   effect,
-  Inject,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
@@ -36,6 +35,7 @@ import {setAnchorHref} from 'safevalues/dom';
 
 import {Bubble} from '../bubble/bubble';
 
+import {AppService} from './app_service';
 import {COLOR_NAME_TO_HEX} from './common/consts';
 import {ModelNode} from './common/model_graph';
 import {
@@ -54,7 +54,6 @@ import {
   Style,
   StyleType,
 } from './node_styler_service';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 interface SearchMatchTypeOption {
   type: SearchMatchType;
@@ -138,8 +137,7 @@ export class NodeStylerDialog {
   private curMatchedNodes: Record<number, Record<number, ModelNode[]>> = {};
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly nodeStylerService: NodeStylerService,
   ) {

@@ -16,13 +16,13 @@
  * ==============================================================================
  */
 
-import {DestroyRef, Inject, Injectable} from '@angular/core';
+import {DestroyRef, Injectable} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AppService} from './app_service';
 import {Rect, SnapshotData} from './common/types';
 import {genUid, getDeepestExpandedGroupNodeIds} from './common/utils';
 import {WebglRenderer} from './webgl_renderer';
 import {WebglRendererThreejsService} from './webgl_renderer_threejs_service';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 const MAX_SCREENSHOT_WIDTH = 320;
 
@@ -33,8 +33,7 @@ export class WebglRendererSnapshotService {
   private webglRendererThreejsService!: WebglRendererThreejsService;
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly destroyRef: DestroyRef,
   ) {}
 

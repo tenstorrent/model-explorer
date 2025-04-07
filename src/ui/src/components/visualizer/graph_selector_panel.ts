@@ -21,7 +21,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
-  Inject,
   Input,
   Output,
   computed,
@@ -31,9 +30,9 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {AppService} from './app_service';
 import {GraphCollectionItem, GraphItem} from './graph_selector';
 import {MENU_ANIMATIONS} from './ui_utils';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 const DEFAULT_PADDING_LEFT = 24;
 
@@ -72,10 +71,7 @@ export class GraphSelectorPanel {
 
   private curFilterText = '';
 
-  constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   getGraphNonHiddenNodeCountLabel(count: number): string {
     return `${count} node${count === 1 ? '' : 's'}`;

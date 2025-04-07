@@ -20,9 +20,9 @@ import {OverlaySizeConfig} from '@angular/cdk/overlay';
 import {CommonModule} from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   computed,
-  Inject,
   inject,
   Input,
   Signal,
@@ -34,9 +34,10 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {Bubble} from '../bubble/bubble';
 import {BubbleClick} from '../bubble/bubble_click';
+import {AppService} from './app_service';
 import {ProcessedEdgeOverlay} from './common/edge_overlays';
 import {EdgeOverlaysService} from './edge_overlays_service';
-import type { AppServiceInterface } from '../../common/app_service_interface.js';
+import {LocalStorageService} from './local_storage_service';
 
 interface OverlaysSet {
   id: string;
@@ -72,6 +73,9 @@ export class EdgeOverlaysDropdown {
   @Input({required: true}) rendererId!: string;
   @ViewChild(BubbleClick) popup!: BubbleClick;
 
+  private readonly appService = inject(AppService);
+  private readonly localStorageService = inject(LocalStorageService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly edgeOverlaysService = inject(EdgeOverlaysService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -104,10 +108,8 @@ export class EdgeOverlaysDropdown {
   readonly remoteSourceLoading = this.edgeOverlaysService.remoteSourceLoading;
   opened = false;
 
-  constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
-  ) {}
+  constructor() {
+  }
 
   handleClickOnEdgeOverlaysButton() {
     if (this.opened) {

@@ -16,7 +16,8 @@
  * ==============================================================================
  */
 
-import {Inject, Injectable, computed, effect, signal} from '@angular/core';
+import {Injectable, computed, effect, signal} from '@angular/core';
+import {AppService} from './app_service';
 
 import {ModelNode} from './common/model_graph';
 
@@ -36,7 +37,6 @@ import {
   processNodeStylerRules,
 } from './common/utils';
 import {LocalStorageService} from './local_storage_service';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** Spec for a style. */
 export interface Style {
@@ -107,8 +107,7 @@ export class NodeStylerService {
   );
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly localStorageService: LocalStorageService,
   ) {
     effect(() => {

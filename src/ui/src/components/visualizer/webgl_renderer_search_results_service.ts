@@ -16,9 +16,10 @@
  * ==============================================================================
  */
 
-import {effect, Inject, Injectable} from '@angular/core';
+import {effect, Injectable} from '@angular/core';
 import * as three from 'three';
 
+import {AppService} from './app_service';
 import {
   NODE_LABEL_HEIGHT,
   NODE_LABEL_LINE_HEIGHT,
@@ -33,7 +34,6 @@ import {
   RoundedRectangleData,
   WebglRoundedRectangles,
 } from './webgl_rounded_rectangles';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 const SEARCH_RESULTS_HIGHLIGHT_BORDER_Y_OFFSET = -WEBGL_ELEMENT_Y_FACTOR * 0.3;
 const SEARCH_RESULTS_NODE_LABEL_HIGHLIGHT_Y_OFFSET =
@@ -55,10 +55,7 @@ export class WebglRendererSearchResultsService {
   private webglRendererThreejsService!: WebglRendererThreejsService;
   private curSearchResults: SearchResults | undefined = undefined;
 
-  constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   init(webglRenderer: WebglRenderer) {
     this.webglRenderer = webglRenderer;

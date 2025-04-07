@@ -16,12 +16,12 @@
  * ==============================================================================
  */
 
-import {Inject, Injectable, Signal, computed, signal} from '@angular/core';
+import {Injectable, Signal, computed, signal} from '@angular/core';
+import {AppService} from './app_service';
 import {Graph, GraphNode} from './common/input_graph';
 import {ModelGraph, OpNode} from './common/model_graph';
 import {IncomingEdge} from './common/types';
 import {isGroupNode, isOpNode} from './common/utils';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** A service for managing subgraph selection. */
 @Injectable()
@@ -50,10 +50,7 @@ export class SubgraphSelectionService {
 
   paneId = '';
 
-  constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   toggleNode(nodeId: string) {
     this.selectedNodeIds.update((ids) => {

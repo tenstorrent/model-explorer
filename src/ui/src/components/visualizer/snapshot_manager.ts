@@ -25,7 +25,6 @@ import {
   effect,
   ElementRef,
   HostListener,
-  Inject,
   Input,
   QueryList,
   ViewChildren,
@@ -35,10 +34,10 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 
 import {Bubble} from '../bubble/bubble';
 
+import {AppService} from './app_service';
 import {ModelGraph} from './common/model_graph';
 import {SnapshotData} from './common/types';
 import {inInputElement} from './common/utils';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 const NUMBERS = new Set<string>(['1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
@@ -87,8 +86,7 @@ export class SnapshotManager {
   private curModelGraph?: ModelGraph;
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     effect(() => {

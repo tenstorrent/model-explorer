@@ -21,15 +21,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  Inject,
   Input,
   effect,
 } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 
+import {AppService} from './app_service';
 import {SubgraphBreadcrumbItem} from './common/types';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 /** Breadcrumbs for navigating through subgraphs. */
 @Component({
@@ -48,8 +47,7 @@ export class SubgraphBreadcrumbs {
   private savedSubgraphBreadcrumbs?: SubgraphBreadcrumbItem[];
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     effect(() => {

@@ -37,6 +37,7 @@ import {
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
+import {AppService} from './app_service';
 import {BenchmarkRunner} from './benchmark_runner';
 import {Graph, GraphCollection} from './common/input_graph';
 import {ModelGraph, OpNode} from './common/model_graph';
@@ -59,7 +60,6 @@ import {ThreejsService} from './threejs_service';
 import {TitleBar} from './title_bar';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 
 /** The main model graph visualizer component. */
@@ -70,6 +70,7 @@ import type { ModelLoaderServiceInterface } from '../../common/model_loader_serv
   templateUrl: './model_graph_visualizer.ng.html',
   styleUrls: ['./model_graph_visualizer.scss'],
   providers: [
+    AppService,
     ExtensionService,
     NodeDataProviderExtensionService,
     NodeStylerService,
@@ -139,10 +140,9 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   };
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
+    readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly destroyRef: DestroyRef,
     private readonly el: ElementRef<HTMLElement>,

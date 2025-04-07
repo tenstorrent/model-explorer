@@ -16,9 +16,10 @@
  * ==============================================================================
  */
 
-import {effect, Inject, inject, Injectable} from '@angular/core';
+import {effect, inject, Injectable} from '@angular/core';
 import * as three from 'three';
 
+import {AppService} from './app_service';
 import {GroupNode, ModelNode, OpNode} from './common/model_graph';
 import {FontWeight, WebglColor} from './common/types';
 import {SubgraphSelectionService} from './subgraph_selection_service';
@@ -30,7 +31,6 @@ import {
   WebglRoundedRectangles,
 } from './webgl_rounded_rectangles';
 import {LabelData, WebglTexts} from './webgl_texts';
-import type { AppServiceInterface } from '../../common/app_service_interface';
 
 const COLOR_WHITE: WebglColor = {r: 1, g: 1, b: 1};
 const SUBGRAPH_SELECTION_MARKER_SIZE = 14;
@@ -57,8 +57,7 @@ export class WebglRendererSubgraphSelectionService {
   );
 
   constructor(
-    @Inject('AppService')
-    private readonly appService: AppServiceInterface,
+    private readonly appService: AppService,
     private readonly subgraphSelectionService: SubgraphSelectionService,
   ) {}
 
