@@ -242,8 +242,6 @@ export class AppService implements AppServiceInterface {
     snapshot?: SnapshotData,
     initialLayout = true,
   ) {
-    debugger;
-
     if (paneIndex === 1 && this.panes().length === 1) {
       this.openGraphInSplitPane(graph);
       return;
