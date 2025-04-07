@@ -60,6 +60,7 @@ import {TitleBar} from './title_bar';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
 import type { AppServiceInterface } from '../../common/app_service_interface';
+import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 
 /** The main model graph visualizer component. */
 @Component({
@@ -140,6 +141,8 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   constructor(
     @Inject('AppService')
     private readonly appService: AppServiceInterface,
+    @Inject('ModelLoaderService')
+    private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly destroyRef: DestroyRef,
     private readonly el: ElementRef<HTMLElement>,
@@ -220,7 +223,6 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit() {
-    // TODO: review this method
     this.appService.config.set(this.config || {});
     this.appService.addGraphCollections(this.graphCollections);
     this.appService.curInitialUiState.set(this.initialUiState);
@@ -228,9 +230,16 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
       this.nodeStylerService.rules.set(this.config.nodeStylerRules);
     }
 
+    const graphId = this.modelLoaderService.selectedGraphId();
+    const graph = this.appService.getGraphById(graphId ?? '');
+
+    // A graph was already selected, re-render it.
+    if (graph) {
+      this.appService.selectGraphInCurrentPane(graph);
+    }
     // No initial ui state. Use the graph with the most node counts as the
     // default selected graph.
-    if (!this.initialUiState || this.initialUiState.paneStates.length === 0) {
+    else if (!this.initialUiState || this.initialUiState.paneStates.length === 0) {
       if (
         this.graphCollections.length > 0 &&
         this.graphCollections[0].graphs.length > 0
@@ -335,7 +344,6 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['graphCollections']) {
       if (!changes['graphCollections'].isFirstChange()) {
-        // TODO: check if all the steps are needed/should be applied
         this.appService.reset();
         this.uiStateService.reset();
         this.ngOnInit();
