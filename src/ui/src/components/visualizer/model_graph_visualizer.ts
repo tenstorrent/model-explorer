@@ -336,9 +336,8 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
     if (changes['graphCollections']) {
       if (!changes['graphCollections'].isFirstChange()) {
         // TODO: check if all the steps are needed/should be applied
-        this.appService.cleanUp();
+        this.appService.reset();
         this.uiStateService.reset();
-        // TODO: check this
         this.ngOnInit();
       }
     }

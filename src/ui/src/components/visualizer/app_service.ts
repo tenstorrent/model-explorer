@@ -132,6 +132,9 @@ export class AppService implements AppServiceInterface {
     this.listenToWorker();
     this.init();
   }
+  cleanUp(): void {
+    throw new Error('Method not implemented.');
+  }
 
   addGraphCollections(graphCollections: GraphCollection[]) {
     this.curGraphCollections.update((prevCollections) => {
@@ -1009,15 +1012,10 @@ export class AppService implements AppServiceInterface {
     }
   }
 
-  cleanUp() {
+  reset() {
     this.workerService.worker.postMessage({eventType: WorkerEventType.CLEANUP});
     this.curToLocateNodeInfo.set(undefined);
     this.curSelectedRenderer.set(undefined);
-  }
-
-  reset() {
-    this.cleanUp();
-
     this.curGraphCollections.set([]);
     this.config.set(undefined);
     this.curInitialUiState.set(undefined);

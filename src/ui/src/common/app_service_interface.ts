@@ -115,5 +115,4 @@ export interface AppServiceInterface {
   updateHoveredNode(nodeId: string, graphId: string, collectionLabel: string, node?: ModelNode): void;
   updateDoubleClickedNode(nodeId: string, graphId: string, collectionLabel: string, node?: ModelNode): void;
   reset(): void;
-  cleanUp(): void;
 }
