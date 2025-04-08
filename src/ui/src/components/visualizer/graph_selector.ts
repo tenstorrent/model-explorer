@@ -41,8 +41,8 @@ import {AppService} from './app_service';
 import {Graph, GraphCollection} from './common/input_graph';
 import {exportToResource} from './common/utils';
 import {GraphSelectorPanel} from './graph_selector_panel';
-import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import { MatButtonModule } from '@angular/material/button';
+import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 
 /** A graph collection in the dropdown menu. */
 export interface GraphCollectionItem {
@@ -183,6 +183,7 @@ export class GraphSelector {
       if (!selectedGraphId) {
         return;
       }
+      this.modelLoaderService.selectedGraphId.update(() => selectedGraphId);
       this.updateSelectedGraphInfo(selectedGraphId);
     });
   }

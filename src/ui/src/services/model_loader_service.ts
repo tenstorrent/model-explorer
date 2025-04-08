@@ -70,6 +70,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     undefined,
   );
 
+  readonly selectedGraphId = signal<string | undefined>(undefined);
+
   readonly models = signal<ModelItem[]>([]);
 
   readonly overrides = signal<OverridesPerCollection>({});
@@ -263,7 +265,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
 
     this.models.update((curModels) => {
-      const filteredModels = curModels.filter(({ label }) => label === modelItem.label);
+      const filteredModels = curModels.filter(({ path }) => path !== modelItem.path);
 
       return [
         ...filteredModels,
