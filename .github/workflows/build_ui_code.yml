@@ -6,13 +6,13 @@ name: Build UI code
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'src/ui/**'
+      - "src/ui/**"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'src/ui/**'
+      - "src/ui/**"
 
 jobs:
   angular:
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22.14.0'
+          node-version: "22.14.0"
       - name: Install dependencies
         run: npm install
       - name: Install rollup
