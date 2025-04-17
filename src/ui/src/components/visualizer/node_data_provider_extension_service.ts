@@ -302,9 +302,11 @@ export class NodeDataProviderExtensionService {
       if (!nodeDataProviderData) {
         continue;
       }
-      if (nodeDataProviderData[modelGraph.id] != null) {
-        ret.push(run);
-      }
+      Object.keys(nodeDataProviderData).forEach((key) => {
+        if (key.includes(modelGraph.id) || modelGraph.id.includes(key)) {
+          ret.push(run);
+        }
+      });
     }
     return ret;
   }
