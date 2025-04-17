@@ -285,13 +285,10 @@ export class NodeDataProviderExtensionService {
     paneId: string,
     modelGraph: ModelGraph,
   ): NodeDataProviderRunData | undefined {
-    const selectedRunId =
-      this.appService.getSelectedNodeDataProviderRunId(paneId);
-    if (!selectedRunId) {
-      return undefined;
-    }
+    const selectedRunId = this.appService.getSelectedNodeDataProviderRunId(paneId);
+
     const runs = this.getRunsForModelGraph(modelGraph);
-    return runs.find((run) => run.runId === selectedRunId);
+    return runs.find((run) => run.runId === selectedRunId) ?? runs[0];
   }
 
   getRunsForModelGraph(modelGraph: ModelGraph): NodeDataProviderRunData[] {
