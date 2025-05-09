@@ -123,8 +123,6 @@ export class NodeStylerService {
 
       // Compute matched nodes.
       this.computeMatchedNodes(rules);
-    }, {
-      allowSignalWrites: true
     });
 
     // Load rules from local storage in non-test mode.
