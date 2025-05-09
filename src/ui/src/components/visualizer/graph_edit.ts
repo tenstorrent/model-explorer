@@ -137,6 +137,22 @@ export class GraphEdit {
         };
       }) ?? []);
 
+
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
+          graphs.forEach(({ id: graphId }) => {
+            const existingOverrides = curOverrides
+            ?.[collectionLabel ?? '']
+            ?.[graphId ?? ''];
+
+            if (existingOverrides) {
+              existingOverrides.wasSentToServer = true;
+            }
+          });
+        });
+
+        return curOverrides;
+      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
@@ -186,6 +202,7 @@ export class GraphEdit {
     const graphOverrides = this.modelLoaderService.overrides()
       ?.[curCollectionLabel ?? '']
       ?.[curPane?.modelGraph?.id ?? '']
+      ?.overrides
       ?? {};
 
     return {
@@ -282,7 +299,7 @@ export class GraphEdit {
   async handleClickUploadGraph() {
     const { curModel, curCollection, graphOverrides, models } = this.getCurrentGraphInformation();
 
-    if (curModel && curCollection && graphOverrides) {
+    if (curModel && curCollection && Object.keys(graphOverrides).length > 0) {
       try {
         this.isProcessingUploadRequest.update(() => true);
         this.loggingService.info('Start uploading model', curModel.path);

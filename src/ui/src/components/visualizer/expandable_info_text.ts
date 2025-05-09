@@ -175,25 +175,28 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       }
 
       if (!overrides[this.collectionLabel][this.graphId]) {
-        overrides[this.collectionLabel][this.graphId] = {}
+        overrides[this.collectionLabel][this.graphId] = {
+          wasSentToServer: false,
+          overrides: {}
+        }
       }
 
-      if (!overrides[this.collectionLabel][this.graphId][this.nodeFullLocation]) {
-        overrides[this.collectionLabel][this.graphId][this.nodeFullLocation] = {
+      if (!overrides[this.collectionLabel][this.graphId]?.overrides[this.nodeFullLocation]) {
+        overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation] = {
           named_location: this.nodeNamedLocation,
           full_location: this.nodeFullLocation,
           attributes: []
         };
       }
 
-      const existingOverrides = overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes.findIndex(({ key }) => key === this.type) ?? -1;
+      const existingOverrides = overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes.findIndex(({ key }) => key === this.type) ?? -1;
 
       if (existingOverrides !== -1) {
-        overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes.splice(existingOverrides, 1);
+        overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes.splice(existingOverrides, 1);
       }
 
-      overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes = [
-        ...(overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes ?? []),
+      overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes = [
+        ...(overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes ?? []),
         {
           key: this.type,
           value: updatedValue

@@ -25,7 +25,7 @@ import {ModelItem} from './types';
 import type { AdapterStatusCheckResults } from './extension_command';
 
 export type OverridesPerNode = Record<string, { named_location: string, full_location: string, attributes: KeyValue[] }>;
-export type OverridesPerGraph = Record<string, OverridesPerNode>;
+export type OverridesPerGraph = Record<string, { wasSentToServer: boolean, overrides: OverridesPerNode }>;
 export type OverridesPerCollection = Record<string, OverridesPerGraph>;
 
 /** The interface of model load service. */
