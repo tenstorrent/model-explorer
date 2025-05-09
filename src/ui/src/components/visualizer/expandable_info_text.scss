@@ -20,6 +20,18 @@
 
 :host {
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.override-status {
+  & mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    color: red;
+  }
 }
 
 .container {
@@ -27,6 +39,7 @@
   display: flex;
   align-items: flex-start;
   position: relative;
+  flex-grow: 1;
 
   &.has-overflow,
   &.has-multiple-lines {

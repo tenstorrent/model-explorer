@@ -16,6 +16,12 @@ limitations under the License.
 ==============================================================================
 -->
 
+<div class="override-status" [hidden]="shouldHideOverrideWarning">
+  <mat-icon>warning</mat-icon>
+  <!-- TODO: add tooltip saying override was not applied -->
+  <!-- TODO: add icon/tooltip that override was applied -->
+</div>
+
 <div class="container" #container
     [style.background-color]="bgColor"
     [style.color]="textColor"
