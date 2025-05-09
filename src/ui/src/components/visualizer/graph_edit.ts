@@ -296,56 +296,6 @@ export class GraphEdit {
     }
   }
 
-  async handleClickUploadGraph() {
-    const { curModel, curCollection, graphOverrides, models } = this.getCurrentGraphInformation();
-
-    if (curModel && curCollection && Object.keys(graphOverrides).length > 0) {
-      try {
-        this.isProcessingUploadRequest.update(() => true);
-        this.loggingService.info('Start uploading model', curModel.path);
-
-        const isUploadSuccessful = await this.modelLoaderService.overrideModel(
-          curModel,
-          curCollection,
-          graphOverrides
-        );
-
-        this.loggingService.info('Upload finished', curModel.path);
-
-        if (curModel.status() !== ModelItemStatus.ERROR) {
-          this.loggingService.info('Updating existing models', curModel.path);
-
-          if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models);
-
-            this.urlService.setUiState(undefined);
-            this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
-              return {
-                url: path,
-                adapterId: selectedAdapter?.id
-              };
-            }) ?? []);
-
-            this.modelLoaderService.graphErrors.update(() => undefined);
-
-            this.showSuccessMessage('Model uploaded');
-          } else {
-            throw new Error("Graph upload didn't return any results");
-          }
-        } else {
-          throw new Error(curModel.errorMessage ?? 'An error has occured');
-        }
-      } catch (err) {
-        const errorMessage =  (err as Error)?.message ?? 'An error has occured.';
-
-        this.loggingService.error('Graph Loading Error', errorMessage);
-        this.showErrorDialog('Graph Loading Error', errorMessage);
-      } finally {
-        this.isProcessingUploadRequest.update(() => false);
-      }
-    }
-  }
-
   handleLogDialogOpen() {
     this.dialog.open(LoggingDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
