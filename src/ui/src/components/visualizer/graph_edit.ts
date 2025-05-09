@@ -137,11 +137,6 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
-
-        return Object.fromEntries(filteredOverrides);
-      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
