@@ -60,6 +60,10 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   @ViewChild('container') container?: ElementRef<HTMLElement>;
   @ViewChild('oneLineText') oneLineText?: ElementRef<HTMLElement>;
 
+  displayText = '';
+  override?: string;
+  wasOverrideSentToServer = false;
+
   expanded = false;
 
   private hasOverflowInternal = false;
@@ -90,15 +94,20 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       this.resizeObserver.observe(this.container.nativeElement);
     }
 
-    this.text = this.modelLoaderService
+    const graphOverrides = this.modelLoaderService
       .overrides()
       ?.[this.collectionLabel]
-      ?.[this.graphId]
+      ?.[this.graphId];
+
+    this.wasOverrideSentToServer = graphOverrides?.wasSentToServer ?? false;
+    this.override = graphOverrides
+      ?.overrides
       ?.[this.nodeFullLocation]
       ?.attributes
       ?.find(({ key }) => key === this.type)
-      ?.value
-      ?? this.text;
+      ?.value;
+
+    this.displayText = this.override ?? this.text;
   }
 
   ngOnChanges() {
@@ -144,7 +153,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     let updatedValue = target.value;
 
     if (this.editable?.input_type === 'int_list') {
-      updatedValue = `[${this.splitEditableList(this.text).map(({ value }, index) => {
+      updatedValue = `[${this.splitEditableList(this.displayText).map(({ value }, index) => {
         if (index.toString() === target.dataset['index']) {
           return target.value;
         }
@@ -154,7 +163,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     if (this.editable?.input_type === 'grid') {
-      updatedValue = `${this.splitEditableList(this.text, this.editable?.separator ?? 'x').map(({ value }, index) => {
+      updatedValue = `${this.splitEditableList(this.displayText, this.editable?.separator ?? 'x').map(({ value }, index) => {
         if (index.toString() === target.dataset['index']) {
           return target.value;
         }
@@ -264,7 +273,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   get hasMultipleLines(): boolean {
-    return this.type !== 'namespace' && this.text.includes('\n');
+    return this.type !== 'namespace' && this.displayText.includes('\n');
   }
 
   get iconName(): string {
@@ -276,15 +285,15 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   get namespaceComponents(): string[] {
-    const components = this.text.split('/');
-    if (this.text !== '<root>') {
+    const components = this.displayText.split('/');
+    if (this.displayText !== '<root>') {
       components.unshift('<root>');
     }
     return components;
   }
 
   get formatQuantization(): string {
-    const parts = this.text
+    const parts = this.displayText
       .replace('[', '')
       .replace(']', '')
       .split(',')
