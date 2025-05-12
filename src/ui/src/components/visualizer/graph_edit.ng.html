@@ -1,4 +1,19 @@
 <div class="container">
+  <button
+    mat-icon-button
+    matTooltip="Download current overrides"
+    (click)="handleLogDialogOpen()"
+  >
+    <mat-icon>download</mat-icon>
+  </button>
+  <button
+    mat-icon-button
+    matTooltip="Upload new overrides"
+    (click)="handleLogDialogOpen()"
+  >
+    <mat-icon>upload</mat-icon>
+  </button>
+
   @if (optimizationPolicies.length > 1) {
     <div class="mat-icon-container">
       <label for="optimization-policy-select">Opt. Policy</label>
