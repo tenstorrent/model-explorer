@@ -321,6 +321,46 @@ export class GraphEdit {
     }
   }
 
+  async handleUploadOverrides(input: HTMLInputElement) {
+    const overridesFile = input.files?.[0];
+
+    if (!overridesFile || overridesFile.type !== 'application/json') {
+      return;
+    }
+
+    try {
+      const contents = await overridesFile.text();
+      const newOverrides = JSON.parse(contents);
+
+      if (!newOverrides || Array.isArray(newOverrides)) {
+        throw new Error('Overrides should be an a JSON object.');
+      }
+
+      const { curCollectionLabel, curGraphId } = this.getCurrentGraphInformation();
+
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        const existingOverrides = curOverrides
+            ?.[curCollectionLabel ?? '']
+            ?.[curGraphId ?? ''];
+
+        existingOverrides.wasSentToServer = false;
+        existingOverrides.overrides = {
+          ...existingOverrides.overrides,
+          ...newOverrides
+        }
+
+        return curOverrides;
+      });
+    } catch (err) {
+      const errorMessage = (err as Error).message ?? 'An error has occured';
+
+      this.loggingService.error('Overrides Loading Error', errorMessage);
+      this.showErrorDialog('Overrides Loading Error', errorMessage);
+    }
+
+    input.value = '';
+  }
+
   handleClickSelectOptimizationPolicy(evt: Event) {
     const optimizationPolicy = (evt.target as HTMLSelectElement).value;
     this.modelLoaderService.selectedOptimizationPolicy.update(() => optimizationPolicy);
