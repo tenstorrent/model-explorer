@@ -16,14 +16,12 @@ limitations under the License.
 ==============================================================================
 -->
 
-<div
+<mat-icon
   class="override-status"
   [class.has-override]="hasOverride"
   [class.override-uploaded]="isOverrideUploded"
   [matTooltip]="overrideTooltip"
->
-  <mat-icon>{{overrideIcon}}</mat-icon>
-</div>
+>{{overrideIcon}}</mat-icon>
 
 <div class="container" #container
     [style.background-color]="bgColor"
