@@ -305,6 +305,22 @@ export class GraphEdit {
     });
   }
 
+  handleDownloadOverrides() {
+    const { graphOverrides, curCollectionLabel, curGraphId } = this.getCurrentGraphInformation();
+
+    if (graphOverrides) {
+      const tempElement = document.createElement('a');
+      const textUrl = URL.createObjectURL(new Blob([JSON.stringify(graphOverrides, null, '\t')], { type: 'application/json' }));
+
+      tempElement.hidden = true;
+      tempElement.download = `overrides-${curCollectionLabel}-${curGraphId}-${new Date().toISOString()}.json`;
+      tempElement.href = textUrl;
+      tempElement.click();
+
+      URL.revokeObjectURL(textUrl);
+    }
+  }
+
   handleClickSelectOptimizationPolicy(evt: Event) {
     const optimizationPolicy = (evt.target as HTMLSelectElement).value;
     this.modelLoaderService.selectedOptimizationPolicy.update(() => optimizationPolicy);
