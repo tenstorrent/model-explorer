@@ -265,12 +265,44 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     return `${parsedValue * 100}%`;
   }
 
-  get isOverrideApplied() {
+  get overrideTooltip() {
+    if (this.wasOverrideSentToServer && this.hasOverride) {
+        return 'Override was not applied';
+    }
+
+    if (this.wasOverrideSentToServer && !this.hasOverride) {
+        return 'Override was applied';
+    }
+
+    if (this.hasOverride) {
+      return 'This field has an override';
+    }
+
+    return '';
+  }
+
+  get overrideIcon() {
+    if (this.wasOverrideSentToServer && this.hasOverride) {
+        return 'warning';
+    }
+
+    if (this.wasOverrideSentToServer && !this.hasOverride) {
+        return 'check_circle';
+    }
+
+    if (this.hasOverride) {
+      return 'info';
+    }
+
+    return 'help';
+  }
+
+  get isOverrideUploded() {
     return this.override !== undefined && this.wasOverrideSentToServer;
   }
 
-  get isOverrideDifferent() {
-    return this.override !== this.text;
+  get hasOverride() {
+    return this.override !== undefined && this.override !== this.text;
   }
 
   get maxIntValue() {
