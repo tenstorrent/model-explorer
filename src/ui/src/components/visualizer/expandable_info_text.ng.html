@@ -18,11 +18,11 @@ limitations under the License.
 
 <div
   class="override-status"
-  [class.override-failed]="isOverrideDifferent"
-  [class.override-applied]="isOverrideApplied"
-  [matTooltip]="isOverrideDifferent ? 'Override was not applied' : 'Override was applied'"
+  [class.has-override]="hasOverride"
+  [class.override-uploded]="isOverrideUploded"
+  [matTooltip]="overrideTooltip"
 >
-  <mat-icon>{{isOverrideDifferent ? 'warning' : 'check_circle'}}</mat-icon>
+  <mat-icon>{{overrideIcon}}</mat-icon>
 </div>
 
 <div class="container" #container
