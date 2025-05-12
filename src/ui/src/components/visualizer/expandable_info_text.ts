@@ -214,6 +214,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
 
       return overrides;
     });
+
+    this.override = updatedValue;
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
