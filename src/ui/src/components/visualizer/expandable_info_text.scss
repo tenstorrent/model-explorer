@@ -26,16 +26,18 @@
 }
 
 .override-status {
+  --override-status-color: transparent;
 
   & mat-icon {
     font-size: 1rem;
     width: 1rem;
     height: 1rem;
-    color: seagreen;
+    color: var(--override-status-color);
   }
 
-  &.override-failed { color: orangered; }
-  &.override-applied { display: block; }
+  &.override-uploaded { --override-status-color: seagreen; }
+  &.has-override { --override-status-color: goldenrod; }
+  &.has-override.override-uploaded { --override-status-color: orangered; }
 }
 
 .container {
