@@ -263,8 +263,12 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     return `${parsedValue * 100}%`;
   }
 
-  get shouldHideOverrideWarning() {
-    return !(this.wasOverrideSentToServer && this.override && (this.override !== this.text));
+  get isOverrideApplied() {
+    return this.override !== undefined && this.wasOverrideSentToServer;
+  }
+
+  get isOverrideDifferent() {
+    return this.override !== this.text;
   }
 
   get maxIntValue() {

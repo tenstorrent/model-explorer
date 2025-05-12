@@ -16,10 +16,13 @@ limitations under the License.
 ==============================================================================
 -->
 
-<div class="override-status" [hidden]="shouldHideOverrideWarning">
-  <mat-icon>warning</mat-icon>
-  <!-- TODO: add tooltip saying override was not applied -->
-  <!-- TODO: add icon/tooltip that override was applied -->
+<div
+  class="override-status"
+  [class.override-failed]="isOverrideDifferent"
+  [class.override-applied]="isOverrideApplied"
+  [matTooltip]="isOverrideDifferent ? 'Override was not applied' : 'Override was applied'"
+>
+  <mat-icon>{{isOverrideDifferent ? 'warning' : 'check_circle'}}</mat-icon>
 </div>
 
 <div class="container" #container

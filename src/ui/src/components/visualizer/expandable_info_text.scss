@@ -26,12 +26,17 @@
 }
 
 .override-status {
+  display: none;
+
   & mat-icon {
     font-size: 1rem;
     width: 1rem;
     height: 1rem;
-    color: red;
+    color: seagreen;
   }
+
+  &.override-failed { color: orangered; }
+  &.override-applied { display: block; }
 }
 
 .container {
