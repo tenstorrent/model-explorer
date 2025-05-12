@@ -2,17 +2,18 @@
   <button
     mat-icon-button
     matTooltip="Download current overrides"
-    (click)="handleLogDialogOpen()"
+    (click)="handleDownloadOverrides()"
   >
     <mat-icon>download</mat-icon>
   </button>
   <button
     mat-icon-button
     matTooltip="Upload new overrides"
-    (click)="handleLogDialogOpen()"
+    (click)="uploadInput.click()"
   >
     <mat-icon>upload</mat-icon>
   </button>
+  <input hidden type="file" #uploadInput (change)="handleUploadOverrides(uploadInput)">
 
   @if (optimizationPolicies.length > 1) {
     <div class="mat-icon-container">
