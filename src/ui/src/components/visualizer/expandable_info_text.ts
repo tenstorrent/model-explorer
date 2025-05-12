@@ -294,7 +294,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       return 'info';
     }
 
-    return 'help';
+    return '';
   }
 
   get isOverrideUploded() {
