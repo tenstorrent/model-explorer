@@ -339,11 +339,23 @@ export class GraphEdit {
       const { curCollectionLabel, curGraphId } = this.getCurrentGraphInformation();
 
       this.modelLoaderService.overrides.update((curOverrides) => {
-        const existingOverrides = curOverrides
-            ?.[curCollectionLabel ?? '']
-            ?.[curGraphId ?? ''];
+        if (!curOverrides) {
+          curOverrides = {};
+        }
 
-        existingOverrides.wasSentToServer = false;
+        if (!curOverrides?.[curCollectionLabel ?? '']) {
+          curOverrides[curCollectionLabel ?? ''] = {};
+        }
+
+        if (!curOverrides[curCollectionLabel ?? '']?.[curGraphId ?? '']) {
+          curOverrides[curCollectionLabel ?? ''][curGraphId ?? ''] = {
+            wasSentToServer: false,
+            overrides: {}
+          };
+        }
+
+        const existingOverrides = curOverrides[curCollectionLabel ?? ''][curGraphId ?? ''];
+
         existingOverrides.overrides = {
           ...existingOverrides.overrides,
           ...newOverrides
