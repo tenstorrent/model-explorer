@@ -101,6 +101,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       modelItem.path,
       {
         optimizationPolicy: selectedSettings?.selectedOptimizationPolicy ?? '',
+        genCppCode: selectedSettings?.genCppCode ?? false,
         overrides
       }
     );
