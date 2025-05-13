@@ -32,7 +32,7 @@ import {
   type ExtensionCommand,
   type ExtensionResponse,
 } from '../common/extension_command';
-import {ModelLoaderServiceInterface, type OverridesPerCollection, type OverridesPerNode } from '../common/model_loader_service_interface';
+import {ModelLoaderServiceInterface, type CppCodePerCollection, type OverridesPerCollection, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
   InternalAdapterExtId,
   ModelItem,
@@ -80,6 +80,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   readonly overrides = signal<OverridesPerCollection>({});
 
+  readonly generatedCppCode = signal<CppCodePerCollection>({});
+
   readonly graphErrors = signal<string[] | undefined>(undefined);
 
   constructor(
@@ -101,7 +103,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       modelItem.path,
       {
         optimizationPolicy: selectedSettings?.selectedOptimizationPolicy ?? '',
-        genCppCode: selectedSettings?.genCppCode ?? false,
+        generateCppCode: selectedSettings?.generateCppCode ?? false,
         overrides
       }
     );
@@ -321,6 +323,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       `${LOAD_GRAPHS_JSON_API_PATH}?graph_index=${index}`,
     );
     const json = (await resp.json()) as AdapterConvertResponse;
+    this.processGeneratedCppCode(json);
     return this.processAdapterConvertResponse(json, name);
   }
 
@@ -406,6 +409,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       return [];
     }
 
+    this.processGeneratedCppCode(result);
+
     return this.processAdapterConvertResponse(result, fileName);
   }
 
@@ -468,6 +473,43 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }));
 
     return graphCollections;
+  }
+
+  private processGeneratedCppCode(resp: AdapterConvertResponse) {
+    this.generatedCppCode.update((curCppCodePerCollection) => {
+      if (resp.graphCollections) {
+        resp.graphCollections.forEach(({ label, graphs }) => {
+          graphs.forEach(({ id, cppCode }) => {
+            if (!cppCode) {
+              return;
+            }
+
+            if (!curCppCodePerCollection[label]) {
+              curCppCodePerCollection[label] = {};
+            }
+
+            curCppCodePerCollection[label][id] = cppCode;
+          });
+        });
+      }
+
+      if (resp.graphs) {
+        resp.graphs.forEach(({ id, collectionLabel, cppCode }) => {
+          if (!cppCode) {
+            return;
+          }
+
+          if (!curCppCodePerCollection[collectionLabel ?? '']) {
+            curCppCodePerCollection[collectionLabel ?? ''] = {};
+          }
+
+          curCppCodePerCollection[collectionLabel ?? ''][id] = cppCode;
+
+        });
+      }
+
+      return curCppCodePerCollection;
+    });
   }
 
   private processAdapterOverrideResponse(

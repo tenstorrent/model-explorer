@@ -97,6 +97,7 @@ export declare interface Graph {
   /** @deprecated */
   perf_data?: NodeDataProviderData;
   overrides?: OverridesPerNode;
+  cppCode?: string;
 }
 
 /** A graph with its level, used in the graph selector. */
