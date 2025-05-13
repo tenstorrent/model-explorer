@@ -24,6 +24,9 @@ import type { KeyValue } from '../components/visualizer/common/types';
 import {ModelItem} from './types';
 import type { AdapterStatusCheckResults } from './extension_command';
 
+export type CppCodePerGraph = Record<string, string>;
+export type CppCodePerCollection = Record<string, CppCodePerGraph>;
+
 export type OverridesPerNode = Record<string, { named_location: string, full_location: string, attributes: KeyValue[] }>;
 export type OverridesPerGraph = Record<string, OverridesPerNode>;
 export type OverridesPerCollection = Record<string, OverridesPerGraph>;
@@ -39,8 +42,7 @@ export interface ModelLoaderServiceInterface {
   get selectedGraphId(): WritableSignal<string | undefined>;
   get models(): WritableSignal<ModelItem[]>;
   get overrides(): WritableSignal<OverridesPerCollection>;
-  getOptimizationPolicies(extensionId: string): string[];
-  get selectedOptimizationPolicy(): WritableSignal<string>;
+  get generatedCppCode(): WritableSignal<CppCodePerCollection>;
   get graphErrors(): WritableSignal<string[] | undefined>;
   get hasOverrides(): boolean;
 }

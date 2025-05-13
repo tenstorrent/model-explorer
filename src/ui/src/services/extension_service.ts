@@ -19,7 +19,7 @@
 import {Injectable, signal} from '@angular/core';
 
 import {type ExtensionCommand} from '../common/extension_command';
-import {type Extension, type ExtensionSettings} from '../common/types';
+import {type Extension, type ExtensionSettings, type SelectedExtensionSettings} from '../common/types';
 import {INTERNAL_COLAB} from '../common/utils';
 
 const EXTERNAL_GET_EXTENSIONS_API_PATH = '/api/v1/get_extensions';
@@ -37,6 +37,7 @@ export class ExtensionService {
   extensions: Extension[] = [];
 
   extensionSettings = new Map<string, ExtensionSettings>();
+  selectedSettings = new Map<string, SelectedExtensionSettings>();
 
   constructor() {
     this.loadExtensions();
@@ -82,6 +83,15 @@ export class ExtensionService {
     }
   }
 
+  private setDefaultExtensionSettings(extensionIds: string[]) {
+    extensionIds.forEach((extensionId) => {
+      this.selectedSettings.set(extensionId, {
+        generateCppCode: false,
+        selectedOptimizationPolicy: this.extensionSettings.get(extensionId)?.optimizationPolicies?.[0] ?? ''
+      });
+    });
+  }
+
   private processExtensionSettings(extensions: Extension[]) {
     extensions.forEach(({ id, settings }) => {
       this.extensionSettings.set(id, settings ?? {});
@@ -94,6 +104,7 @@ export class ExtensionService {
 
     exts = await this.getExtensionsForExternal();
     this.processExtensionSettings(exts);
+    this.setDefaultExtensionSettings(exts.map(({ id }) => id));
     this.extensions = exts;
     this.loading.set(false);
   }

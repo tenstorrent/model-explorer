@@ -1,15 +1,4 @@
 <div class="container">
-  @if (optimizationPolicies.length > 1) {
-    <div class="mat-icon-container">
-      <label for="optimization-policy-select">Opt. Policy</label>
-      <select (change)="handleClickSelectOptimizationPolicy($event)" id="optimization-policy-select">
-        @for (optimizationPolicy of optimizationPolicies; track $index) {
-          <option>{{optimizationPolicy}}</option>
-        }
-      </select>
-    </div>
-  }
-
   @if (hasCurModel) {
     <div class="mat-icon-container">
       <button mat-icon-button matTooltip="Upload processed graphs json to server" (click)="handleClickUploadGraph()" [disabled]="!hasOverrides || isProcessingExecuteRequest()">
@@ -37,6 +26,23 @@
       ></mat-progress-spinner>
     </div>
   }
+
+  <button
+    mat-icon-button
+    matTooltip="Execution Settings"
+    (click)="handleSettingsDialogOpen()"
+  >
+    <mat-icon>settings</mat-icon>
+  </button>
+
+  <button
+    mat-icon-button
+    [hidden]="!curCppCode"
+    matTooltip="View Generated Cpp Code"
+    (click)="handleCppDialogOpen()"
+  >
+    <mat-icon>code_blocks</mat-icon>
+  </button>
 
   <button
     mat-icon-button

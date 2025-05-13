@@ -54,8 +54,12 @@ export declare interface ExtensionBase {
 }
 
 export interface ExtensionSettings {
-  optimizationPolicies?: string[],
-  [k: string]: any
+  optimizationPolicies?: string[];
+};
+
+export interface SelectedExtensionSettings {
+  selectedOptimizationPolicy: string;
+  generateCppCode: boolean;
 };
 
 /** Metadata of an adapter extension. */
