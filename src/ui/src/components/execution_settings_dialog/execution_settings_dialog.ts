@@ -25,7 +25,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 
 import {Bubble} from '../bubble/bubble';
-import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface.js';
+import { ExtensionService } from '../../services/extension_service';
 
 export interface ExecutionSettingsDialogData {
   curExtensionId: string;
@@ -66,19 +66,27 @@ export class ExecutionSettingsDialog {
   ];
 
   constructor(
-    @Inject('ModelLoaderService')
-    private readonly modelLoaderService: ModelLoaderServiceInterface,
+    private readonly extensionService: ExtensionService,
     @Inject(MAT_DIALOG_DATA)
     public data: ExecutionSettingsDialogData
   ) {}
 
 
-  get optimizationPolicies(): string[] {
-    return this.modelLoaderService.getOptimizationPolicies(this.data.curExtensionId);
+  get optimizationPolicies() {
+    return this.extensionService.extensionSettings.get(this.data.curExtensionId)?.optimizationPolicies ?? [];
+  }
+
+  get genCppCode() {
+    return this.extensionService.selectedSettings.get(this.data.curExtensionId)?.genCppCode ?? false;
   }
 
   handleClickSelectOptimizationPolicy(evt: Event) {
     const optimizationPolicy = (evt.target as HTMLSelectElement).value;
-    this.modelLoaderService.selectedOptimizationPolicy.update(() => optimizationPolicy);
+    const existingSettings = this.extensionService.selectedSettings.get(this.data.curExtensionId)!;
+
+    this.extensionService.selectedSettings.set(this.data.curExtensionId, {
+      ...existingSettings,
+      selectedOptimizationPolicy: optimizationPolicy
+    });
   }
 }
