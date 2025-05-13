@@ -20,9 +20,14 @@ import {Injectable, signal} from '@angular/core';
 
 import {GRAPHS_MODEL_SOURCE_PREFIX} from '../common/consts';
 import {
+  type AdapterConvertCommand,
   type AdapterConvertResponse,
+  type AdapterExecuteCommand,
   type AdapterExecuteResponse,
+  type AdapterExecuteSettings,
+  type AdapterOverrideCommand,
   type AdapterOverrideResponse,
+  type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
   type ExtensionResponse,
@@ -274,7 +279,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   async checkExecutionStatus(modelItem: ModelItem, modelPath: string) {
-    const result = await this.sendExtensionRequest<AdapterStatusCheckResponse>('status_check', modelItem, modelPath);
+    const result = await this.sendExtensionRequest<AdapterStatusCheckResponse, AdapterStatusCheckCommand>('status_check', modelItem, modelPath);
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return {
@@ -339,11 +344,11 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
   }
 
-  private async sendExtensionRequest<T extends ExtensionResponse<any[], any[]>>(
-    command: string,
+  private async sendExtensionRequest<Res extends ExtensionResponse<any[], any[]>, Req extends ExtensionCommand>(
+    command: Req['cmdId'],
     modelItem: ModelItem,
     path: string,
-    settings?: Record<string, any>,
+    settings?: Req['settings'],
   ) {
     try {
       modelItem.status.set(ModelItemStatus.PROCESSING);
@@ -355,7 +360,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         deleteAfterConversion: false,
       };
 
-      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(extensionCommand);
+      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<Res>(extensionCommand);
 
       if (cmdError) {
         throw new Error(cmdError);
@@ -386,7 +391,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     fileName: string,
     settings: Record<string, any> = {},
   ): Promise<GraphCollection[]> {
-    const result = await this.sendExtensionRequest<AdapterConvertResponse>(
+    const result = await this.sendExtensionRequest<AdapterConvertResponse, AdapterConvertCommand>(
       'convert',
       modelItem,
       path,
@@ -406,9 +411,9 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   private async sendExecuteRequest(
     modelItem: ModelItem,
     path: string,
-    settings: Record<string, any> = {}
+    settings: AdapterExecuteSettings,
   ) {
-    const result = await this.sendExtensionRequest<AdapterExecuteResponse>('execute', modelItem, path, settings);
+    const result = await this.sendExtensionRequest<AdapterExecuteResponse, AdapterExecuteCommand>('execute', modelItem, path, settings);
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return false;
@@ -424,7 +429,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     overrides: Record<string, any>
   ) {
 
-    const result = await this.sendExtensionRequest<AdapterOverrideResponse>('override', modelItem, path, {
+    const result = await this.sendExtensionRequest<AdapterOverrideResponse, AdapterOverrideCommand>('override', modelItem, path, {
       graphs: graphCollection.graphs,
       overrides,
     });
