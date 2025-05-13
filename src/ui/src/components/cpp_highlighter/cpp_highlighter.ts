@@ -17,7 +17,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Input, signal, type OnChanges, type OnInit, type SimpleChanges} from '@angular/core';
+import {Component, Input, signal, ViewEncapsulation, type OnChanges, type OnInit, type SimpleChanges} from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import {createHighlighter, type HighlighterGeneric} from 'shiki';
 
@@ -27,6 +27,7 @@ import {createHighlighter, type HighlighterGeneric} from 'shiki';
   imports: [
     CommonModule,
   ],
+  encapsulation: ViewEncapsulation.None,
   templateUrl: './cpp_highlighter.ng.html',
   styleUrls: ['./cpp_highlighter.scss'],
 })

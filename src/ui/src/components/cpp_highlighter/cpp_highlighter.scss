@@ -16,38 +16,56 @@
  * ==============================================================================
  */
 
-*:not(mat-icon) {
-  font-family: 'Google Sans Text', Arial, Helvetica, sans-serif;
-}
+cpp-highlighter {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  scrollbar-gutter: stable;
+  box-sizing: border-box;
+  flex-direction: column;
 
-.highlighted-code-container {
-  code {
-    --line-counter-width: 2em;
-    --line-counter-margin-right: 1em;
-    counter-increment: step 0;
-    counter-reset: step;
-    line-height: 1.2;
-    overflow-wrap: break-word;
-    white-space: normal;
-    word-break: break-word;
-  }
+  * { box-sizing: inherit; }
 
-  code .line::before {
-    color: var(--border-color);
-    content: counter(step, decimal-leading-zero);
-    counter-increment: step;
-    display: inline-block;
-    margin-left: calc((var(--line-counter-width) + var(--line-counter-margin-right)) * -1);
-    margin-right: var(--line-counter-margin-right);
-    text-align: right;
-    width: var(--line-counter-width);
-  }
-
-  code .line {
-    display: inline-block;
-    padding-left: calc(var(--line-counter-width) + var(--line-counter-margin-right));
+  #highlighter-loading:not([hidden]) {
+    text-align: center;
+    display: grid;
+    place-items: center;
     width: 100%;
+    height: 100%;
   }
 
-  code .line:empty { display: none; }
+  #highlighted-code-container {
+    --line-counter-margin-right: 1em;
+    --line-counter-width: 2em;
+
+    pre { margin-block: 1em; }
+
+    code {
+      counter-increment: step 0;
+      counter-reset: step;
+      line-height: 1.2;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      word-break: break-word;
+      width: 100%;
+      height: 100%;
+    }
+
+    code .line::before {
+      color: var(--border-color);
+      content: counter(step, decimal-leading-zero);
+      counter-increment: step;
+      display: inline-block;
+      margin-left: calc((var(--line-counter-width) + var(--line-counter-margin-right)) * -1);
+      margin-right: var(--line-counter-margin-right);
+      text-align: right;
+      width: var(--line-counter-width);
+    }
+
+    code .line {
+      display: inline-block;
+      padding-left: calc(var(--line-counter-width) + var(--line-counter-margin-right));
+      width: 100%;
+    }
+  }
 }
