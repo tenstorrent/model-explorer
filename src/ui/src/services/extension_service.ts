@@ -86,7 +86,7 @@ export class ExtensionService {
   private setDefaultExtensionSettings(extensionIds: string[]) {
     extensionIds.forEach((extensionId) => {
       this.selectedSettings.set(extensionId, {
-        genCppCode: false,
+        generateCppCode: false,
         selectedOptimizationPolicy: this.extensionSettings.get(extensionId)?.optimizationPolicies?.[0] ?? ''
       });
     });

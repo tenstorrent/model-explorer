@@ -77,7 +77,7 @@ export class ExecutionSettingsDialog {
   }
 
   get genCppCode() {
-    return this.extensionService.selectedSettings.get(this.data.curExtensionId)?.genCppCode ?? false;
+    return this.extensionService.selectedSettings.get(this.data.curExtensionId)?.generateCppCode ?? false;
   }
 
   handleClickSelectOptimizationPolicy(evt: Event) {

@@ -59,7 +59,7 @@ export interface ExtensionSettings {
 
 export interface SelectedExtensionSettings {
   selectedOptimizationPolicy: string;
-  genCppCode: boolean;
+  generateCppCode: boolean;
 };
 
 /** Metadata of an adapter extension. */

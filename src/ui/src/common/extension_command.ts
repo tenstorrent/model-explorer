@@ -79,7 +79,7 @@ export type AdapterOverrideResponse = ExtensionResponse<[{
 /** Adapter's "execute" settings. */
 export declare interface AdapterExecuteSettings {
   optimizationPolicy: string;
-  genCppCode: boolean;
+  generateCppCode: boolean;
   overrides?: OverridesPerNode;
 }
 
