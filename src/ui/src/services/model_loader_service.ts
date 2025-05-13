@@ -77,8 +77,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   readonly graphErrors = signal<string[] | undefined>(undefined);
 
-  readonly selectedOptimizationPolicy = signal<string>('');
-
   constructor(
     private readonly settingsService: SettingsService,
     readonly extensionService: ExtensionService,
@@ -88,19 +86,16 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return Object.keys(this.overrides()).length > 0;
   }
 
-  getOptimizationPolicies(extensionId: string): string[] {
-    return this.extensionService.extensionSettings.get(extensionId)?.optimizationPolicies ?? [];
-  }
-
   async executeModel(modelItem: ModelItem, overrides: OverridesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: boolean = false;
+    const selectedSettings= this.extensionService.selectedSettings.get(modelItem.selectedAdapter?.id ?? '');
 
     result = await this.sendExecuteRequest(
       modelItem,
       modelItem.path,
       {
-        optimizationPolicy: this.selectedOptimizationPolicy(),
+        optimizationPolicy: selectedSettings?.selectedOptimizationPolicy ?? '',
         overrides
       }
     );

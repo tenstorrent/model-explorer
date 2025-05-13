@@ -39,8 +39,6 @@ export interface ModelLoaderServiceInterface {
   get selectedGraphId(): WritableSignal<string | undefined>;
   get models(): WritableSignal<ModelItem[]>;
   get overrides(): WritableSignal<OverridesPerCollection>;
-  getOptimizationPolicies(extensionId: string): string[];
-  get selectedOptimizationPolicy(): WritableSignal<string>;
   get graphErrors(): WritableSignal<string[] | undefined>;
   get hasOverrides(): boolean;
 }

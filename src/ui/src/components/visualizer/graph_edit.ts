@@ -59,16 +59,6 @@ export class GraphEdit {
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
-    if (this.modelLoaderService.selectedOptimizationPolicy() === '') {
-      this.modelLoaderService.selectedOptimizationPolicy.update(() => {
-        const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
-
-        return this.modelLoaderService.getOptimizationPolicies(curExtensionId)[0] || '';
-      });
-    }
-  }
-
   private poolForStatusUpdate(modelItem: ModelItem, modelPath: string, updateCallback: (progress: number, total: number, elapsedTime: string, stdout?: string) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout', elapsedTime: string) => void | Promise<void>, errorCallback: (error: string, elapsedTime: string) => void | Promise<void>) {
     const POOL_TIME_MS = 1 * 1000; // 1 second
     const TIMEOUT_MS = 1 * 60 * 60 * 1000; // 1 hour
@@ -341,11 +331,6 @@ export class GraphEdit {
     });
   }
 
-  handleClickSelectOptimizationPolicy(evt: Event) {
-    const optimizationPolicy = (evt.target as HTMLSelectElement).value;
-    this.modelLoaderService.selectedOptimizationPolicy.update(() => optimizationPolicy);
-  }
-
   get hasOverrides() {
     return this.modelLoaderService.hasOverrides;
   }
@@ -356,10 +341,5 @@ export class GraphEdit {
 
   get graphHasErrors() {
     return this.modelLoaderService.graphErrors() !== undefined;
-  }
-
-  get optimizationPolicies(): string[] {
-    const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
-    return this.modelLoaderService.getOptimizationPolicies(curExtensionId);
   }
 }
