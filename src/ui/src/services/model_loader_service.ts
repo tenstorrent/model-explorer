@@ -323,8 +323,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       `${LOAD_GRAPHS_JSON_API_PATH}?graph_index=${index}`,
     );
     const json = (await resp.json()) as AdapterConvertResponse;
-    this.processGeneratedCppCode(json);
-    return this.processAdapterConvertResponse(json, name);
+    const graphCollections = this.processAdapterConvertResponse(json, name);
+    this.processGeneratedCppCode(graphCollections);
+
+    return graphCollections;
   }
 
   private async uploadModelFile(
@@ -409,9 +411,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       return [];
     }
 
-    this.processGeneratedCppCode(result);
+    const graphCollections = this.processAdapterConvertResponse(result, fileName);
+    this.processGeneratedCppCode(graphCollections);
 
-    return this.processAdapterConvertResponse(result, fileName);
+    return graphCollections;
   }
 
   private async sendExecuteRequest(
@@ -471,10 +474,9 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return graphCollections;
   }
 
-  private processGeneratedCppCode(resp: AdapterConvertResponse) {
+  private processGeneratedCppCode(graphCollections: GraphCollection[]) {
     this.generatedCppCode.update((curCppCodePerCollection) => {
-      if (resp.graphCollections) {
-        resp.graphCollections.forEach(({ label, graphs }) => {
+      graphCollections.forEach(({ label, graphs }) => {
           graphs.forEach(({ id, cppCode }) => {
             if (!cppCode) {
               return;
@@ -487,25 +489,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             curCppCodePerCollection[label][id] = cppCode;
           });
         });
-      }
 
-      if (resp.graphs) {
-        resp.graphs.forEach(({ id, collectionLabel, cppCode }) => {
-          if (!cppCode) {
-            return;
-          }
+        return curCppCodePerCollection;
+      });
 
-          if (!curCppCodePerCollection[collectionLabel ?? '']) {
-            curCppCodePerCollection[collectionLabel ?? ''] = {};
-          }
-
-          curCppCodePerCollection[collectionLabel ?? ''][id] = cppCode;
-
-        });
-      }
-
-      return curCppCodePerCollection;
-    });
   }
 
   private processAdapterOverrideResponse(
