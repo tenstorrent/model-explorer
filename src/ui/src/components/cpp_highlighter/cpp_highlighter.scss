@@ -19,3 +19,35 @@
 *:not(mat-icon) {
   font-family: 'Google Sans Text', Arial, Helvetica, sans-serif;
 }
+
+.highlighted-code-container {
+  code {
+    --line-counter-width: 2em;
+    --line-counter-margin-right: 1em;
+    counter-increment: step 0;
+    counter-reset: step;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  code .line::before {
+    color: var(--border-color);
+    content: counter(step, decimal-leading-zero);
+    counter-increment: step;
+    display: inline-block;
+    margin-left: calc((var(--line-counter-width) + var(--line-counter-margin-right)) * -1);
+    margin-right: var(--line-counter-margin-right);
+    text-align: right;
+    width: var(--line-counter-width);
+  }
+
+  code .line {
+    display: inline-block;
+    padding-left: calc(var(--line-counter-width) + var(--line-counter-margin-right));
+    width: 100%;
+  }
+
+  code .line:empty { display: none; }
+}
