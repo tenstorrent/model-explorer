@@ -76,9 +76,17 @@ export type AdapterOverrideResponse = ExtensionResponse<[{
   success: boolean;
 }], never>;
 
+/** Adapter's "execute" settings. */
+export declare interface AdapterExecuteSettings {
+  optimizationPolicy: string;
+  genCppCode: boolean;
+  overrides?: OverridesPerNode;
+}
+
 /** Adapter's "execute" command. */
 export declare interface AdapterExecuteCommand extends ExtensionCommand {
   cmdId: 'execute';
+  settings: AdapterExecuteSettings
 }
 
 /** Adapter's "execute" results inside the response. */
