@@ -466,10 +466,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       if (!graph?.overlays) {
         graph.overlays = {};
       }
-
-      if (graph?.perf_data) {
-        graph.overlays['perf_data'] = graph.perf_data;
-      }
     }));
 
     return graphCollections;
