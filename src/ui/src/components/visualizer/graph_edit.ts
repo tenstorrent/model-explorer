@@ -17,6 +17,7 @@ import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
+import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
 
 /**
  * The graph edit component.
@@ -328,6 +329,16 @@ export class GraphEdit {
     this.dialog.open(LoggingDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
       height: 'clamp(10rem, 80vh, 100rem)'
+    });
+  }
+
+  handleSettingsDialogOpen() {
+    const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
+
+    this.dialog.open(ExecutionSettingsDialog, {
+      width: 'clamp(10rem, 80vw, 30rem)',
+      height: 'clamp(10rem, 80vh, 40rem)',
+      data: { curExtensionId } as ExecutionSettingsDialogData
     });
   }
 

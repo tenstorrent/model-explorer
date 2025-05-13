@@ -29,6 +29,14 @@
 
   <button
     mat-icon-button
+    matTooltip="Execution Settings"
+    (click)="handleSettingsDialogOpen()"
+  >
+    <mat-icon>settings</mat-icon>
+  </button>
+
+  <button
+    mat-icon-button
     matTooltip="Log messages"
     (click)="handleLogDialogOpen()"
   >
