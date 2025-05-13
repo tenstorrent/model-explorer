@@ -18,6 +18,7 @@ import { NodeDataProviderExtensionService } from './node_data_provider_extension
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
 import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
+import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_code_dialog.js';
 
 /**
  * The graph edit component.
@@ -175,19 +176,21 @@ export class GraphEdit {
 
   private getCurrentGraphInformation() {
     const curPane = this.appService.getSelectedPane();
-    const curCollectionLabel = curPane?.modelGraph?.collectionLabel;
+    const curCollectionLabel = curPane?.modelGraph?.collectionLabel ?? '';
+    const curModelId = curPane?.modelGraph?.id ?? '';
     const curCollection = this.appService.curGraphCollections().find(({ label }) => label === curCollectionLabel);
     const models = this.modelLoaderService.models();
     const curModel = models.find(({ label }) => label === curCollectionLabel);
     const graphOverrides = this.modelLoaderService.overrides()
-      ?.[curCollectionLabel ?? '']
-      ?.[curPane?.modelGraph?.id ?? '']
+      ?.[curCollectionLabel]
+      ?.[curModelId]
       ?? {};
 
     return {
       curModel,
       curCollection,
       curCollectionLabel,
+      curModelId,
       models,
       graphOverrides,
     };
@@ -332,6 +335,14 @@ export class GraphEdit {
     });
   }
 
+  handleCppDialogOpen() {
+    this.dialog.open(CppCodeDialog, {
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)',
+      data: { code: this.curCppCode } as CppCodedialogData
+    });
+  }
+
   handleSettingsDialogOpen() {
     const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
 
@@ -340,6 +351,12 @@ export class GraphEdit {
       height: 'clamp(10rem, 80vh, 40rem)',
       data: { curExtensionId } as ExecutionSettingsDialogData
     });
+  }
+
+  get curCppCode() {
+    const { curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+    return this.modelLoaderService.generatedCppCode()?.[curCollectionLabel]?.[curModelId] ?? '';
   }
 
   get hasOverrides() {

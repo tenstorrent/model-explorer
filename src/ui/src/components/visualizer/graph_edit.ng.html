@@ -37,6 +37,15 @@
 
   <button
     mat-icon-button
+    [hidden]="!curCppCode"
+    matTooltip="View Generated Cpp Code"
+    (click)="handleCppDialogOpen()"
+  >
+    <mat-icon>code_blocks</mat-icon>
+  </button>
+
+  <button
+    mat-icon-button
     matTooltip="Log messages"
     (click)="handleLogDialogOpen()"
   >
