@@ -18,6 +18,7 @@
 
 import {CommonModule} from '@angular/common';
 import {Component, Input, signal, type OnChanges, type OnInit, type SimpleChanges} from '@angular/core';
+import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import {createHighlighter, type HighlighterGeneric} from 'shiki';
 
 @Component({
@@ -32,15 +33,23 @@ import {createHighlighter, type HighlighterGeneric} from 'shiki';
 export class CppHighlighter implements OnInit, OnChanges {
   @Input({ required: true }) code: string = '';
 
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
+
+  readonly renderedCode = signal<SafeHtml | string>('');
+
   isHighlighterLoaded = false;
 
   highlighter: HighlighterGeneric<'cpp', 'light-plus'> | undefined = undefined;
 
   private renderCode(newCode: string) {
-    this.renderedCode.update(() => this.highlighter?.codeToHtml(newCode, {
-      lang: 'cpp',
-      theme: 'light-plus'
-    }) ?? '');
+    this.renderedCode.update(() => this.sanitizer.bypassSecurityTrustHtml(
+        this.highlighter?.codeToHtml(newCode, {
+        lang: 'cpp',
+        theme: 'light-plus'
+      }) ?? ''
+    ));
   }
 
   async ngOnInit() {
