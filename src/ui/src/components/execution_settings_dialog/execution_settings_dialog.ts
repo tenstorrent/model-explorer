@@ -80,13 +80,22 @@ export class ExecutionSettingsDialog {
     return this.extensionService.selectedSettings.get(this.data.curExtensionId)?.generateCppCode ?? false;
   }
 
-  handleClickSelectOptimizationPolicy(evt: Event) {
+  handleUpdateOptimizationPolicy(evt: Event) {
     const optimizationPolicy = (evt.target as HTMLSelectElement).value;
     const existingSettings = this.extensionService.selectedSettings.get(this.data.curExtensionId)!;
 
     this.extensionService.selectedSettings.set(this.data.curExtensionId, {
       ...existingSettings,
       selectedOptimizationPolicy: optimizationPolicy
+    });
+  }
+
+  handleUpdateCppCode(shouldGenCppCode: boolean) {
+    const existingSettings = this.extensionService.selectedSettings.get(this.data.curExtensionId)!;
+
+    this.extensionService.selectedSettings.set(this.data.curExtensionId, {
+      ...existingSettings,
+      generateCppCode: shouldGenCppCode
     });
   }
 }

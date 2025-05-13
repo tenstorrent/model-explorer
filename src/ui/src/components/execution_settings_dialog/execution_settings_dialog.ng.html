@@ -39,7 +39,7 @@ limitations under the License.
             </div>
           </ng-template>
         </div>
-        <select (change)="handleClickSelectOptimizationPolicy($event)" id="optimization-policy-select">
+        <select (change)="handleUpdateOptimizationPolicy($event)" id="optimization-policy-select">
           @for (optimizationPolicy of optimizationPolicies; track $index) {
             <option>{{optimizationPolicy}}</option>
           }
@@ -66,7 +66,7 @@ limitations under the License.
       </div>
 
       <ng-container>
-        <mat-slide-toggle [checked]="false">
+        <mat-slide-toggle [checked]="genCppCode" (change)="handleUpdateCppCode($event.checked)">
         </mat-slide-toggle>
       </ng-container>
     </div>
