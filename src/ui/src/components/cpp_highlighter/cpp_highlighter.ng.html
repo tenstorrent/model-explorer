@@ -16,5 +16,9 @@ limitations under the License.
 ==============================================================================
 -->
 
-<div [innerHTML]="renderedCode()">
+<div [hidden]="isHighlighterLoaded">
+    <p>Loading code highlighter...</p>
+    <progress></progress>
+</div>
+<div [hidden]="!isHighlighterLoaded" [innerHTML]="renderedCode()">
 </div>

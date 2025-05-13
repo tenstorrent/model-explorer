@@ -32,7 +32,7 @@ import {createHighlighter, type HighlighterGeneric} from 'shiki';
 export class CppHighlighter implements OnInit, OnChanges {
   @Input({ required: true }) code: string = '';
 
-  readonly renderedCode = signal('');
+  isHighlighterLoaded = false;
 
   highlighter: HighlighterGeneric<'cpp', 'light-plus'> | undefined = undefined;
 
@@ -50,6 +50,7 @@ export class CppHighlighter implements OnInit, OnChanges {
     });
 
     this.renderCode(this.code);
+    this.isHighlighterLoaded = true;
   }
 
   ngOnChanges(changes: SimpleChanges) {
