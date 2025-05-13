@@ -32,7 +32,7 @@ import {createHighlighter, type HighlighterGeneric} from 'shiki';
 export class CppHighlighter implements OnInit, OnChanges {
   @Input({ required: true }) code: string = '';
 
-  renderedCode = signal('');
+  readonly renderedCode = signal('');
 
   highlighter: HighlighterGeneric<'cpp', 'light-plus'> | undefined = undefined;
 

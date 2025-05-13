@@ -19,13 +19,17 @@
 import {CommonModule} from '@angular/common';
 import {Component, Inject} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
-import {MatDialogModule} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CppHighlighter } from '../cpp_highlighter/cpp_highlighter.js';
 
-/**
- * A dialog showing app level settings.
- */
+export interface CppCodedialogData {
+  curCollectionLabel: string;
+  curModelId: string;
+  code: string;
+}
+
 @Component({
   selector: 'logging-dialog',
   standalone: true,
@@ -35,19 +39,25 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatDialogModule,
     MatIconModule,
     MatTooltipModule,
+    CppHighlighter,
   ],
   templateUrl: './cpp_code_dialog.ng.html',
   styleUrls: ['./cpp_code_dialog.scss'],
 })
 export class CppCodeDialog {
 
+  constructor(
+      @Inject(MAT_DIALOG_DATA)
+      public data: CppCodedialogData
+  ){}
+
   downloadCode() {
-    if (code.length > 0) {
+    if (this.data.code.length > 0) {
       const tempElement = document.createElement('a');
-      const textUrl = URL.createObjectURL(new Blob([code], { type: 'text/plain' }));
+      const textUrl = URL.createObjectURL(new Blob([this.data.code], { type: 'text/plain' }));
 
       tempElement.hidden = true;
-      tempElement.download = `code-${new Date().toISOString()}.cpp`;
+      tempElement.download = `${this.data.curCollectionLabel}-${this.data.curModelId}.cpp`;
       tempElement.href = textUrl;
       tempElement.click();
 
