@@ -34,7 +34,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {AppService} from './app_service';
 import { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
-import type { OpNode } from './common/model_graph';
 import type { AttributeDisplayType, EditableAttributeTypes, EditableValueListAttribute } from './common/types.js';
 
 /** Expandable info text component. */
