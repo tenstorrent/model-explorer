@@ -53,7 +53,7 @@
 
   <button
     mat-icon-button
-    [hidden]="!curCppCode"
+    [disabled]="!curCppCode"
     matTooltip="View Generated Cpp Code"
     (click)="handleCppDialogOpen()"
   >
