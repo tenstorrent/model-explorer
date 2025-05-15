@@ -139,6 +139,9 @@
   }
 
   .one-line-text {
+    --input-color: black;
+    --input-bg: white;
+
     flex-grow: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -147,12 +150,32 @@
     .text-separator:last-child {
       display: none;
     }
+
+    & :is(select, input) {
+      border: thin solid currentColor;
+      border-radius: 3px;
+      background-color: var(--input-bg);
+      color: var(--input-color);
+    }
   }
 
   .text-content {
     .text-separator:last-child {
       display: none;
     }
+  }
+
+  &.override-uploaded .one-line-text {
+    --input-color: darkgreen;
+    --input-bg: lightgreen;
+  }
+  &.has-override .one-line-text {
+    --input-color: darkgoldenrod;
+    --input-bg: lightyellow;
+  }
+  &.has-override.override-uploaded .one-line-text {
+    --input-color: maroon;
+    --input-bg: lightpink;
   }
 
   .expanded-text {
