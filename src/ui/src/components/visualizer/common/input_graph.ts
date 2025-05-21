@@ -95,9 +95,8 @@ export declare interface Graph {
   // The ids of its parent graphs.
   parentGraphIds?: string[];
   overlays?: Record<string, NodeDataProviderData>;
-  /** @deprecated */
-  perf_data?: NodeDataProviderData;
   overrides?: OverridesPerNode;
+  cppCode?: string;
 }
 
 /** A graph with its level, used in the graph selector. */

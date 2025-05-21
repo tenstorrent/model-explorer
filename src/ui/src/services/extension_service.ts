@@ -19,9 +19,8 @@
 import {Injectable, signal} from '@angular/core';
 
 import {type ExtensionCommand} from '../common/extension_command';
-import {type Extension, type ExtensionSettings} from '../common/types';
+import {type Extension, type ExtensionSettings, type SelectedExtensionSettings} from '../common/types';
 import {INTERNAL_COLAB} from '../common/utils';
-import { mockExtensionCommand } from './mock_extension_requests.js';
 
 const EXTERNAL_GET_EXTENSIONS_API_PATH = '/api/v1/get_extensions';
 const EXTERNAL_SEND_CMD_GET_API_PATH = '/api/v1/send_command';
@@ -38,6 +37,7 @@ export class ExtensionService {
   extensions: Extension[] = [];
 
   extensionSettings = new Map<string, ExtensionSettings>();
+  selectedSettings = new Map<string, SelectedExtensionSettings>();
 
   constructor() {
     this.loadExtensions();
@@ -48,6 +48,7 @@ export class ExtensionService {
   ): Promise<{cmdResp?: T; otherError?: string}> {
     try {
       let resp: Response | undefined = undefined;
+
       // In internal colab, use GET request.
       if (this.internalColab) {
         const url = `${EXTERNAL_SEND_CMD_GET_API_PATH}?json=${JSON.stringify(cmd)}`;
@@ -65,6 +66,7 @@ export class ExtensionService {
 
         resp = await fetch(EXTERNAL_SEND_CMD_POST_API_PATH, requestData);
       }
+
       if (!resp.ok) {
         return {otherError: `Failed to convert model. ${resp.status}`};
       }
@@ -75,12 +77,19 @@ export class ExtensionService {
         return {otherError: `Failed to parse command response.`};
       }
 
-      json = mockExtensionCommand(cmd.cmdId, json);
-
       return {cmdResp: json as T};
     } catch (e) {
       return {otherError: e as string};
     }
+  }
+
+  private setDefaultExtensionSettings(extensionIds: string[]) {
+    extensionIds.forEach((extensionId) => {
+      this.selectedSettings.set(extensionId, {
+        generateCppCode: false,
+        selectedOptimizationPolicy: this.extensionSettings.get(extensionId)?.optimizationPolicies?.[0] ?? ''
+      });
+    });
   }
 
   private processExtensionSettings(extensions: Extension[]) {
@@ -95,6 +104,7 @@ export class ExtensionService {
 
     exts = await this.getExtensionsForExternal();
     this.processExtensionSettings(exts);
+    this.setDefaultExtensionSettings(exts.map(({ id }) => id));
     this.extensions = exts;
     this.loading.set(false);
   }

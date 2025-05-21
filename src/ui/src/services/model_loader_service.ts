@@ -20,14 +20,19 @@ import {Injectable, signal} from '@angular/core';
 
 import {GRAPHS_MODEL_SOURCE_PREFIX} from '../common/consts';
 import {
+  type AdapterConvertCommand,
   type AdapterConvertResponse,
+  type AdapterExecuteCommand,
   type AdapterExecuteResponse,
+  type AdapterExecuteSettings,
+  type AdapterOverrideCommand,
   type AdapterOverrideResponse,
+  type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
   type ExtensionResponse,
 } from '../common/extension_command';
-import {ModelLoaderServiceInterface, type OverridesPerGraphAndNode, type OverridesPerNode } from '../common/model_loader_service_interface';
+import {ModelLoaderServiceInterface, type CppCodePerCollection, type OverridesPerCollection, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
   InternalAdapterExtId,
   ModelItem,
@@ -43,7 +48,6 @@ import {processErrorMessage} from '../components/visualizer/common/utils';
 
 import {ExtensionService} from './extension_service';
 import {SettingsService} from './settings_service';
-import { mockGraphCollectionAttributes } from './mock_extension_requests.js';
 
 const UPLOAD_API_PATH = '/apipost/v1/upload';
 const LOAD_GRAPHS_JSON_API_PATH = '/api/v1/load_graphs_json';
@@ -70,13 +74,15 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     undefined,
   );
 
+  readonly selectedGraphId = signal<string | undefined>(undefined);
+
   readonly models = signal<ModelItem[]>([]);
 
-  readonly overrides = signal<OverridesPerGraphAndNode>({});
+  readonly overrides = signal<OverridesPerCollection>({});
+
+  readonly generatedCppCode = signal<CppCodePerCollection>({});
 
   readonly graphErrors = signal<string[] | undefined>(undefined);
-
-  readonly selectedOptimizationPolicy = signal<string>('');
 
   constructor(
     private readonly settingsService: SettingsService,
@@ -87,19 +93,17 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return Object.keys(this.overrides()).length > 0;
   }
 
-  getOptimizationPolicies(extensionId: string): string[] {
-    return this.extensionService.extensionSettings.get(extensionId)?.optimizationPolicies ?? [];
-  }
-
   async executeModel(modelItem: ModelItem, overrides: OverridesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: boolean = false;
+    const selectedSettings= this.extensionService.selectedSettings.get(modelItem.selectedAdapter?.id ?? '');
 
     result = await this.sendExecuteRequest(
       modelItem,
       modelItem.path,
       {
-        optimizationPolicy: this.selectedOptimizationPolicy(),
+        optimizationPolicy: selectedSettings?.selectedOptimizationPolicy ?? '',
+        generateCppCode: selectedSettings?.generateCppCode ?? false,
         overrides
       }
     );
@@ -225,7 +229,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             }
             // Typical use cases where users pick a json file.
             else {
-              result = (await processUploadedJsonFile(file)).map((graphCollection) => mockGraphCollectionAttributes(graphCollection));
+              result = await processUploadedJsonFile(file);
               modelItem.status.set(ModelItemStatus.DONE);
             }
           } catch (e) {
@@ -263,7 +267,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
 
     this.models.update((curModels) => {
-      const filteredModels = curModels.filter(({ label }) => label === modelItem.label);
+      const filteredModels = curModels.filter(({ path }) => path !== modelItem.path);
 
       return [
         ...filteredModels,
@@ -278,7 +282,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   async checkExecutionStatus(modelItem: ModelItem, modelPath: string) {
-    const result = await this.sendExtensionRequest<AdapterStatusCheckResponse>('status_check', modelItem, modelPath);
+    const result = await this.sendExtensionRequest<AdapterStatusCheckResponse, AdapterStatusCheckCommand>('status_check', modelItem, modelPath);
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return {
@@ -319,7 +323,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       `${LOAD_GRAPHS_JSON_API_PATH}?graph_index=${index}`,
     );
     const json = (await resp.json()) as AdapterConvertResponse;
-    return this.processAdapterConvertResponse(json, name);
+    const graphCollections = this.processAdapterConvertResponse(json, name);
+    this.processGeneratedCppCode(graphCollections);
+
+    return graphCollections;
   }
 
   private async uploadModelFile(
@@ -343,11 +350,11 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
   }
 
-  private async sendExtensionRequest<T extends ExtensionResponse<any[], any[]>>(
-    command: string,
+  private async sendExtensionRequest<Res extends ExtensionResponse<any[], any[]>, Req extends ExtensionCommand>(
+    command: Req['cmdId'],
     modelItem: ModelItem,
     path: string,
-    settings?: Record<string, any>,
+    settings?: Req['settings'],
   ) {
     try {
       modelItem.status.set(ModelItemStatus.PROCESSING);
@@ -359,7 +366,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         deleteAfterConversion: false,
       };
 
-      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<T>(extensionCommand);
+      const { cmdResp, otherError: cmdError } = await this.extensionService.sendCommandToExtension<Res>(extensionCommand);
 
       if (cmdError) {
         throw new Error(cmdError);
@@ -390,7 +397,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     fileName: string,
     settings: Record<string, any> = {},
   ): Promise<GraphCollection[]> {
-    const result = await this.sendExtensionRequest<AdapterConvertResponse>(
+    const result = await this.sendExtensionRequest<AdapterConvertResponse, AdapterConvertCommand>(
       'convert',
       modelItem,
       path,
@@ -404,15 +411,18 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       return [];
     }
 
-    return this.processAdapterConvertResponse(result, fileName);
+    const graphCollections = this.processAdapterConvertResponse(result, fileName);
+    this.processGeneratedCppCode(graphCollections);
+
+    return graphCollections;
   }
 
   private async sendExecuteRequest(
     modelItem: ModelItem,
     path: string,
-    settings: Record<string, any> = {}
+    settings: AdapterExecuteSettings,
   ) {
-    const result = await this.sendExtensionRequest<AdapterExecuteResponse>('execute', modelItem, path, settings);
+    const result = await this.sendExtensionRequest<AdapterExecuteResponse, AdapterExecuteCommand>('execute', modelItem, path, settings);
 
     if (!result || modelItem.status() === ModelItemStatus.ERROR) {
       return false;
@@ -428,7 +438,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     overrides: Record<string, any>
   ) {
 
-    const result = await this.sendExtensionRequest<AdapterOverrideResponse>('override', modelItem, path, {
+    const result = await this.sendExtensionRequest<AdapterOverrideResponse, AdapterOverrideCommand>('override', modelItem, path, {
       graphs: graphCollection.graphs,
       overrides,
     });
@@ -459,13 +469,30 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       if (!graph?.overlays) {
         graph.overlays = {};
       }
-
-      if (graph?.perf_data) {
-        graph.overlays['perf_data'] = graph.perf_data;
-      }
     }));
 
     return graphCollections;
+  }
+
+  private processGeneratedCppCode(graphCollections: GraphCollection[]) {
+    this.generatedCppCode.update((curCppCodePerCollection) => {
+      graphCollections.forEach(({ label, graphs }) => {
+          graphs.forEach(({ id, cppCode }) => {
+            if (!cppCode) {
+              return;
+            }
+
+            if (!curCppCodePerCollection[label]) {
+              curCppCodePerCollection[label] = {};
+            }
+
+            curCppCodePerCollection[label][id] = cppCode;
+          });
+        });
+
+        return curCppCodePerCollection;
+      });
+
   }
 
   private processAdapterOverrideResponse(

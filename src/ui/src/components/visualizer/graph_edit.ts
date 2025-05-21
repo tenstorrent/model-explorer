@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +17,8 @@ import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
 import type { Graph } from './common/input_graph';
+import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
+import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_code_dialog.js';
 
 /**
  * The graph edit component.
@@ -40,8 +42,10 @@ import type { Graph } from './common/input_graph';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GraphEdit {
-  isProcessingExecuteRequest = false;
-  isProcessingUploadRequest = false;
+  @Input({required: true}) appService!: AppService;
+  @Input({required: true}) nodeDataProviderExtensionService!: NodeDataProviderExtensionService;
+  isProcessingExecuteRequest = signal(false);
+  isProcessingUploadRequest = signal(false);
 
   executionProgress = 0;
   executionTotal = 0;
@@ -51,27 +55,15 @@ export class GraphEdit {
     private readonly loggingService: LoggingServiceInterface,
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
-    private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
-    private readonly appService: AppService,
     private readonly urlService: UrlService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
-    if (this.modelLoaderService.selectedOptimizationPolicy() === '') {
-      this.modelLoaderService.selectedOptimizationPolicy.update(() => {
-        const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
-
-        return this.modelLoaderService.getOptimizationPolicies(curExtensionId)[0] || '';
-      });
-    }
-  }
-
   private poolForStatusUpdate(modelItem: ModelItem, modelPath: string, updateCallback: (progress: number, total: number, elapsedTime: string, stdout?: string) => void | Promise<void>, doneCallback: (status: 'done' | 'timeout', elapsedTime: string) => void | Promise<void>, errorCallback: (error: string, elapsedTime: string) => void | Promise<void>) {
-    const POOL_TIME_MS = 5 * 1000;
-    const TIMEOUT_MS = 1 * 60 * 60 * 1000;
+    const POOL_TIME_MS = 1 * 1000; // 1 second
+    const TIMEOUT_MS = 1 * 60 * 60 * 1000; // 1 hour
 
     type DurationFormat = (duration: number) => string;
     let intervalFormatter: DurationFormat = (duration) => duration.toString();
@@ -120,6 +112,8 @@ export class GraphEdit {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
+      const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
+
       this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
         const curOverrides = this.modelLoaderService.overrides();
 
@@ -144,7 +138,7 @@ export class GraphEdit {
             graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
 
             graph.nodes.forEach((node) => {
-              const nodeOverrides = curOverrides?.[graphCollection.label]?.[node.id]?.attributes ?? [];
+              const nodeOverrides = curOverrides?.[graphCollection.label]?.[graph.id]?.[node.id]?.attributes ?? [];
 
               nodeOverrides.forEach(({ key, value }) => {
                 const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
@@ -172,7 +166,11 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update(() => ({}));
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
+
+        return Object.fromEntries(filteredOverrides);
+      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
@@ -180,7 +178,8 @@ export class GraphEdit {
 
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
-          const modelGraph = modelGraphs.find(({ id }) => id === graph.id);
+          // TODO: find a better way to reference the model graph
+          const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
           if (modelGraph) {
             Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
@@ -202,19 +201,6 @@ export class GraphEdit {
                 overlayData,
               );
             });
-
-            if (graph.overrides) {
-              this.modelLoaderService.overrides.update((curOverrides) => {
-                const newOverrides = { ...curOverrides };
-
-                newOverrides[graph.id ?? ''] = {
-                  ...(newOverrides[graph.id ?? ''] ?? {}),
-                  ...graph.overrides
-                };
-
-                return newOverrides;
-              });
-            }
           }
         });
       });
@@ -227,18 +213,23 @@ export class GraphEdit {
 
   private getCurrentGraphInformation() {
     const curPane = this.appService.getSelectedPane();
-    const curCollectionLabel = curPane?.modelGraph?.collectionLabel;
-    const curCollection = this.appService.curGraphCollections().find(({ label }) =>label === curCollectionLabel);
+    const curCollectionLabel = curPane?.modelGraph?.collectionLabel ?? '';
+    const curModelId = curPane?.modelGraph?.id ?? '';
+    const curCollection = this.appService.curGraphCollections().find(({ label }) => label === curCollectionLabel);
     const models = this.modelLoaderService.models();
     const curModel = models.find(({ label }) => label === curCollectionLabel);
-    const overrides = this.modelLoaderService.overrides()[curCollectionLabel ?? ''];
+    const graphOverrides = this.modelLoaderService.overrides()
+      ?.[curCollectionLabel]
+      ?.[curModelId]
+      ?? {};
 
     return {
       curModel,
       curCollection,
       curCollectionLabel,
+      curModelId,
       models,
-      overrides,
+      graphOverrides,
     };
   }
 
@@ -265,14 +256,14 @@ export class GraphEdit {
   }
 
   async handleClickExecuteGraph() {
-    const { curModel, models, overrides } = this.getCurrentGraphInformation();
+    const { curModel, models, graphOverrides } = this.getCurrentGraphInformation();
 
     if (curModel) {
       try {
-        this.isProcessingExecuteRequest = true;
+        this.isProcessingExecuteRequest.update(() => true);
         this.loggingService.info('Start executing model', curModel.path);
 
-        const result = await this.modelLoaderService.executeModel(curModel, overrides);
+        const result = await this.modelLoaderService.executeModel(curModel, graphOverrides);
 
         if (curModel.status() !== ModelItemStatus.ERROR) {
           if (result) {
@@ -297,12 +288,12 @@ export class GraphEdit {
                 this.loggingService.info('Model updated', curModel.path);
               }
 
-              this.isProcessingExecuteRequest = false;
+              this.isProcessingExecuteRequest.update(() => false);
             };
 
             const showError = (error: string, elapsedTime: string) => {
               this.executionProgress = 0;
-              this.isProcessingExecuteRequest = false;
+              this.isProcessingExecuteRequest.update(() => false);
               this.loggingService.error('Graph Execution Error', error, `Elapsed time: ${elapsedTime}`);
               this.showErrorDialog('Graph Execution Error', error);
             };
@@ -319,23 +310,23 @@ export class GraphEdit {
 
         this.loggingService.error('Graph Execution Error', errorMessage);
         this.showErrorDialog('Graph Execution Error', errorMessage);
-        this.isProcessingExecuteRequest = false;
+        this.isProcessingExecuteRequest.update(() => false);
       }
     }
   }
 
   async handleClickUploadGraph() {
-    const { curModel, curCollection, overrides, models } = this.getCurrentGraphInformation();
+    const { curModel, curCollection, graphOverrides, models } = this.getCurrentGraphInformation();
 
-    if (curModel && curCollection && overrides) {
+    if (curModel && curCollection && graphOverrides) {
       try {
-        this.isProcessingUploadRequest = true;
+        this.isProcessingUploadRequest.update(() => true);
         this.loggingService.info('Start uploading model', curModel.path);
 
         const isUploadSuccessful = await this.modelLoaderService.overrideModel(
           curModel,
           curCollection,
-          overrides
+          graphOverrides
         );
 
         this.loggingService.info('Upload finished', curModel.path);
@@ -369,7 +360,7 @@ export class GraphEdit {
         this.loggingService.error('Graph Loading Error', errorMessage);
         this.showErrorDialog('Graph Loading Error', errorMessage);
       } finally {
-        this.isProcessingUploadRequest = false;
+        this.isProcessingUploadRequest.update(() => false);
       }
     }
   }
@@ -381,9 +372,28 @@ export class GraphEdit {
     });
   }
 
-  handleClickSelectOptimizationPolicy(evt: Event) {
-    const optimizationPolicy = (evt.target as HTMLSelectElement).value;
-    this.modelLoaderService.selectedOptimizationPolicy.update(() => optimizationPolicy);
+  handleCppDialogOpen() {
+    this.dialog.open(CppCodeDialog, {
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)',
+      data: { code: this.curCppCode } as CppCodedialogData
+    });
+  }
+
+  handleSettingsDialogOpen() {
+    const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
+
+    this.dialog.open(ExecutionSettingsDialog, {
+      width: 'clamp(10rem, 80vw, 30rem)',
+      height: 'clamp(10rem, 80vh, 40rem)',
+      data: { curExtensionId } as ExecutionSettingsDialogData
+    });
+  }
+
+  get curCppCode() {
+    const { curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+    return this.modelLoaderService.generatedCppCode()?.[curCollectionLabel]?.[curModelId] ?? '';
   }
 
   get hasOverrides() {
@@ -396,10 +406,5 @@ export class GraphEdit {
 
   get graphHasErrors() {
     return this.modelLoaderService.graphErrors() !== undefined;
-  }
-
-  get optimizationPolicies(): string[] {
-    const curExtensionId = this.getCurrentGraphInformation().models[0].selectedAdapter?.id ?? '';
-    return this.modelLoaderService.getOptimizationPolicies(curExtensionId);
   }
 }
