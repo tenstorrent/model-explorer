@@ -34,7 +34,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {AppService} from './app_service';
 import { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
-import type { OpNode } from './common/model_graph';
 import type { AttributeDisplayType, EditableAttributeTypes, EditableValueListAttribute } from './common/types.js';
 
 /** Expandable info text component. */
@@ -59,6 +58,10 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   @Input() displayType?: AttributeDisplayType = undefined;
   @ViewChild('container') container?: ElementRef<HTMLElement>;
   @ViewChild('oneLineText') oneLineText?: ElementRef<HTMLElement>;
+
+  displayText = '';
+  override?: string;
+  wasOverrideSentToServer = false;
 
   expanded = false;
 
@@ -90,15 +93,20 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       this.resizeObserver.observe(this.container.nativeElement);
     }
 
-    this.text = this.modelLoaderService
+    const graphOverrides = this.modelLoaderService
       .overrides()
       ?.[this.collectionLabel]
-      ?.[this.graphId]
+      ?.[this.graphId];
+
+    this.wasOverrideSentToServer = graphOverrides?.wasSentToServer ?? false;
+    this.override = graphOverrides
+      ?.overrides
       ?.[this.nodeFullLocation]
       ?.attributes
       ?.find(({ key }) => key === this.type)
-      ?.value
-      ?? this.text;
+      ?.value;
+
+    this.displayText = this.override ?? this.text;
   }
 
   ngOnChanges() {
@@ -140,11 +148,20 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   handleTextChange(evt: Event) {
-    const target = evt.target as HTMLInputElement | HTMLSelectElement;
+    const target = evt.target;
+
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
+      return;
+    }
+
+    if (!this.collectionLabel || !this.graphId || !this.nodeFullLocation) {
+      return;
+    }
+
     let updatedValue = target.value;
 
     if (this.editable?.input_type === 'int_list') {
-      updatedValue = `[${this.splitEditableList(this.text).map(({ value }, index) => {
+      updatedValue = `[${this.splitEditableList(this.displayText).map(({ value }, index) => {
         if (index.toString() === target.dataset['index']) {
           return target.value;
         }
@@ -154,7 +171,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     if (this.editable?.input_type === 'grid') {
-      updatedValue = `${this.splitEditableList(this.text, this.editable?.separator ?? 'x').map(({ value }, index) => {
+      updatedValue = `${this.splitEditableList(this.displayText, this.editable?.separator ?? 'x').map(({ value }, index) => {
         if (index.toString() === target.dataset['index']) {
           return target.value;
         }
@@ -163,45 +180,26 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       }).join(this.editable?.separator ?? 'x')}`;
     }
 
-    this.modelLoaderService.overrides.update((overrides) => {
-      if (!this.collectionLabel || !this.graphId || !this.nodeFullLocation) {
-        return overrides;
-      }
-
-      overrides[this.collectionLabel] = {...overrides[this.collectionLabel] };
-
-      if (!overrides[this.collectionLabel]) {
-        overrides[this.collectionLabel] = {};
-      }
-
-      if (!overrides[this.collectionLabel][this.graphId]) {
-        overrides[this.collectionLabel][this.graphId] = {}
-      }
-
-      if (!overrides[this.collectionLabel][this.graphId][this.nodeFullLocation]) {
-        overrides[this.collectionLabel][this.graphId][this.nodeFullLocation] = {
-          named_location: this.nodeNamedLocation,
-          full_location: this.nodeFullLocation,
-          attributes: []
-        };
-      }
-
-      const existingOverrides = overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes.findIndex(({ key }) => key === this.type) ?? -1;
-
-      if (existingOverrides !== -1) {
-        overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes.splice(existingOverrides, 1);
-      }
-
-      overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes = [
-        ...(overrides[this.collectionLabel][this.graphId][this.nodeFullLocation].attributes ?? []),
-        {
-          key: this.type,
-          value: updatedValue
+    this.modelLoaderService.updateOverrides({
+      [this.collectionLabel]: {
+        [this.graphId]: {
+          wasSentToServer: false,
+          overrides: {
+            [this.nodeFullLocation]: {
+              full_location: this.nodeFullLocation,
+              named_location: this.nodeNamedLocation,
+              attributes: [{
+                key: this.type,
+                value: updatedValue
+              }]
+            }
+          }
         }
-      ];
-
-      return overrides;
+      }
     });
+
+    this.override = updatedValue;
+    this.displayText = updatedValue;
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
@@ -251,6 +249,46 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     return `${parsedValue * 100}%`;
   }
 
+  get overrideTooltip() {
+    if (this.wasOverrideSentToServer && this.hasOverride) {
+        return 'Override was not applied';
+    }
+
+    if (this.wasOverrideSentToServer && !this.hasOverride) {
+        return 'Override was applied';
+    }
+
+    if (this.hasOverride) {
+      return 'This field has an override';
+    }
+
+    return '';
+  }
+
+  get overrideIcon() {
+    if (this.wasOverrideSentToServer && this.hasOverride) {
+        return 'warning';
+    }
+
+    if (this.wasOverrideSentToServer && !this.hasOverride) {
+        return 'check_circle';
+    }
+
+    if (this.hasOverride) {
+      return 'info';
+    }
+
+    return '';
+  }
+
+  get isOverrideUploded() {
+    return this.override !== undefined && this.wasOverrideSentToServer;
+  }
+
+  get hasOverride() {
+    return this.override !== undefined && this.override !== this.text;
+  }
+
   get maxIntValue() {
     return Number.MAX_SAFE_INTEGER;
   }
@@ -261,7 +299,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   get hasMultipleLines(): boolean {
-    return this.type !== 'namespace' && this.text.includes('\n');
+    return this.type !== 'namespace' && this.displayText.includes('\n');
   }
 
   get iconName(): string {
@@ -273,15 +311,15 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   get namespaceComponents(): string[] {
-    const components = this.text.split('/');
-    if (this.text !== '<root>') {
+    const components = this.displayText.split('/');
+    if (this.displayText !== '<root>') {
       components.unshift('<root>');
     }
     return components;
   }
 
   get formatQuantization(): string {
-    const parts = this.text
+    const parts = this.displayText
       .replace('[', '')
       .replace(']', '')
       .split(',')

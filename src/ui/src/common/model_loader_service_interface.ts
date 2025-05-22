@@ -28,11 +28,12 @@ export type CppCodePerGraph = Record<string, string>;
 export type CppCodePerCollection = Record<string, CppCodePerGraph>;
 
 export type OverridesPerNode = Record<string, { named_location: string, full_location: string, attributes: KeyValue[] }>;
-export type OverridesPerGraph = Record<string, OverridesPerNode>;
+export type OverridesPerGraph = Record<string, { wasSentToServer: boolean, overrides: OverridesPerNode }>;
 export type OverridesPerCollection = Record<string, OverridesPerGraph>;
 
 /** The interface of model load service. */
 export interface ModelLoaderServiceInterface {
+  updateOverrides(newOverrides: OverridesPerCollection, wasSentToServer?: boolean): void;
   loadModels(modelItems: ModelItem[]): Promise<void>;
   loadModel(modelItems: ModelItem): Promise<GraphCollection[]>;
   executeModel(modelItem: ModelItem, overrides?: OverridesPerNode): Promise<boolean>;
