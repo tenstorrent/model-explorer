@@ -16,12 +16,21 @@ limitations under the License.
 ==============================================================================
 -->
 
+<mat-icon
+  class="override-status"
+  [class.has-override]="hasOverride"
+  [class.override-uploaded]="isOverrideUploded"
+  [matTooltip]="overrideTooltip"
+>{{overrideIcon}}</mat-icon>
+
 <div class="container" #container
     [style.background-color]="bgColor"
     [style.color]="textColor"
     [class.has-bg-color]="hasBgColor"
     [class.has-overflow]="hasOverflow"
     [class.has-multiple-lines]="hasMultipleLines"
+    [class.has-override]="hasOverride"
+    [class.override-uploaded]="isOverrideUploded"
     [class.expanded]="expanded"
     (click)="handleToggleExpand($event, true)">
   <div class="expanded-text">
@@ -48,7 +57,7 @@ limitations under the License.
             </span>
           </div>
         }
-        <div class="monospace-content">{{text}}</div>
+        <div class="monospace-content">{{displayText}}</div>
       }
 
       @case ('namespace') {
@@ -75,14 +84,14 @@ limitations under the License.
             @switch (editable?.input_type) {
               @case ('value_list') {
                 <select (change)="handleTextChange($event)">
-                  @for (option of getEditableOptions(editable!, text); track $index) {
-                    <option [selected]="option === text">{{option}}</option>
+                  @for (option of getEditableOptions(editable!, displayText); track $index) {
+                    <option [selected]="option === displayText">{{option}}</option>
                   }
                 </select>
               }
 
               @case ('int_list') {
-                @for (item of splitEditableList(text); track $index) {
+                @for (item of splitEditableList(displayText); track $index) {
                   <input
                     [type]="item.type"
                     [value]="item.value"
@@ -96,7 +105,7 @@ limitations under the License.
               }
 
               @case ('grid') {
-                @for (item of splitEditableList(text, $any(editable)?.separator ?? 'x'); track $index) {
+                @for (item of splitEditableList(displayText, $any(editable)?.separator ?? 'x'); track $index) {
                   <input
                     [type]="item.type"
                     [value]="item.value"
@@ -113,11 +122,11 @@ limitations under the License.
           } @else {
             @switch (displayType) {
               @case ('memory') {
-                <div class="percentage-meter" [attr.data-percentage]="text + '%'" [style]="{ '--percentage': text + '%' }"></div>
+                <div class="percentage-meter" [attr.data-percentage]="displayText + '%'" [style]="{ '--percentage': displayText + '%' }"></div>
               }
 
               @default {
-                {{text}}
+                {{displayText}}
               }
             }
           }
@@ -130,14 +139,14 @@ limitations under the License.
       @switch (editable?.input_type) {
         @case ('value_list') {
           <select (change)="handleTextChange($event)">
-            @for (option of getEditableOptions(editable!, text); track $index) {
-              <option [selected]="option === text">{{option}}</option>
+            @for (option of getEditableOptions(editable!, displayText); track $index) {
+              <option [selected]="option === displayText">{{option}}</option>
             }
           </select>
         }
 
         @case ('int_list') {
-          @for (item of splitEditableList(text); track $index) {
+          @for (item of splitEditableList(displayText); track $index) {
             <input
               [type]="item.type"
               [value]="item.value"
@@ -151,7 +160,7 @@ limitations under the License.
         }
 
         @case ('grid') {
-          @for (item of splitEditableList(text, $any(editable)?.separator ?? 'x'); track $index) {
+          @for (item of splitEditableList(displayText, $any(editable)?.separator ?? 'x'); track $index) {
             <input
               [type]="item.type"
               [value]="item.value"
@@ -168,15 +177,15 @@ limitations under the License.
     } @else {
       @switch (displayType) {
         @case ('memory') {
-          @if (isPercentage(text)) {
-            <div class="percentage-meter" [attr.data-percentage]="formatPercentage(text)" [style]="{ '--percentage': formatPercentage(text) }"></div>
+          @if (isPercentage(displayText)) {
+            <div class="percentage-meter" [attr.data-percentage]="formatPercentage(displayText)" [style]="{ '--percentage': formatPercentage(displayText) }"></div>
           } @else {
-            {{text}}
+            {{displayText}}
           }
         }
 
         @default {
-          {{text}}
+          {{displayText}}
         }
       }
     }

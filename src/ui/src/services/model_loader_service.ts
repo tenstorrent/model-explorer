@@ -91,16 +91,31 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return Object.keys(this.overrides()).length > 0;
   }
 
-  updateOverrides(newGraphCollections: GraphCollection[]) {
+  updateOverrides(newGraphCollections: GraphCollection[], wasSentToServer = false) {
     this.overrides.update((curOverrides) => {
       newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
-        graphs.forEach(({ id, overrides }) => {
+        graphs.forEach(({ id: graphId, overrides }) => {
           if (overrides) {
+            const existingOverrides = curOverrides
+              ?.[collectionLabel]
+              ?.[graphId];
+
+            if (existingOverrides) {
+              existingOverrides.wasSentToServer = wasSentToServer;
+            }
+
             if (!curOverrides[collectionLabel]) {
               curOverrides[collectionLabel] = {};
             }
 
-            curOverrides[collectionLabel][id] = overrides;
+            if (!curOverrides[collectionLabel][graphId]) {
+              curOverrides[collectionLabel][graphId] = {
+                wasSentToServer: false,
+                overrides: {}
+              };
+            }
+
+            curOverrides[collectionLabel][graphId].overrides = overrides;
           }
         });
       });
@@ -111,8 +126,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   updateGraphCollections(newGraphCollections: GraphCollection[], operation?: string) {
     this.loadedGraphCollections.update((prevGraphCollections = []) => {
-      const curOverrides = this.overrides();
-
       newGraphCollections.forEach((graphCollection) => {
         let suffix = '';
 
@@ -132,18 +145,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
         graphCollection.graphs.forEach((graph) => {
           graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
-
-          graph.nodes.forEach((node) => {
-            const nodeOverrides = curOverrides?.[graphCollection.label]?.[graph.id]?.[node.id]?.attributes ?? [];
-
-            nodeOverrides.forEach(({ key, value }) => {
-              const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
-
-              if (nodeToUpdate) {
-                nodeToUpdate.value = value;
-              }
-            });
-          });
         });
       });
 

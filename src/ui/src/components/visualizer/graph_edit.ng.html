@@ -1,4 +1,28 @@
 <div class="container">
+  <button
+    class="composite-icon"
+    mat-icon-button
+    matTooltip="Download current overrides"
+    (click)="handleDownloadOverrides()"
+    [disabled]="!hasCurModel || !hasOverrides || graphHasErrors"
+  >
+    <mat-icon color="red">download</mat-icon>
+    <mat-icon color="blue">handyman</mat-icon>
+  </button>
+  <button
+    class="composite-icon"
+    mat-icon-button
+    matTooltip="Upload new overrides"
+    (click)="uploadInput.click()"
+    [disabled]="!hasCurModel || graphHasErrors"
+  >
+    <mat-icon>upload</mat-icon>
+    <mat-icon>handyman</mat-icon>
+  </button>
+  <input hidden type="file" #uploadInput (change)="handleUploadOverrides(uploadInput)">
+
+  <div class="divider"></div>
+
   @if (hasCurModel) {
     <div class="mat-icon-container">
       <button
@@ -29,7 +53,7 @@
 
   <button
     mat-icon-button
-    [hidden]="!curCppCode"
+    [disabled]="!curCppCode"
     matTooltip="View Generated Cpp Code"
     (click)="handleCppDialogOpen()"
   >

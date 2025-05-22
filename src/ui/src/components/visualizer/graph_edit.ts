@@ -122,6 +122,7 @@ export class GraphEdit {
         };
       }) ?? []);
 
+
       this.modelLoaderService.updateOverrides(newGraphCollections);
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
@@ -173,6 +174,7 @@ export class GraphEdit {
     const graphOverrides = this.modelLoaderService.overrides()
       ?.[curCollectionLabel]
       ?.[curModelId]
+      ?.overrides
       ?? {};
 
     return {
@@ -272,6 +274,74 @@ export class GraphEdit {
       width: 'clamp(10rem, 80vw, 100rem)',
       height: 'clamp(10rem, 80vh, 100rem)'
     });
+  }
+
+  handleDownloadOverrides() {
+    const { graphOverrides, curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+    if (graphOverrides) {
+      const tempElement = document.createElement('a');
+      const textUrl = URL.createObjectURL(new Blob([JSON.stringify(graphOverrides, null, '\t')], { type: 'application/json' }));
+
+      tempElement.hidden = true;
+      tempElement.download = `overrides-${curCollectionLabel}-${curModelId}-${new Date().toISOString()}.json`;
+      tempElement.href = textUrl;
+      tempElement.click();
+
+      URL.revokeObjectURL(textUrl);
+    }
+  }
+
+  async handleUploadOverrides(input: HTMLInputElement) {
+    const overridesFile = input.files?.[0];
+
+    if (!overridesFile || overridesFile.type !== 'application/json') {
+      return;
+    }
+
+    try {
+      const contents = await overridesFile.text();
+      const newOverrides = JSON.parse(contents);
+
+      if (!newOverrides || Array.isArray(newOverrides)) {
+        throw new Error('Overrides should be an a JSON object.');
+      }
+
+      const { curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        if (!curOverrides) {
+          curOverrides = {};
+        }
+
+        if (!curOverrides?.[curCollectionLabel]) {
+          curOverrides[curCollectionLabel] = {};
+        }
+
+        if (!curOverrides[curCollectionLabel]?.[curModelId]) {
+          curOverrides[curCollectionLabel][curModelId] = {
+            wasSentToServer: false,
+            overrides: {}
+          };
+        }
+
+        const existingOverrides = curOverrides[curCollectionLabel][curModelId];
+
+        existingOverrides.overrides = {
+          ...existingOverrides.overrides,
+          ...newOverrides
+        }
+
+        return curOverrides;
+      });
+    } catch (err) {
+      const errorMessage = (err as Error).message ?? 'An error has occured';
+
+      this.loggingService.error('Overrides Loading Error', errorMessage);
+      this.showErrorDialog('Overrides Loading Error', errorMessage);
+    }
+
+    input.value = '';
   }
 
   handleCppDialogOpen() {
