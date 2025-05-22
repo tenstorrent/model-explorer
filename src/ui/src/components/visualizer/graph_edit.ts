@@ -132,6 +132,7 @@ export class GraphEdit {
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           // TODO: find a better way to reference the model graph
+          // FIXME: resolve reference to all model graphs
           const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
           if (modelGraph) {

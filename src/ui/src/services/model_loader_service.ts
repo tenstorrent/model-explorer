@@ -215,7 +215,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   async loadModel(modelItem: ModelItem): Promise<GraphCollection[]> {
-    debugger;
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: GraphCollection[] = [];
 
