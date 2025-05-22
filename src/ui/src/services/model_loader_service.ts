@@ -453,6 +453,9 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
     const graphCollections = this.processAdapterConvertResponse(result, fileName);
     this.processGeneratedCppCode(graphCollections);
+    // TODO: should these be updated here?
+    // this.updateGraphCollections(graphCollections);
+    // this.updateOverrides(graphCollections);
 
     return graphCollections;
   }
