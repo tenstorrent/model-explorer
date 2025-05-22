@@ -154,6 +154,10 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       return;
     }
 
+    if (!this.collectionLabel || !this.graphId || !this.nodeFullLocation) {
+      return;
+    }
+
     let updatedValue = target.value;
 
     if (this.editable?.input_type === 'int_list') {
@@ -176,39 +180,22 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       }).join(this.editable?.separator ?? 'x')}`;
     }
 
-    this.modelLoaderService.overrides.update((overrides) => {
-      if (!this.collectionLabel || !this.graphId || !this.nodeFullLocation) {
-        return overrides;
-      }
-
-      if (!overrides[this.collectionLabel]) {
-        overrides[this.collectionLabel] = {};
-      }
-
-      if (!overrides[this.collectionLabel][this.graphId]) {
-        overrides[this.collectionLabel][this.graphId] = {
+    this.modelLoaderService.updateOverrides({
+      [this.collectionLabel]: {
+        [this.graphId]: {
           wasSentToServer: false,
-          overrides: {}
+          overrides: {
+            [this.nodeFullLocation]: {
+              full_location: this.nodeFullLocation,
+              named_location: this.nodeNamedLocation,
+              attributes: [{
+                key: this.type,
+                value: updatedValue
+              }]
+            }
+          }
         }
       }
-
-      if (!overrides[this.collectionLabel][this.graphId].overrides?.[this.nodeFullLocation]) {
-        overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation] = {
-          named_location: this.nodeNamedLocation,
-          full_location: this.nodeFullLocation,
-          attributes: []
-        };
-      }
-
-      overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes = overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes.reduce((res, attr) => {
-        if (attr.key !== this.type) {
-          res.push(attr);
-        }
-
-        return res;
-      }, [{ key: this.type, value: updatedValue }]);
-
-      return overrides;
     });
 
     this.override = updatedValue;
