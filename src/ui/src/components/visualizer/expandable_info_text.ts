@@ -148,7 +148,12 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   handleTextChange(evt: Event) {
-    const target = evt.target as HTMLInputElement | HTMLSelectElement;
+    const target = evt.target;
+
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
+      return;
+    }
+
     let updatedValue = target.value;
 
     if (this.editable?.input_type === 'int_list') {
@@ -176,8 +181,6 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
         return overrides;
       }
 
-      overrides[this.collectionLabel] = {...overrides[this.collectionLabel] };
-
       if (!overrides[this.collectionLabel]) {
         overrides[this.collectionLabel] = {};
       }
@@ -189,7 +192,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
         }
       }
 
-      if (!overrides[this.collectionLabel][this.graphId]?.overrides[this.nodeFullLocation]) {
+      if (!overrides[this.collectionLabel][this.graphId].overrides?.[this.nodeFullLocation]) {
         overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation] = {
           named_location: this.nodeNamedLocation,
           full_location: this.nodeFullLocation,
@@ -197,24 +200,19 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
         };
       }
 
-      const existingOverrides = overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes.findIndex(({ key }) => key === this.type) ?? -1;
-
-      if (existingOverrides !== -1) {
-        overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes.splice(existingOverrides, 1);
-      }
-
-      overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes = [
-        ...(overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes ?? []),
-        {
-          key: this.type,
-          value: updatedValue
+      overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes = overrides[this.collectionLabel][this.graphId].overrides[this.nodeFullLocation].attributes.reduce((res, attr) => {
+        if (attr.key !== this.type) {
+          res.push(attr);
         }
-      ];
+
+        return res;
+      }, [{ key: this.type, value: updatedValue }]);
 
       return overrides;
     });
 
     this.override = updatedValue;
+    this.displayText = updatedValue;
   }
 
   handleToggleExpand(event: MouseEvent, fromExpandedText = false) {
