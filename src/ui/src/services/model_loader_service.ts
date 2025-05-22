@@ -25,8 +25,6 @@ import {
   type AdapterExecuteCommand,
   type AdapterExecuteResponse,
   type AdapterExecuteSettings,
-  type AdapterOverrideCommand,
-  type AdapterOverrideResponse,
   type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
@@ -107,34 +105,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         overrides
       }
     );
-
-    return result;
-  }
-
-  async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, overrides: OverridesPerNode) {
-    modelItem.status.set(ModelItemStatus.PROCESSING);
-    let result = false;
-
-    // Send request to backend for processing.
-    result = await this.sendOverrideRequest(
-      modelItem,
-      modelItem.path,
-      graphCollection,
-      overrides,
-    );
-
-    if (modelItem.status() !== ModelItemStatus.ERROR) {
-      this.models.update((curModels) => {
-        curModels.push({
-          ...modelItem,
-          path: modelItem.path,
-        });
-
-        return curModels;
-      });
-
-      modelItem.status.set(ModelItemStatus.DONE);
-    }
 
     return result;
   }
@@ -431,25 +401,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return this.processAdapterExecuteResponse(result);
   }
 
-  private async sendOverrideRequest(
-    modelItem: ModelItem,
-    path: string,
-    graphCollection: GraphCollection,
-    overrides: Record<string, any>
-  ) {
-
-    const result = await this.sendExtensionRequest<AdapterOverrideResponse, AdapterOverrideCommand>('override', modelItem, path, {
-      graphs: graphCollection.graphs,
-      overrides,
-    });
-
-    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
-      return false;
-    }
-
-    return this.processAdapterOverrideResponse(result);
-  }
-
   private processAdapterConvertResponse(
     resp: AdapterConvertResponse,
     fileName: string,
@@ -493,12 +444,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         return curCppCodePerCollection;
       });
 
-  }
-
-  private processAdapterOverrideResponse(
-    resp: AdapterOverrideResponse,
-  ): boolean {
-    return resp?.graphs?.[0].success ?? false;
   }
 
   private processAdapterStatusCheckResponse(
