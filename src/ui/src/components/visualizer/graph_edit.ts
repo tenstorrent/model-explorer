@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import type { ModelLoaderServiceInterface, OverridesPerNode } from '../../common/model_loader_service_interface';
 import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -322,7 +322,7 @@ export class GraphEdit {
 
     try {
       const contents = await overridesFile.text();
-      const newOverrides = JSON.parse(contents);
+      const newOverrides = JSON.parse(contents) as OverridesPerNode;
 
       if (!newOverrides || Array.isArray(newOverrides)) {
         throw new Error('Overrides should be an a JSON object.');
@@ -330,30 +330,13 @@ export class GraphEdit {
 
       const { curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        if (!curOverrides) {
-          curOverrides = {};
+      this.modelLoaderService.updateOverrides({
+        [curCollectionLabel]: {
+          [curModelId]: {
+            overrides: newOverrides,
+            wasSentToServer: false
+          }
         }
-
-        if (!curOverrides?.[curCollectionLabel]) {
-          curOverrides[curCollectionLabel] = {};
-        }
-
-        if (!curOverrides[curCollectionLabel]?.[curModelId]) {
-          curOverrides[curCollectionLabel][curModelId] = {
-            wasSentToServer: false,
-            overrides: {}
-          };
-        }
-
-        const existingOverrides = curOverrides[curCollectionLabel][curModelId];
-
-        existingOverrides.overrides = {
-          ...existingOverrides.overrides,
-          ...newOverrides
-        }
-
-        return curOverrides;
       });
     } catch (err) {
       const errorMessage = (err as Error).message ?? 'An error has occured';
