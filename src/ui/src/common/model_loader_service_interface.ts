@@ -33,11 +33,12 @@ export type OverridesPerCollection = Record<string, OverridesPerGraph>;
 
 /** The interface of model load service. */
 export interface ModelLoaderServiceInterface {
+  updateOverrides(newGraphCollections: GraphCollection[]): void;
+  updateGraphCollections(newGraphCollections: GraphCollection[], operation?: string): void;
   loadModels(modelItems: ModelItem[]): Promise<void>;
   loadModel(modelItems: ModelItem): Promise<GraphCollection[]>;
   executeModel(modelItem: ModelItem, overrides?: OverridesPerNode): Promise<boolean>;
   checkExecutionStatus(modelItem: ModelItem, modelPath: string): Promise<AdapterStatusCheckResults>;
-  overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, fieldsToUpdate: OverridesPerNode): Promise<boolean>;
   get loadedGraphCollections(): WritableSignal<GraphCollection[] | undefined>;
   get selectedGraphId(): WritableSignal<string | undefined>;
   get models(): WritableSignal<ModelItem[]>;

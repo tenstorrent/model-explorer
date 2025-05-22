@@ -91,6 +91,78 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return Object.keys(this.overrides()).length > 0;
   }
 
+  updateOverrides(newGraphCollections: GraphCollection[]) {
+    this.overrides.update((curOverrides) => {
+      newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
+        graphs.forEach(({ id, overrides }) => {
+          if (overrides) {
+            if (!curOverrides[collectionLabel]) {
+              curOverrides[collectionLabel] = {};
+            }
+
+            curOverrides[collectionLabel][id] = overrides;
+          }
+        });
+      });
+
+      return curOverrides;
+    });
+  }
+
+  updateGraphCollections(newGraphCollections: GraphCollection[], operation?: string) {
+    this.loadedGraphCollections.update((prevGraphCollections = []) => {
+      const curOverrides = this.overrides();
+
+      newGraphCollections.forEach((graphCollection) => {
+        let suffix = '';
+
+        switch (operation) {
+          case 'upload':
+            suffix = 'Uploaded changes';
+            break;
+          case 'execute':
+            const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium' });
+            suffix = `Execution ${formatter.format(new Date())}`;
+            break;
+          default:
+            break;
+        }
+
+        graphCollection.label = `${graphCollection.label}${suffix ? ` - ${suffix}` : ''}`;
+
+        graphCollection.graphs.forEach((graph) => {
+          graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
+
+          graph.nodes.forEach((node) => {
+            const nodeOverrides = curOverrides?.[graphCollection.label]?.[graph.id]?.[node.id]?.attributes ?? [];
+
+            nodeOverrides.forEach(({ key, value }) => {
+              const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
+
+              if (nodeToUpdate) {
+                nodeToUpdate.value = value;
+              }
+            });
+          });
+        });
+      });
+
+      newGraphCollections.forEach((newCollection) => {
+        if (newCollection.graphs.length > 0) {
+          const existingCollectionIndex = prevGraphCollections.findIndex(({ label }) => label === newCollection.label);
+
+          if (existingCollectionIndex > -1) {
+            prevGraphCollections[existingCollectionIndex] = newCollection;
+          } else {
+            prevGraphCollections.push(newCollection);
+          }
+        }
+      });
+
+      return prevGraphCollections;
+    });
+  }
+
   async executeModel(modelItem: ModelItem, overrides: OverridesPerNode = {}) {
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: boolean = false;
@@ -142,6 +214,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   async loadModel(modelItem: ModelItem): Promise<GraphCollection[]> {
+    debugger;
     modelItem.status.set(ModelItemStatus.PROCESSING);
     let result: GraphCollection[] = [];
 
@@ -241,10 +314,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
       return [
         ...filteredModels,
-        {
-          ...modelItem,
-          path: modelItem.path,
-        }
+        modelItem
       ];
     });
 

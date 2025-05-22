@@ -112,51 +112,7 @@ export class GraphEdit {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
-      const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
-
-      this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const curOverrides = this.modelLoaderService.overrides();
-
-        newGraphCollections.forEach((graphCollection) => {
-          let suffix = '';
-
-          switch (operation) {
-            case 'upload':
-              suffix = 'Uploaded changes';
-              break;
-            case 'execute':
-              const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium' });
-              suffix = `Execution ${formatter.format(new Date())}`;
-              break;
-            default:
-              break;
-          }
-
-          graphCollection.label = `${graphCollection.label}${suffix ? ` - ${suffix}` : ''}`;
-
-          graphCollection.graphs.forEach((graph) => {
-            graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
-
-            graph.nodes.forEach((node) => {
-              const nodeOverrides = curOverrides?.[graphCollection.label]?.[graph.id]?.[node.id]?.attributes ?? [];
-
-              nodeOverrides.forEach(({ key, value }) => {
-                const nodeToUpdate = node.attrs?.find(({ key: nodeKey }) => nodeKey === key);
-
-                if (nodeToUpdate) {
-                  nodeToUpdate.value = value;
-                }
-              });
-            });
-          });
-        });
-
-        const newGraphCollectionsLabels = newGraphCollections.map(({ label }) => label);
-        const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
-        const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
-
-        return mergedGraphCollections;
-      });
+      this.modelLoaderService.updateGraphCollections(newGraphCollections, operation);
 
       this.urlService.setUiState(undefined);
       this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
@@ -166,11 +122,7 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
-
-        return Object.fromEntries(filteredOverrides);
-      });
+      this.modelLoaderService.updateOverrides(newGraphCollections);
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
