@@ -49,6 +49,7 @@ declare var dagre: Dagre;
 let MODEL_GRAPHS_CACHE: Record<string, ModelGraph> = {};
 
 self.addEventListener('message', (event: Event) => {
+  // TODO: investigate where modelgraphs are send to
   const workerEvent = (event as ExtendableMessageEvent).data as WorkerEvent;
   switch (workerEvent.eventType) {
     // Handle processing input graph.

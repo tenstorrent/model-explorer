@@ -108,18 +108,11 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], operation: 'upload' | 'execute') {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
-      const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
-
-      this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
-        const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
-
-        return mergedGraphCollections;
-      });
+      this.modelLoaderService.updateGraphCollections(newGraphCollections, operation);
 
       this.urlService.setUiState(undefined);
       this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
@@ -129,11 +122,8 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
 
-        return Object.fromEntries(filteredOverrides);
-      });
+      this.modelLoaderService.updateOverrides(newGraphCollections);
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
@@ -142,6 +132,7 @@ export class GraphEdit {
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           // TODO: find a better way to reference the model graph
+          // FIXME: resolve reference to all model graphs
           const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
           if (modelGraph) {
@@ -184,6 +175,7 @@ export class GraphEdit {
     const graphOverrides = this.modelLoaderService.overrides()
       ?.[curCollectionLabel]
       ?.[curModelId]
+      ?.overrides
       ?? {};
 
     return {
@@ -247,7 +239,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path, `Elapsed time: ${elapsedTime}`);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path, `Elapsed time: ${elapsedTime}`);
-                await this.updateGraphInformation(curModel, models);
+                await this.updateGraphInformation(curModel, models, 'execute');
                 this.loggingService.info('Model updated', curModel.path);
               }
 
@@ -278,61 +270,79 @@ export class GraphEdit {
     }
   }
 
-  async handleClickUploadGraph() {
-    const { curModel, curCollection, graphOverrides, models } = this.getCurrentGraphInformation();
-
-    if (curModel && curCollection && graphOverrides) {
-      try {
-        this.isProcessingUploadRequest.update(() => true);
-        this.loggingService.info('Start uploading model', curModel.path);
-
-        const isUploadSuccessful = await this.modelLoaderService.overrideModel(
-          curModel,
-          curCollection,
-          graphOverrides
-        );
-
-        this.loggingService.info('Upload finished', curModel.path);
-
-        if (curModel.status() !== ModelItemStatus.ERROR) {
-          this.loggingService.info('Updating existing models', curModel.path);
-
-          if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models);
-
-            this.urlService.setUiState(undefined);
-            this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
-              return {
-                url: path,
-                adapterId: selectedAdapter?.id
-              };
-            }) ?? []);
-
-            this.modelLoaderService.graphErrors.update(() => undefined);
-
-            this.showSuccessMessage('Model uploaded');
-          } else {
-            throw new Error("Graph upload didn't return any results");
-          }
-        } else {
-          throw new Error(curModel.errorMessage ?? 'An error has occured');
-        }
-      } catch (err) {
-        const errorMessage =  (err as Error)?.message ?? 'An error has occured.';
-
-        this.loggingService.error('Graph Loading Error', errorMessage);
-        this.showErrorDialog('Graph Loading Error', errorMessage);
-      } finally {
-        this.isProcessingUploadRequest.update(() => false);
-      }
-    }
-  }
-
   handleLogDialogOpen() {
     this.dialog.open(LoggingDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
       height: 'clamp(10rem, 80vh, 100rem)'
     });
+  }
+
+  handleDownloadOverrides() {
+    const { graphOverrides, curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+    if (graphOverrides) {
+      const tempElement = document.createElement('a');
+      const textUrl = URL.createObjectURL(new Blob([JSON.stringify(graphOverrides, null, '\t')], { type: 'application/json' }));
+
+      tempElement.hidden = true;
+      tempElement.download = `overrides-${curCollectionLabel}-${curModelId}-${new Date().toISOString()}.json`;
+      tempElement.href = textUrl;
+      tempElement.click();
+
+      URL.revokeObjectURL(textUrl);
+    }
+  }
+
+  async handleUploadOverrides(input: HTMLInputElement) {
+    const overridesFile = input.files?.[0];
+
+    if (!overridesFile || overridesFile.type !== 'application/json') {
+      return;
+    }
+
+    try {
+      const contents = await overridesFile.text();
+      const newOverrides = JSON.parse(contents);
+
+      if (!newOverrides || Array.isArray(newOverrides)) {
+        throw new Error('Overrides should be an a JSON object.');
+      }
+
+      const { curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        if (!curOverrides) {
+          curOverrides = {};
+        }
+
+        if (!curOverrides?.[curCollectionLabel]) {
+          curOverrides[curCollectionLabel] = {};
+        }
+
+        if (!curOverrides[curCollectionLabel]?.[curModelId]) {
+          curOverrides[curCollectionLabel][curModelId] = {
+            wasSentToServer: false,
+            overrides: {}
+          };
+        }
+
+        const existingOverrides = curOverrides[curCollectionLabel][curModelId];
+
+        existingOverrides.overrides = {
+          ...existingOverrides.overrides,
+          ...newOverrides
+        }
+
+        return curOverrides;
+      });
+    } catch (err) {
+      const errorMessage = (err as Error).message ?? 'An error has occured';
+
+      this.loggingService.error('Overrides Loading Error', errorMessage);
+      this.showErrorDialog('Overrides Loading Error', errorMessage);
+    }
+
+    input.value = '';
   }
 
   handleCppDialogOpen() {
