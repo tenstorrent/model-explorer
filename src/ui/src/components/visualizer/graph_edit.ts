@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import type { ModelLoaderServiceInterface, OverridesPerNode } from '../../common/model_loader_service_interface';
 import { AppService } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -129,10 +129,21 @@ export class GraphEdit {
         };
       }) ?? []);
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        const filteredOverrides = Object.entries(curOverrides ?? {}).filter(([collectionLabel]) => !newGraphCollectionsLabels.includes(collectionLabel));
 
-        return Object.fromEntries(filteredOverrides);
+      this.modelLoaderService.overrides.update((curOverrides) => {
+        newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
+          graphs.forEach(({ id: graphId }) => {
+            const existingOverrides = curOverrides
+            ?.[collectionLabel ?? '']
+            ?.[graphId ?? ''];
+
+            if (existingOverrides) {
+              existingOverrides.wasSentToServer = true;
+            }
+          });
+        });
+
+        return curOverrides;
       });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
@@ -184,6 +195,7 @@ export class GraphEdit {
     const graphOverrides = this.modelLoaderService.overrides()
       ?.[curCollectionLabel]
       ?.[curModelId]
+      ?.overrides
       ?? {};
 
     return {
@@ -278,61 +290,62 @@ export class GraphEdit {
     }
   }
 
-  async handleClickUploadGraph() {
-    const { curModel, curCollection, graphOverrides, models } = this.getCurrentGraphInformation();
-
-    if (curModel && curCollection && graphOverrides) {
-      try {
-        this.isProcessingUploadRequest.update(() => true);
-        this.loggingService.info('Start uploading model', curModel.path);
-
-        const isUploadSuccessful = await this.modelLoaderService.overrideModel(
-          curModel,
-          curCollection,
-          graphOverrides
-        );
-
-        this.loggingService.info('Upload finished', curModel.path);
-
-        if (curModel.status() !== ModelItemStatus.ERROR) {
-          this.loggingService.info('Updating existing models', curModel.path);
-
-          if (isUploadSuccessful) {
-            await this.updateGraphInformation(curModel, models);
-
-            this.urlService.setUiState(undefined);
-            this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
-              return {
-                url: path,
-                adapterId: selectedAdapter?.id
-              };
-            }) ?? []);
-
-            this.modelLoaderService.graphErrors.update(() => undefined);
-
-            this.showSuccessMessage('Model uploaded');
-          } else {
-            throw new Error("Graph upload didn't return any results");
-          }
-        } else {
-          throw new Error(curModel.errorMessage ?? 'An error has occured');
-        }
-      } catch (err) {
-        const errorMessage =  (err as Error)?.message ?? 'An error has occured.';
-
-        this.loggingService.error('Graph Loading Error', errorMessage);
-        this.showErrorDialog('Graph Loading Error', errorMessage);
-      } finally {
-        this.isProcessingUploadRequest.update(() => false);
-      }
-    }
-  }
-
   handleLogDialogOpen() {
     this.dialog.open(LoggingDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
       height: 'clamp(10rem, 80vh, 100rem)'
     });
+  }
+
+  handleDownloadOverrides() {
+    const { graphOverrides, curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+    if (graphOverrides) {
+      const tempElement = document.createElement('a');
+      const textUrl = URL.createObjectURL(new Blob([JSON.stringify(graphOverrides, null, '\t')], { type: 'application/json' }));
+
+      tempElement.hidden = true;
+      tempElement.download = `overrides-${curCollectionLabel}-${curModelId}-${new Date().toISOString()}.json`;
+      tempElement.href = textUrl;
+      tempElement.click();
+
+      URL.revokeObjectURL(textUrl);
+    }
+  }
+
+  async handleUploadOverrides(input: HTMLInputElement) {
+    const overridesFile = input.files?.[0];
+
+    if (!overridesFile || overridesFile.type !== 'application/json') {
+      return;
+    }
+
+    try {
+      const contents = await overridesFile.text();
+      const newOverrides = JSON.parse(contents) as OverridesPerNode;
+
+      if (!newOverrides || Array.isArray(newOverrides)) {
+        throw new Error('Overrides should be an a JSON object.');
+      }
+
+      const { curCollectionLabel, curModelId } = this.getCurrentGraphInformation();
+
+      this.modelLoaderService.updateOverrides({
+        [curCollectionLabel]: {
+          [curModelId]: {
+            overrides: newOverrides,
+            wasSentToServer: false
+          }
+        }
+      });
+    } catch (err) {
+      const errorMessage = (err as Error).message ?? 'An error has occured';
+
+      this.loggingService.error('Overrides Loading Error', errorMessage);
+      this.showErrorDialog('Overrides Loading Error', errorMessage);
+    }
+
+    input.value = '';
   }
 
   handleCppDialogOpen() {
