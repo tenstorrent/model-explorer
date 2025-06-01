@@ -39,7 +39,11 @@ import {
   OpNode,
 } from '../common/model_graph';
 import {
+  AttrTreeNode,
+} from '../common/attr_tree';
+import {
   GraphNodeConfig,
+  KeyValue,
   KeyValueList,
   NodeDataProviderRunData,
   Point,
@@ -65,6 +69,8 @@ import {
   isOpNode,
   splitLabel,
 } from '../common/utils';
+
+// Import VisualizerConfig from the correct location
 import {VisualizerConfig} from '../common/visualizer_config';
 
 import {Dagre, DagreGraphInstance} from './dagre_types';
@@ -804,21 +810,42 @@ function addLayoutGraphEdge(
   layoutGraph.incomingEdges[toNodeId].push(fromNodeId);
 }
 
-function getMaxAttrLabelAndValueWidth(keyValuePairs: KeyValueList): {
+function getMaxAttrLabelAndValueWidth(
+  keyValuePairs: AttrTreeNode[] | KeyValueList,
+): {
   maxAttrLabelWidth: number;
   maxAttrValueWidth: number;
 } {
   let maxAttrLabelWidth = 0;
   let maxAttrValueWidth = 0;
-  for (const {key, value} of keyValuePairs) {
-    const attrLabelWidth = getLabelWidth(key, NODE_ATTRS_TABLE_FONT_SIZE, true);
+  
+  const processKeyValue = (key: string, value: string) => {
+    const attrLabelWidth = getLabelWidth(key, 12, false, false);
+    const attrValueWidth = getLabelWidth(value, 12, false, false);
     maxAttrLabelWidth = Math.max(maxAttrLabelWidth, attrLabelWidth);
-    const attrValueWidth = getLabelWidth(
-      value,
-      NODE_ATTRS_TABLE_FONT_SIZE,
-      false,
-    );
     maxAttrValueWidth = Math.max(maxAttrValueWidth, attrValueWidth);
+  };
+
+  for (const item of keyValuePairs) {
+    // Handle AttrTreeNode
+    if ('children' in item) {
+      const node = item as AttrTreeNode;
+      if (node.value !== undefined) {
+        processKeyValue(node.key, node.value);
+      } else if (node.children?.length) {
+        // For nodes with children but no value, use the first child's value if available
+        const firstChild = node.children[0];
+        if (firstChild.value !== undefined) {
+          processKeyValue(node.key, firstChild.value);
+        }
+      }
+    } 
+    // Handle KeyValue
+    else if ('key' in item && 'value' in item) {
+      const kv = item as KeyValue;
+      processKeyValue(kv.key, kv.value);
+    }
   }
+  
   return {maxAttrLabelWidth, maxAttrValueWidth};
 }

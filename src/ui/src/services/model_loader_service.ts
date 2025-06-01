@@ -186,16 +186,18 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             const graphs = JSON.parse(fileContent) as Graph[];
             const jsonResult = processJson(fileName, graphs);
             if (jsonResult.error) {
-              throw new Error(`Failed to process file: ${jsonResult.error})`);
+              throw new Error(jsonResult.error);
             }
             if (jsonResult.graphCollections) {
               result = jsonResult.graphCollections;
             }
             modelItem.status.set(ModelItemStatus.DONE);
           } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            console.error('Error loading JSON file:', errorMessage);
             modelItem.selected = false;
             modelItem.status.set(ModelItemStatus.ERROR);
-            modelItem.errorMessage = e as string;
+            modelItem.errorMessage = errorMessage;
           }
           break;
 

@@ -16,7 +16,9 @@
  * ==============================================================================
  */
 
-import {TrustedResourceUrl} from 'safevalues';
+import {ɵSafeResourceUrl as TrustedResourceUrl} from '@angular/core';
+
+import {buildAttrTree, AttrTreeNode} from './attr_tree';
 
 import {
   CATMULLROM_CURVE_TENSION,
@@ -393,17 +395,41 @@ export function getShapeForAttrsTable(items?: KeyValuePairs): string {
   return shape;
 }
 
-/** Gets the key value pairs for the given node's attrs for attrs table. */
+/** 
+ * Gets the key value pairs for the given node's attrs for attrs table.
+ * If the attributes contain nested paths (using '/' as separator), they will be
+ * returned as a tree structure.
+ */
 export function getOpNodeAttrsKeyValuePairsForAttrsTable(
   node: OpNode,
   filterRegex = '',
-) {
+): AttrTreeNode[] | KeyValueList {
   const attrs = node.attrs || {};
+  
+  // Check if any key contains a forward slash (not escaped)
+  const hasNestedAttributes = Object.keys(attrs).some(key => 
+    key.includes('/') && !key.includes('//')
+  );
+  
+  if (hasNestedAttributes) {
+    // Use the new tree-based structure for nested attributes
+    const tree = buildAttrTree(attrs);
+    
+    // Apply filter if provided
+    if (filterRegex.trim()) {
+      const regex = new RegExp(filterRegex, 'i');
+      const filteredTree = filterAttrTree(tree, regex);
+      return filteredTree.length > 0 ? filteredTree : [];
+    }
+    
+    return tree;
+  }
+  
+  // Fall back to flat structure for backward compatibility
   const keyValuePairs: KeyValueList = [];
   const regex = new RegExp(filterRegex, 'i');
-  for (const attrId of Object.keys(attrs)) {
-    const key = attrId;
-    const value = attrs[attrId];
+  
+  for (const [key, value] of Object.entries(attrs)) {
     if (typeof value === 'string') {
       const matchTargets = [`${key}:${value}`, `${key}=${value}`];
       if (
@@ -427,6 +453,23 @@ export function getOpNodeAttrsKeyValuePairsForAttrsTable(
     }
   }
   return keyValuePairs;
+}
+
+/**
+ * Filters an attribute tree based on a regex pattern.
+ * Returns only the nodes that match the pattern or have children that do.
+ */
+function filterAttrTree(nodes: AttrTreeNode[], regex: RegExp): AttrTreeNode[] {
+  return nodes
+    .map(node => ({
+      ...node,
+      children: node.children ? filterAttrTree(node.children, regex) : undefined,
+    }))
+    .filter(node => 
+      regex.test(node.key) || 
+      (node.value && regex.test(node.value)) ||
+      (node.children && node.children.length > 0)
+    );
 }
 
 /**
