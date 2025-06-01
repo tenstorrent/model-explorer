@@ -71,11 +71,49 @@ limitations under the License.
                           [displayType]="$any(item.displayType)">
                       </expandable-info-text>
                     }
+<<<<<<< HEAD
                   </td>
                 </tr>
               }
             </table>
           }
+||||||| fec857f
+                  } @else {
+                  <expandable-info-text
+                      [text]="item.value" [type]="item.label"
+                      [collectionLabel]="$any(curCollectionLabel)"
+                      [graphId]="$any(curModelGraphId)"
+                      [nodeFullLocation]="$any(curSelectedNodeFullLocation)"
+                      [nodeFullLocation]="$any(curSelectedNodeNamedLocation)"
+                      [bgColor]="item.bgColor || 'transparent'"
+                      [textColor]="item.textColor || 'black'"
+                      [editable]="item.editable"
+                      [displayType]="$any(item.displayType)">
+                  </expandable-info-text>
+                }
+                </td>
+              </tr>
+            }
+          </table>
+=======
+                  } @else {
+                  <expandable-info-text
+                      [text]="item.value" [type]="item.label"
+                      [collectionLabel]="$any(curCollectionLabel)"
+                      [graphId]="$any(curModelGraphId)"
+                      [nodeFullLocation]="$any(curSelectedNodeFullLocation)"
+                      [nodeNamedLocation]="$any(curSelectedNodeNamedLocation)"
+                      [bgColor]="item.bgColor || 'transparent'"
+                      [textColor]="item.textColor || 'black'"
+                      [editable]="item.editable"
+                      [displayType]="$any(item.displayType)">
+                  </expandable-info-text>
+                }
+                </td>
+              </tr>
+            }
+          </table>
+>>>>>>> 43ce7e9681a89ffbdff0f517ad0f05a5d427dfa4
         </div>
       </div>
     }
