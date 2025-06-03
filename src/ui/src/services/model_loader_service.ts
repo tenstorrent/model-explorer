@@ -130,37 +130,29 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   updateGraphCollections(newGraphCollections: GraphCollection[]) {
     this.loadedGraphCollections.update((prevGraphCollections = []) => {
+      const updatedGraphCollections = [...prevGraphCollections];
+
       newGraphCollections.forEach((newCollection) => {
         if (newCollection.graphs.length > 0) {
-          const collectionIndex = prevGraphCollections.findIndex(({ label }) => label === newCollection.label);
+          const collectionIndex = updatedGraphCollections.findIndex(({ label }) => label === newCollection.label);
 
           if (collectionIndex === -1) {
-            prevGraphCollections.push(newCollection);
+            updatedGraphCollections.push(newCollection);
           } else {
             newCollection.graphs.forEach((graph) => {
-              const graphIndex = prevGraphCollections[collectionIndex].graphs.findIndex(({ id }) => graph.id === id);
+              const graphIndex = updatedGraphCollections[collectionIndex].graphs.findIndex(({ id }) => graph.id === id);
 
               if (graphIndex === -1) {
-                prevGraphCollections[collectionIndex].graphs.push(graph);
+                updatedGraphCollections[collectionIndex].graphs.push(graph);
               } else {
-                prevGraphCollections[collectionIndex].graphs[graphIndex] = graph;
-              }
-            });
-
-            newCollection.graphsWithLevel?.forEach((graph) => {
-              const graphIndex = prevGraphCollections[collectionIndex].graphsWithLevel!.findIndex(({ graph: { id } }) => graph.graph.id === id) ?? -1;
-
-              if (graphIndex === -1) {
-                prevGraphCollections[collectionIndex].graphsWithLevel!.push(graph);
-              } else {
-                prevGraphCollections[collectionIndex].graphsWithLevel![graphIndex] = graph;
+                updatedGraphCollections[collectionIndex].graphs[graphIndex] = graph;
               }
             });
           }
         }
       });
 
-      return prevGraphCollections;
+      return updatedGraphCollections;
     });
   }
 
