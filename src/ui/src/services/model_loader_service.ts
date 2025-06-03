@@ -87,6 +87,43 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     readonly extensionService: ExtensionService,
   ) {}
 
+  updateOverrides(newOverrides: OverridesPerCollection, wasSentToServer = false) {
+    this.overrides.update((curOverrides) => {
+      Object.entries(newOverrides).forEach(([collectionLabel, overridesPerGraph]) => {
+        if (!curOverrides[collectionLabel]) {
+          curOverrides[collectionLabel] = {};
+        }
+
+        Object.entries(overridesPerGraph).forEach(([graphId, graphOverrides]) => {
+          if (!curOverrides[collectionLabel][graphId]) {
+            curOverrides[collectionLabel][graphId] = {
+              wasSentToServer: false,
+              overrides: {}
+            }
+          }
+
+          graphOverrides.wasSentToServer = wasSentToServer;
+
+          Object.entries(graphOverrides.overrides).forEach(([nodeFullLocation, keyValuePairs]) => {
+            if (!curOverrides[collectionLabel][graphId].overrides?.[nodeFullLocation]) {
+              curOverrides[collectionLabel][graphId].overrides[nodeFullLocation] = {
+                named_location: keyValuePairs.named_location ?? '',
+                full_location: nodeFullLocation,
+                attributes: []
+              };
+            }
+
+            keyValuePairs.attributes.forEach((keyValuePair, index) => {
+              curOverrides[collectionLabel][graphId].overrides[nodeFullLocation].attributes[index] = keyValuePair;
+            });
+          });
+        });
+      });
+
+      return curOverrides;
+    });
+  }
+
   get hasOverrides() {
     return Object.keys(this.overrides()).length > 0;
   }

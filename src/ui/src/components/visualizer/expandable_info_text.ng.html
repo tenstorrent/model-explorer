@@ -79,7 +79,11 @@ limitations under the License.
       }
 
       @default {
-        <div class="text-content">
+        <div
+          class="text-content"
+          (input)="handleTextChange($event)"
+          (change)="handleTextChange($event)"
+        >
           @if (hasCurModel() && editable?.input_type) {
             @switch (editable?.input_type) {
               @case ('value_list') {
@@ -99,7 +103,6 @@ limitations under the License.
                     [step]="$any(editable)?.step ?? 1"
                     [min]="$any(editable)?.min_value ?? 0"
                     [max]="$any(editable)?.max_value ?? maxIntValue"
-                    (change)="handleTextChange($event)"
                   />
                 }
               }
@@ -113,7 +116,6 @@ limitations under the License.
                     [step]="$any(editable)?.step ?? 1"
                     [min]="$any(editable)?.min_value ?? 0"
                     [max]="$any(editable)?.max_value ?? maxIntValue"
-                    (change)="handleTextChange($event)"
                   />
                   <span class="text-separator">&nbsp;{{$any(editable)?.separator ?? 'x'}}&nbsp;</span>
                 }
