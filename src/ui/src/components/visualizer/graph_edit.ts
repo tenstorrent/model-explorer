@@ -161,6 +161,7 @@ export class GraphEdit {
                   this.nodeDataProviderExtensionService.deleteRun(runId);
                 });
 
+              // TODO: add run after timeout to wait for updated information
               this.nodeDataProviderExtensionService.addRun(
                 newRunId,
                 formattedRunName,
