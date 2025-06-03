@@ -222,7 +222,13 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   getEditableOptions(editable: EditableAttributeTypes, value: string) {
-    return [...new Set([value, ...(editable as EditableValueListAttribute).options])];
+    const options = (editable as EditableValueListAttribute).options;
+
+    if (options.includes(value)) {
+      return options;
+    }
+
+    return [value, options];
   }
 
   isPercentage(value: string) {
