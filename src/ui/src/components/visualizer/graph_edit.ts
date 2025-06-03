@@ -112,14 +112,7 @@ export class GraphEdit {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
-      const newGraphCollectionsLabels = newGraphCollections?.map(({ label }) => label) ?? [];
-
-      this.modelLoaderService.loadedGraphCollections.update((prevGraphCollections) => {
-        const filteredGraphCollections = (prevGraphCollections ?? [])?.filter(({ label }) => !newGraphCollectionsLabels.includes(label));
-        const mergedGraphCollections = [...filteredGraphCollections, ...newGraphCollections];
-
-        return mergedGraphCollections;
-      });
+      this.modelLoaderService.updateGraphCollections(newGraphCollections);
 
       this.urlService.setUiState(undefined);
       this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
@@ -129,22 +122,22 @@ export class GraphEdit {
         };
       }) ?? []);
 
+      const overridesPerGraphCollection = Object.fromEntries(newGraphCollections.map(({ label: collectionLabel, graphs }) => [
+          collectionLabel,
+          Object.fromEntries(graphs
+            .filter(({ overrides }) => overrides !== undefined)
+            .map(({ id: graphId, overrides }) => [
+              graphId,
+              {
+                wasSentToServer: false,
+                overrides: overrides!
+              }
+            ])
+          )
+        ]));
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
-          graphs.forEach(({ id: graphId }) => {
-            const existingOverrides = curOverrides
-            ?.[collectionLabel ?? '']
-            ?.[graphId ?? ''];
+      this.modelLoaderService.updateOverrides(overridesPerGraphCollection);
 
-            if (existingOverrides) {
-              existingOverrides.wasSentToServer = true;
-            }
-          });
-        });
-
-        return curOverrides;
-      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
@@ -153,6 +146,7 @@ export class GraphEdit {
       newGraphCollections.forEach((collection) => {
         collection.graphs.forEach((graph: Partial<Graph>) => {
           // TODO: find a better way to reference the model graph
+          // FIXME: resolve reference to all model graphs
           const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
           if (modelGraph) {
@@ -167,6 +161,7 @@ export class GraphEdit {
                   this.nodeDataProviderExtensionService.deleteRun(runId);
                 });
 
+              // TODO: add run after timeout to wait for updated information
               this.nodeDataProviderExtensionService.addRun(
                 newRunId,
                 formattedRunName,
