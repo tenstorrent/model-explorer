@@ -128,40 +128,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     return Object.keys(this.overrides()).length > 0;
   }
 
-  updateOverrides(newGraphCollections: GraphCollection[], wasSentToServer = false) {
-    this.overrides.update((curOverrides) => {
-      newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
-        graphs.forEach(({ id: graphId, overrides }) => {
-          if (overrides) {
-            const existingOverrides = curOverrides
-              ?.[collectionLabel]
-              ?.[graphId];
-
-            if (existingOverrides) {
-              existingOverrides.wasSentToServer = wasSentToServer;
-            }
-
-            if (!curOverrides[collectionLabel]) {
-              curOverrides[collectionLabel] = {};
-            }
-
-            if (!curOverrides[collectionLabel][graphId]) {
-              curOverrides[collectionLabel][graphId] = {
-                wasSentToServer: false,
-                overrides: {}
-              };
-            }
-
-            curOverrides[collectionLabel][graphId].overrides = overrides;
-          }
-        });
-      });
-
-      return curOverrides;
-    });
-  }
-
-  updateGraphCollections(newGraphCollections: GraphCollection[], operation?: string) {
+  updateGraphCollections(newGraphCollections: GraphCollection[]) {
     this.loadedGraphCollections.update((prevGraphCollections = []) => {
       newGraphCollections.forEach((graphCollection) => {
         let suffix = '';

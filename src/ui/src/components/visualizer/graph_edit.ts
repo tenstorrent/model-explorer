@@ -122,24 +122,22 @@ export class GraphEdit {
         };
       }) ?? []);
 
+      const overridesPerGraphCollection = Object.fromEntries(newGraphCollections.map(({ label: collectionLabel, graphs }) => [
+          collectionLabel,
+          Object.fromEntries(graphs
+            .filter(({ overrides }) => overrides !== undefined)
+            .map(({ id: graphId, overrides }) => [
+              graphId,
+              {
+                wasSentToServer: false,
+                overrides: overrides!
+              }
+            ])
+          )
+        ]));
 
-      this.modelLoaderService.overrides.update((curOverrides) => {
-        newGraphCollections.forEach(({ label: collectionLabel, graphs }) => {
-          graphs.forEach(({ id: graphId }) => {
-            const existingOverrides = curOverrides
-            ?.[collectionLabel ?? '']
-            ?.[graphId ?? ''];
+      this.modelLoaderService.updateOverrides(overridesPerGraphCollection);
 
-            if (existingOverrides) {
-              existingOverrides.wasSentToServer = true;
-            }
-          });
-        });
-
-        this.modelLoaderService.updateOverrides(newGraphCollections);
-
-        return curOverrides;
-      });
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
