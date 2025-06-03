@@ -130,28 +130,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   updateGraphCollections(newGraphCollections: GraphCollection[]) {
     this.loadedGraphCollections.update((prevGraphCollections = []) => {
-      newGraphCollections.forEach((graphCollection) => {
-        let suffix = '';
-
-        switch (operation) {
-          case 'upload':
-            suffix = 'Uploaded changes';
-            break;
-          case 'execute':
-            const formatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'medium' });
-            suffix = `Execution ${formatter.format(new Date())}`;
-            break;
-          default:
-            break;
-        }
-
-        // graphCollection.label = `${graphCollection.label}${suffix ? ` - ${suffix}` : ''}`;
-
-        graphCollection.graphs.forEach((graph) => {
-          graph.id = `${graph.id}${suffix ? ` - ${suffix}`: ''}`;
-        });
-      });
-
       newGraphCollections.forEach((newCollection) => {
         if (newCollection.graphs.length > 0) {
           const collectionIndex = prevGraphCollections.findIndex(({ label }) => label === newCollection.label);

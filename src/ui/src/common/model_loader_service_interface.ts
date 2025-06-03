@@ -34,7 +34,7 @@ export type OverridesPerCollection = Record<string, OverridesPerGraph>;
 /** The interface of model load service. */
 export interface ModelLoaderServiceInterface {
   updateOverrides(newOverrides: OverridesPerCollection, wasSentToServer?: boolean): void;
-  updateGraphCollections(newGraphCollections: GraphCollection[], operation?: string): void;
+  updateGraphCollections(newGraphCollections: GraphCollection[]): void;
   loadModels(modelItems: ModelItem[]): Promise<void>;
   loadModel(modelItems: ModelItem): Promise<GraphCollection[]>;
   executeModel(modelItem: ModelItem, overrides?: OverridesPerNode): Promise<boolean>;

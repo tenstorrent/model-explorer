@@ -108,11 +108,11 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
-  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[], operation: 'upload' | 'execute') {
+  private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
     if (curModel.status() !== ModelItemStatus.ERROR) {
-      this.modelLoaderService.updateGraphCollections(newGraphCollections, operation);
+      this.modelLoaderService.updateGraphCollections(newGraphCollections);
 
       this.urlService.setUiState(undefined);
       this.urlService.setModels(models?.map(({ path, selectedAdapter }) => {
@@ -253,7 +253,7 @@ export class GraphEdit {
                 this.loggingService.error('Model execute timeout', curModel.path, `Elapsed time: ${elapsedTime}`);
               } else {
                 this.loggingService.info('Model execute finished', curModel.path, `Elapsed time: ${elapsedTime}`);
-                await this.updateGraphInformation(curModel, models, 'execute');
+                await this.updateGraphInformation(curModel, models);
                 this.loggingService.info('Model updated', curModel.path);
               }
 
