@@ -228,7 +228,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       return options;
     }
 
-    return [value, options];
+    return [value, ...options];
   }
 
   isPercentage(value: string) {
