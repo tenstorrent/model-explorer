@@ -33,7 +33,7 @@ import {
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {AppService} from './app_service';
-import { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import { ModelLoaderServiceInterface, type OverridesPerCollection, type OverridesPerGraph } from '../../common/model_loader_service_interface';
 import type { AttributeDisplayType, EditableAttributeTypes, EditableValueListAttribute } from './common/types.js';
 
 /** Expandable info text component. */
@@ -73,7 +73,13 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
-  ) {}
+  ) {
+    document.addEventListener('override-update', (evt) => {
+      const graphOverrides = this.getGraphOverride(evt.detail);
+
+      this.updateDisplayText(graphOverrides);
+    });
+  }
 
   @HostBinding('class.expanded') get hostExpanded() {
     return this.expanded;
