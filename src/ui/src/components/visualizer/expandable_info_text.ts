@@ -93,20 +93,8 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       this.resizeObserver.observe(this.container.nativeElement);
     }
 
-    const graphOverrides = this.modelLoaderService
-      .overrides()
-      ?.[this.collectionLabel]
-      ?.[this.graphId];
-
-    this.wasOverrideSentToServer = graphOverrides?.wasSentToServer ?? false;
-    this.override = graphOverrides
-      ?.overrides
-      ?.[this.nodeFullLocation]
-      ?.attributes
-      ?.find(({ key }) => key === this.type)
-      ?.value;
-
-    this.displayText = this.override ?? this.text;
+    const graphOverrides = this.getGraphOverride(this.modelLoaderService.overrides());
+    this.updateDisplayText(graphOverrides);
   }
 
   ngOnChanges() {
@@ -253,6 +241,28 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     return `${parsedValue * 100}%`;
+  }
+
+  private getGraphOverride(overrides: OverridesPerCollection) {
+    return overrides
+      ?.[this.collectionLabel]
+      ?.[this.graphId];
+  }
+
+  private getAttributeOverrides(graphOverrides?: OverridesPerGraph[string]) {
+    return graphOverrides
+      ?.overrides
+      ?.[this.nodeFullLocation]
+      ?.attributes
+      ?.find(({ key }) => key === this.type)
+      ?.value;
+  }
+
+  updateDisplayText(graphOverrides: OverridesPerGraph[string] | undefined) {
+    this.wasOverrideSentToServer = graphOverrides?.wasSentToServer ?? false;
+    this.override = this.getAttributeOverrides(graphOverrides);
+
+    this.displayText = this.override ?? this.text;
   }
 
   get overrideTooltip() {
