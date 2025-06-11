@@ -25,8 +25,6 @@ import {
   type AdapterExecuteCommand,
   type AdapterExecuteResponse,
   type AdapterExecuteSettings,
-  type AdapterOverrideCommand,
-  type AdapterOverrideResponse,
   type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
@@ -96,27 +94,39 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
           curOverrides[collectionLabel] = {};
         }
 
+        const curCollectionOverrides = curOverrides[collectionLabel];
+
         Object.entries(overridesPerGraph).forEach(([graphId, graphOverrides]) => {
-          if (!curOverrides[collectionLabel][graphId]) {
-            curOverrides[collectionLabel][graphId] = {
+          if (!curCollectionOverrides[graphId]) {
+            curCollectionOverrides[graphId] = {
               wasSentToServer: false,
               overrides: {}
             }
           }
 
-          graphOverrides.wasSentToServer = wasSentToServer;
+          const curGraphOverrides = curCollectionOverrides[graphId];
+
+          curGraphOverrides.wasSentToServer = wasSentToServer;
 
           Object.entries(graphOverrides.overrides).forEach(([nodeFullLocation, keyValuePairs]) => {
-            if (!curOverrides[collectionLabel][graphId].overrides?.[nodeFullLocation]) {
-              curOverrides[collectionLabel][graphId].overrides[nodeFullLocation] = {
+            if (!curGraphOverrides.overrides[nodeFullLocation]) {
+              curGraphOverrides.overrides[nodeFullLocation] = {
                 named_location: keyValuePairs.named_location ?? '',
                 full_location: nodeFullLocation,
                 attributes: []
               };
             }
 
-            keyValuePairs.attributes.forEach((keyValuePair, index) => {
-              curOverrides[collectionLabel][graphId].overrides[nodeFullLocation].attributes[index] = keyValuePair;
+            const curNodeOverrides = curGraphOverrides.overrides[nodeFullLocation];
+
+            keyValuePairs.attributes.forEach((keyValuePair) => {
+              const existingAttrIndex = curNodeOverrides.attributes.findIndex(({ key }) => key === keyValuePair.key);
+
+              if (existingAttrIndex === -1) {
+                curNodeOverrides.attributes.push(keyValuePair);
+              } else {
+                curNodeOverrides.attributes[existingAttrIndex] = keyValuePair;
+              }
             });
           });
         });
@@ -128,6 +138,34 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   get hasOverrides() {
     return Object.keys(this.overrides()).length > 0;
+  }
+
+  updateGraphCollections(newGraphCollections: GraphCollection[]) {
+    this.loadedGraphCollections.update((prevGraphCollections = []) => {
+      const updatedGraphCollections = [...prevGraphCollections];
+
+      newGraphCollections.forEach((newCollection) => {
+        if (newCollection.graphs.length > 0) {
+          const collectionIndex = updatedGraphCollections.findIndex(({ label }) => label === newCollection.label);
+
+          if (collectionIndex === -1) {
+            updatedGraphCollections.push(newCollection);
+          } else {
+            newCollection.graphs.forEach((graph) => {
+              const graphIndex = updatedGraphCollections[collectionIndex].graphs.findIndex(({ id }) => graph.id === id);
+
+              if (graphIndex === -1) {
+                updatedGraphCollections[collectionIndex].graphs.push(graph);
+              } else {
+                updatedGraphCollections[collectionIndex].graphs[graphIndex] = graph;
+              }
+            });
+          }
+        }
+      });
+
+      return updatedGraphCollections;
+    });
   }
 
   async executeModel(modelItem: ModelItem, overrides: OverridesPerNode = {}) {
@@ -144,34 +182,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         overrides
       }
     );
-
-    return result;
-  }
-
-  async overrideModel(modelItem: ModelItem, graphCollection: GraphCollection, overrides: OverridesPerNode) {
-    modelItem.status.set(ModelItemStatus.PROCESSING);
-    let result = false;
-
-    // Send request to backend for processing.
-    result = await this.sendOverrideRequest(
-      modelItem,
-      modelItem.path,
-      graphCollection,
-      overrides,
-    );
-
-    if (modelItem.status() !== ModelItemStatus.ERROR) {
-      this.models.update((curModels) => {
-        curModels.push({
-          ...modelItem,
-          path: modelItem.path,
-        });
-
-        return curModels;
-      });
-
-      modelItem.status.set(ModelItemStatus.DONE);
-    }
 
     return result;
   }
@@ -308,10 +318,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
       return [
         ...filteredModels,
-        {
-          ...modelItem,
-          path: modelItem.path,
-        }
+        modelItem
       ];
     });
 
@@ -450,6 +457,9 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
     const graphCollections = this.processAdapterConvertResponse(result, fileName);
     this.processGeneratedCppCode(graphCollections);
+    // TODO: should these be updated here?
+    // this.updateGraphCollections(graphCollections);
+    // this.updateOverrides(graphCollections);
 
     return graphCollections;
   }
@@ -466,25 +476,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     }
 
     return this.processAdapterExecuteResponse(result);
-  }
-
-  private async sendOverrideRequest(
-    modelItem: ModelItem,
-    path: string,
-    graphCollection: GraphCollection,
-    overrides: Record<string, any>
-  ) {
-
-    const result = await this.sendExtensionRequest<AdapterOverrideResponse, AdapterOverrideCommand>('override', modelItem, path, {
-      graphs: graphCollection.graphs,
-      overrides,
-    });
-
-    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
-      return false;
-    }
-
-    return this.processAdapterOverrideResponse(result);
   }
 
   private processAdapterConvertResponse(
@@ -530,12 +521,6 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         return curCppCodePerCollection;
       });
 
-  }
-
-  private processAdapterOverrideResponse(
-    resp: AdapterOverrideResponse,
-  ): boolean {
-    return resp?.graphs?.[0].success ?? false;
   }
 
   private processAdapterStatusCheckResponse(

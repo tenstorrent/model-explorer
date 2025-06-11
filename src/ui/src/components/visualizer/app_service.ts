@@ -230,7 +230,39 @@ export class AppService {
         visitGraph();
         collection.graphsWithLevel = dfsOrderedGraphs;
       }
-      newCollections.push(...graphCollections);
+
+      graphCollections.forEach((newCollection) => {
+        const existingCollectionIndex = newCollections.findIndex(({ label }) => label === newCollection.label);
+
+        if (existingCollectionIndex === -1) {
+          newCollections.push(newCollection);
+        } else {
+          newCollection.graphs.forEach((newGraph) => {
+            const existingGraphId = newCollections[existingCollectionIndex].graphs.findIndex(({ id }) => id === newGraph.id);
+
+            if (existingGraphId === -1) {
+              newCollections[existingCollectionIndex].graphs.push(newGraph);
+            } else {
+              newCollections[existingCollectionIndex].graphs.splice(existingGraphId, 1, newGraph);
+            }
+          });
+
+          newCollection.graphsWithLevel?.forEach((newGraph) => {
+            if (!newCollections[existingCollectionIndex].graphsWithLevel) {
+              newCollections[existingCollectionIndex].graphsWithLevel = [];
+            }
+
+            const existingGraphId = newCollections[existingCollectionIndex].graphsWithLevel!.findIndex(({ graph: { id } }) => id === newGraph.graph.id);
+
+            if (existingGraphId === -1) {
+              newCollections[existingCollectionIndex].graphsWithLevel!.push(newGraph);
+            } else {
+              newCollections[existingCollectionIndex].graphsWithLevel!.splice(existingGraphId, 1, newGraph);
+            }
+          });
+        }
+      });
+
       return newCollections;
     });
   }
