@@ -41,7 +41,7 @@ limitations under the License.
         </div>
         <select (change)="handleUpdateOptimizationPolicy($event)" id="optimization-policy-select">
           @for (optimizationPolicy of optimizationPolicies; track $index) {
-            <option>{{optimizationPolicy}}</option>
+            <option [selected]="selectedOptimizationPolicy === optimizationPolicy">{{optimizationPolicy}}</option>
           }
         </select>
       </div>

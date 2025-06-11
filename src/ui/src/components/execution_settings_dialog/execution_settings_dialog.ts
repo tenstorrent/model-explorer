@@ -76,6 +76,10 @@ export class ExecutionSettingsDialog {
     return this.extensionService.extensionSettings.get(this.data.curExtensionId)?.optimizationPolicies ?? [];
   }
 
+  get selectedOptimizationPolicy() {
+    return this.extensionService.selectedSettings.get(this.data.curExtensionId)?.selectedOptimizationPolicy;
+  }
+
   get genCppCode() {
     return this.extensionService.selectedSettings.get(this.data.curExtensionId)?.generateCppCode ?? false;
   }
