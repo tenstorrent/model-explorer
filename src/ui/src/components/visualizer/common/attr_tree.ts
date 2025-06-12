@@ -54,12 +54,7 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
     const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
     
     // Split on single forward slashes, but not double slashes (which are escaped)
-    // First replace '//' with a placeholder, split on '/', then restore '//'
-    const placeholder = '__ESCAPED_SLASH__';
-    const keyWithPlaceholders = rawKey.replace(/\/\//g, placeholder);
-    const pathSegments = keyWithPlaceholders.split('/').map(segment => 
-      segment.replace(new RegExp(placeholder, 'g'), '/')
-    );
+    const pathSegments = rawKey.split(/\/(?!\/)/g);
     
     let currentLevel = root;
     
@@ -105,26 +100,4 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
   return processNode(root);
 }
 
-/**
- * Flattens a tree of attribute nodes back into a key-value object.
- * This is useful for filtering operations that work with the flat structure.
- * 
- * @param nodes Array of attribute tree nodes
- * @returns Flattened key-value pairs
- */
-export function flattenTree(nodes: AttrTreeNode[]): Record<string, string> {
-  const result: Record<string, string> = {};
-  
-  function processNode(node: AttrTreeNode) {
-    if (node.value !== undefined) {
-      result[node.fullKey] = node.value;
-    }
-    
-    if (node.children) {
-      node.children.forEach(processNode);
-    }
-  }
-  
-  nodes.forEach(processNode);
-  return result;
-}
+
