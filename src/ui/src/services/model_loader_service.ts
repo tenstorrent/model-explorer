@@ -223,7 +223,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             const graphs = JSON.parse(fileContent) as Graph[];
             const jsonResult = processJson(fileName, graphs);
             if (jsonResult.error) {
-              throw new Error(jsonResult.error);
+              throw new Error(`Failed to process file: ${jsonResult.error})`);
             }
             if (jsonResult.graphCollections) {
               result = jsonResult.graphCollections;
