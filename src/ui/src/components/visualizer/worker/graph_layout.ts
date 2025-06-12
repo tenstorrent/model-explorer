@@ -819,31 +819,32 @@ function getMaxAttrLabelAndValueWidth(
   let maxAttrLabelWidth = 0;
   let maxAttrValueWidth = 0;
   
-  const processKeyValue = (key: string, value: string) => {
-    const attrLabelWidth = getLabelWidth(key, 12, false, false);
-    const attrValueWidth = getLabelWidth(value, 12, false, false);
-    maxAttrLabelWidth = Math.max(maxAttrLabelWidth, attrLabelWidth);
-    maxAttrValueWidth = Math.max(maxAttrValueWidth, attrValueWidth);
+  const processKeyValue = (maxLabelWidth: number, maxValueWidth: number, key: string, value: string) => {
+    const attrLabelWidth = getLabelWidth(key, NODE_ATTRS_TABLE_FONT_SIZE, false, false);
+    const attrValueWidth = getLabelWidth(value, NODE_ATTRS_TABLE_FONT_SIZE, false, false);
+    return {
+      maxAttrLabelWidth: Math.max(maxLabelWidth, attrLabelWidth),
+      maxAttrValueWidth: Math.max(maxValueWidth, attrValueWidth)
+    };
   };
 
   for (const item of keyValuePairs) {
     // Handle AttrTreeNode
     if ('children' in item) {
       const node = item as AttrTreeNode;
-      if (node.value !== undefined) {
-        processKeyValue(node.key, node.value);
-      } else if (node.children?.length) {
-        // For nodes with children but no value, use the first child's value if available
-        const firstChild = node.children[0];
-        if (firstChild.value !== undefined) {
-          processKeyValue(node.key, firstChild.value);
-        }
-      }
+      const key = node.key;
+      const value = node.value ?? node.children?.[0]?.value ?? '';
+      
+      const result = processKeyValue(maxAttrLabelWidth, maxAttrValueWidth, key, value);
+      maxAttrLabelWidth = result.maxAttrLabelWidth;
+      maxAttrValueWidth = result.maxAttrValueWidth;
     } 
     // Handle KeyValue
-    else if ('key' in item && 'value' in item) {
+    else {
       const kv = item as KeyValue;
-      processKeyValue(kv.key, kv.value);
+      const result = processKeyValue(maxAttrLabelWidth, maxAttrValueWidth, kv.key, kv.value);
+      maxAttrLabelWidth = result.maxAttrLabelWidth;
+      maxAttrValueWidth = result.maxAttrValueWidth;
     }
   }
   
