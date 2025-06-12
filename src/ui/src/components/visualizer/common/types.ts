@@ -26,6 +26,12 @@ export type KeyValuePairs = Record<string, string>;
 export declare interface KeyValue {
   key: string;
   value: string;
+  /** Full path for hierarchical attributes (optional for tree structures) */
+  fullKey?: string;
+  /** Child nodes for hierarchical attributes (optional for tree structures) */
+  children?: KeyValue[];
+  /** Type identifier for distinguishing tree attributes */
+  type?: 'tree';
 }
 
 /** A type for a list of key-value pairs. */
