@@ -18,18 +18,18 @@
 
 import {ConnectedPosition, OverlaySizeConfig} from '@angular/cdk/overlay';
 import {CommonModule} from '@angular/common';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ViewContainerRef, ViewChildren, QueryList, Renderer2, effect} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostBinding, Input, ViewChildren, QueryList, effect} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {MatTreeModule} from '@angular/material/tree';
+import {combineLatest, fromEvent, Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
+
 import {Bubble} from '../bubble/bubble';
 import {AttrTreeView} from './attr_tree_view/attr_tree_view';
 import {buildAttrTree, AttrTreeNode} from './common/attr_tree';
-import {Observable, of as observableOf, Subject, Subscription, combineLatest, fromEvent} from 'rxjs';
-import {map, takeUntil} from 'rxjs/operators';
 
 import {AppService} from './app_service';
 import {TENSOR_TAG_METADATA_KEY, TENSOR_VALUES_KEY} from './common/consts';
@@ -803,25 +803,9 @@ export class InfoPanel {
         key => key.includes('/') && !key.startsWith('__') && !key.includes('//')
       );
       
-      console.log('Processing attributes for node:', opNode.id);
-      console.log('Attribute keys:', attrKeys);
-      console.log('Attributes object:', attrs);
-      console.log('Has nested attributes:', hasNestedAttributes);
-      
       if (hasNestedAttributes) {
         // Convert attributes to tree structure
         const attrTree = buildAttrTree(attrs);
-        console.log('Built attribute tree:', attrTree);
-        console.log('Tree structure depth check:');
-        attrTree.forEach((node, index) => {
-          console.log(`Root node ${index}: ${node.key} (fullKey: ${node.fullKey})`);
-          if (node.children) {
-            console.log(`  Has ${node.children.length} children:`, node.children.map(c => c.key));
-          }
-          if (node.value) {
-            console.log(`  Value: ${node.value}`);
-          }
-        });
         
         // Add the tree view item
         attrSection.items.push({
