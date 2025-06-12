@@ -143,7 +143,7 @@ export class WebglRendererAttrsTableService {
             const result: KeyValuePair[] = [];
             for (const node of nodes) {
               if (node.value !== undefined) {
-                result.push({key: node.fullKey, value: node.value});
+                result.push({key: node.fullKey || node.key, value: node.value});
               }
               if (node.children?.length) {
                 result.push(...flattenTreeNodes(node.children));

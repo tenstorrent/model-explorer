@@ -16,14 +16,10 @@
  * ==============================================================================
  */
 
-import {KeyValuePairs} from './types';
+import {KeyValue} from './types';
 
-export interface AttrTreeNode {
-  key: string;              // final segment
-  fullKey: string;          // full path, for look-ups
-  value?: string;
-  children?: AttrTreeNode[];
-}
+// Use the extended KeyValue interface for tree nodes
+export type AttrTreeNode = KeyValue;
 
 /**
  * Builds a tree structure from flat key-value pairs where keys represent paths.
@@ -40,7 +36,7 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
   // Use a separate interface for building to handle the Record vs Array difference
   interface BuildingNode {
     key: string;
-    fullKey: string;
+    fullKey: string;  // The path up to this node (e.g., "foo/bar" for bar in "foo/bar/baz")
     value?: string;
     children?: Record<string, BuildingNode>;
   }
@@ -90,9 +86,10 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
     return Object.values(nodeRecord)
       .map(node => ({
         key: node.key,
+        value: node.value || '',
         fullKey: node.fullKey,
-        value: node.value,
-        children: node.children ? processNode(node.children) : undefined
+        children: node.children ? processNode(node.children) : undefined,
+        type: 'tree' as const
       }))
       .sort((a, b) => a.key.localeCompare(b.key));
   }

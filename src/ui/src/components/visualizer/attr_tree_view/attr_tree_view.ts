@@ -115,7 +115,7 @@ export class AttrTreeView implements OnChanges {
       : value;
   }
 
-  trackByFn(_: number, node: FlatNode): string {
-    return `${node.fullKey}-${node.level}`;
+  trackByNode(_: number, node: AttrTreeNode): string {
+    return node.fullKey || node.key;
   }
 }
