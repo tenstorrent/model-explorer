@@ -139,25 +139,27 @@ export class WebglRendererAttrsTableService {
           );
           
           // Handle both AttrTreeNode[] and KeyValueList cases
-          if (Array.isArray(attrs)) {
-            for (const item of attrs) {
-              // Check if this is an AttrTreeNode with children
-              if ('children' in item) {
-                const node = item as AttrTreeNode;
-                if (node.value !== undefined) {
-                  keyValuePairs.push({key: node.key, value: node.value});
-                } else if (node.children?.length) {
-                  // If no value but has children, use the first child's value if available
-                  const firstChild = node.children[0];
-                  keyValuePairs.push({
-                    key: node.key,
-                    value: firstChild.value || ''
-                  });
-                }
-              } else if ('key' in item && 'value' in item) {
-                // This is a simple KeyValuePair
-                keyValuePairs.push(item as KeyValuePair);
+          const flattenTreeNodes = (nodes: AttrTreeNode[]): KeyValuePair[] => {
+            const result: KeyValuePair[] = [];
+            for (const node of nodes) {
+              if (node.value !== undefined) {
+                result.push({key: node.fullKey, value: node.value});
               }
+              if (node.children?.length) {
+                result.push(...flattenTreeNodes(node.children));
+              }
+            }
+            return result;
+          };
+
+          for (const item of attrs) {
+            // Check if this is an AttrTreeNode with children
+            if ('children' in item) {
+              const treeNodes = [item as AttrTreeNode];
+              keyValuePairs.push(...flattenTreeNodes(treeNodes));
+            } else if ('key' in item && 'value' in item) {
+              // This is a simple KeyValuePair
+              keyValuePairs.push(item as KeyValuePair);
             }
           }
         }
