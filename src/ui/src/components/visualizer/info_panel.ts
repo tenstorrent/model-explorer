@@ -78,6 +78,7 @@ enum SectionLabel {
   LAYER_INFO = 'Layer info',
   LAYER_ATTRS = 'Layer attributes',
   ATTRIBUTES = 'Attributes',
+  NESTED_ATTRIBUTES = 'Nested attributes',
   NODE_DATA_PROVIDERS = 'Node data providers',
   IDENTICAL_GROUPS = 'Identical groups',
   INPUTS = 'inputs',
@@ -790,38 +791,25 @@ export class InfoPanel {
 
     // Section for attrs.
     if (Object.keys(opNode.attrs || {}).length > 0) {
-      const attrSection: InfoSection = {
-        label: SectionLabel.ATTRIBUTES,
-        sectionType: 'op',
-        items: [],
-      };
-      
-      // Check if we have any nested attributes (keys with '/')
       const attrs = opNode.attrs || {};
       const attrKeys = Object.keys(attrs);
       const hasNestedAttributes = attrKeys.some(
         key => key.includes('/') && !key.startsWith('__') && !key.includes('//')
       );
       
-      if (hasNestedAttributes) {
-        // Convert attributes to tree structure
-        const attrTree = buildAttrTree(attrs);
+      // Regular attributes section
+      const regularAttrs = attrKeys.filter(key => 
+        !key.startsWith('__') && (!hasNestedAttributes || !key.includes('/') || key.includes('//'))
+      );
+      
+      if (regularAttrs.length > 0) {
+        const attrSection: InfoSection = {
+          label: SectionLabel.ATTRIBUTES,
+          sectionType: 'op',
+          items: [],
+        };
         
-        // Add the tree view item
-        attrSection.items.push({
-          section: attrSection,
-          label: 'attributes',
-          value: '',
-          isTreeView: true,
-          attrs: attrTree,
-        });
-      } else {
-        // Fall back to flat view for backward compatibility
-        for (const key of attrKeys) {
-          // Ignore reserved keys.
-          if (key.startsWith('__')) {
-            continue;
-          }
+        for (const key of regularAttrs) {
           const value = attrs[key];
           const strValue = typeof value === 'string' ? value : '';
           const specialValue: SpecialNodeAttributeValue | undefined =
@@ -837,10 +825,31 @@ export class InfoPanel {
             displayType: opNode.attrDisplayTypes?.[key],
           });
         }
+        
+        this.sections.push(attrSection);
       }
       
-      if (attrSection.items.length > 0) {
-        this.sections.push(attrSection);
+      // Nested attributes section
+      if (hasNestedAttributes) {
+        const nestedAttrSection: InfoSection = {
+          label: SectionLabel.NESTED_ATTRIBUTES,
+          sectionType: 'op',
+          items: [],
+        };
+        
+        // Convert attributes to tree structure
+        const attrTree = buildAttrTree(attrs);
+        
+        // Add the tree view item
+        nestedAttrSection.items.push({
+          section: nestedAttrSection,
+          label: 'nested attributes',
+          value: '',
+          isTreeView: true,
+          attrs: attrTree,
+        });
+        
+        this.sections.push(nestedAttrSection);
       }
     }
 

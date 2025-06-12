@@ -29,13 +29,13 @@ limitations under the License.
           {{section.label}}
         </div>
         <div class="items-container">
-          @if (section.items[0].isTreeView && section.items[0].attrs) {
+          @if (section.label === SectionLabel.NESTED_ATTRIBUTES && section.items[0].attrs) {
             <!-- Tree view for nested attributes -->
             <div class="attr-tree-container">
               <attr-tree-view [data]="section.items[0].attrs"></attr-tree-view>
             </div>
           } @else {
-            <!-- Flat view for backward compatibility -->
+            <!-- Flat view for regular attributes and other sections -->
             <table class="metadata-table info-attrs">
               @for (item of section.items; track getAttributeTrackingId(item)) {
                 <tr [class.search-match]="isSearchMatchedAttrId(item.label)">
