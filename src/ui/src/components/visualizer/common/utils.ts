@@ -397,8 +397,8 @@ export function getShapeForAttrsTable(items?: KeyValuePairs): string {
 
 /** 
  * Gets the key value pairs for the given node's attrs for attrs table.
- * If the attributes contain nested paths (using '/' as separator), they will be
- * returned as a tree structure.
+ *
+ * If the attributes contain nested paths (using '/' as separator), they will be returned as a tree structure.
  */
 export function getOpNodeAttrsKeyValuePairsForAttrsTable(
   node: OpNode,
@@ -419,7 +419,7 @@ export function getOpNodeAttrsKeyValuePairsForAttrsTable(
     if (filterRegex.trim()) {
       const regex = new RegExp(filterRegex, 'i');
       const filteredTree = filterAttrTree(tree, regex);
-      return filteredTree.length > 0 ? filteredTree : [];
+      return filteredTree;
     }
     
     return tree;
