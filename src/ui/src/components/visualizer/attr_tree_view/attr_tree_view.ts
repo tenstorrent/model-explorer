@@ -16,26 +16,9 @@
  * ==============================================================================
  */
 
-import {ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FlatTreeControl} from '@angular/cdk/tree';
-import {MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule} from '@angular/material/tree';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
 import {AttrTreeNode} from '../common/attr_tree';
-import {KeyValue} from '@angular/common';
-
-/**
- * Flattened node with expandable and level information
- */
-interface FlatNode {
-  expandable: boolean;
-  name: string;
-  value: string | undefined;
-  level: number;
-  isHighlighted: boolean;
-  fullKey: string;
-}
 
 @Component({
   selector: 'attr-tree-view',
@@ -44,67 +27,13 @@ interface FlatNode {
   standalone: true,
   imports: [
     CommonModule,
-    MatTreeModule,
-    MatIconModule,
-    MatButtonModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AttrTreeView implements OnChanges {
+export class AttrTreeView {
   @Input() data: AttrTreeNode[] = [];
   @Input() filterRegex: string = '';
   @Input() expandAll: boolean = true;
-
-  treeControl = new FlatTreeControl<FlatNode>(
-    node => node.level,
-    node => node.expandable,
-  );
-
-  private transformer = (node: AttrTreeNode, level: number): FlatNode => {
-    const expandable = !!(node.children && node.children.length > 0);
-    const value = node.value || '';
-    const isHighlighted = this.filterRegex ? new RegExp(this.filterRegex, 'i').test(value) : false;
-    
-    return {
-      expandable,
-      name: node.key,
-      value: node.value,
-      level,
-      isHighlighted,
-      fullKey: node.fullKey
-    };
-  };
-
-  treeFlattener = new MatTreeFlattener(
-    this.transformer,
-    node => node.level,
-    node => node.expandable,
-    node => node.children || [],
-  );
-
-  dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-
-  hasChild = (_: number, node: FlatNode) => node.expandable;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['data'] && this.data) {
-      console.log('AttrTreeView received data:', this.data);
-      this.dataSource.data = this.data;
-      
-      if (this.expandAll) {
-        // Use setTimeout to ensure the view is updated before expanding
-        setTimeout(() => {
-          console.log('Expanding all nodes. Total nodes:', this.treeControl.dataNodes.length);
-          this.treeControl.dataNodes.forEach((node, index) => {
-            if (node.expandable) {
-              console.log(`Expanding node ${index}: ${node.name} (level ${node.level})`);
-              this.treeControl.expand(node);
-            }
-          });
-        });
-      }
-    }
-  }
 
   getDisplayValue(value: string | undefined): string {
     if (value === undefined || value === '') return '';

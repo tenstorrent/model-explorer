@@ -16,45 +16,45 @@
   ==============================================================================
 -->
 
-<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="attr-tree">
-  <mat-tree-node
-    *matTreeNodeDef="let node"
-    matTreeNodePadding
-    [class.highlighted]="node.isHighlighted">
-    <div class="attr-tree-node">
-      <span class="attr-key">{{node.name}}</span>
-      <span class="attr-value" *ngIf="node.value" [title]="node.value">
-        {{getDisplayValue(node.value)}}
-      </span>
-      <span class="attr-value-empty" *ngIf="!node.value">
-        (no value)
-      </span>
-    </div>
-  </mat-tree-node>
-
-  <mat-tree-node
-    *matTreeNodeDef="let node; when: hasChild"
-    matTreeNodePadding>
-    <div class="attr-tree-node">
-      <button
-        mat-icon-button
-        matTreeNodeToggle
-        [attr.aria-label]="'Toggle ' + node.name">
-        <mat-icon class="mat-icon-rtl-mirror">
-          {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
-        </mat-icon>
-      </button>
-      <span class="attr-key">{{node.name}}</span>
-      <span class="attr-value" *ngIf="node.value" [title]="node.value">
-        {{getDisplayValue(node.value)}}
-      </span>
-      <span class="attr-value-group" *ngIf="!node.value">
-        (group)
-      </span>
-    </div>
-  </mat-tree-node>
-</mat-tree>
+<div class="attr-tree">
+  <ng-container *ngTemplateOutlet="nodeTemplate; context: { nodes: data, level: 0 }"></ng-container>
+</div>
 
 <ng-container *ngIf="!data || data.length === 0">
   <div class="no-attributes">No attributes available</div>
 </ng-container>
+
+<ng-template #nodeTemplate let-nodes="nodes" let-level="level">
+  <ng-container *ngFor="let node of nodes; trackBy: trackByNode">
+    <div class="attr-tree-node" [style.padding-left.px]="level * 20">
+      <ng-container *ngIf="node.children && node.children.length > 0; else leafNode">
+        <details [open]="expandAll">
+          <summary class="attr-key-with-children">
+            <span class="attr-key">{{node.key}}</span>
+            <span class="attr-value" *ngIf="node.value" [title]="node.value">
+              {{getDisplayValue(node.value)}}
+            </span>
+            <span class="attr-value-group" *ngIf="!node.value">
+              (group)
+            </span>
+          </summary>
+          <div class="children-container">
+            <ng-container *ngTemplateOutlet="nodeTemplate; context: { nodes: node.children, level: level + 1 }"></ng-container>
+          </div>
+        </details>
+      </ng-container>
+      
+      <ng-template #leafNode>
+        <div class="leaf-node">
+          <span class="attr-key">{{node.key}}</span>
+          <span class="attr-value" *ngIf="node.value" [title]="node.value">
+            {{getDisplayValue(node.value)}}
+          </span>
+          <span class="attr-value-empty" *ngIf="!node.value">
+            (no value)
+          </span>
+        </div>
+      </ng-template>
+    </div>
+  </ng-container>
+</ng-template>
