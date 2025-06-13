@@ -16,6 +16,12 @@
  * ==============================================================================
  */
 
+declare global {
+	interface DocumentEventMap {
+		'override-update': CustomEvent<OverridesPerCollection>;
+	}
+}
+
 import {Injectable, signal} from '@angular/core';
 
 import {GRAPHS_MODEL_SOURCE_PREFIX} from '../common/consts';
@@ -96,27 +102,39 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
           curOverrides[collectionLabel] = {};
         }
 
+        const curCollectionOverrides = curOverrides[collectionLabel];
+
         Object.entries(overridesPerGraph).forEach(([graphId, graphOverrides]) => {
-          if (!curOverrides[collectionLabel][graphId]) {
-            curOverrides[collectionLabel][graphId] = {
+          if (!curCollectionOverrides[graphId]) {
+            curCollectionOverrides[graphId] = {
               wasSentToServer: false,
               overrides: {}
             }
           }
 
-          graphOverrides.wasSentToServer = wasSentToServer;
+          const curGraphOverrides = curCollectionOverrides[graphId];
+
+          curGraphOverrides.wasSentToServer = wasSentToServer;
 
           Object.entries(graphOverrides.overrides).forEach(([nodeFullLocation, keyValuePairs]) => {
-            if (!curOverrides[collectionLabel][graphId].overrides?.[nodeFullLocation]) {
-              curOverrides[collectionLabel][graphId].overrides[nodeFullLocation] = {
+            if (!curGraphOverrides.overrides[nodeFullLocation]) {
+              curGraphOverrides.overrides[nodeFullLocation] = {
                 named_location: keyValuePairs.named_location ?? '',
                 full_location: nodeFullLocation,
                 attributes: []
               };
             }
 
-            keyValuePairs.attributes.forEach((keyValuePair, index) => {
-              curOverrides[collectionLabel][graphId].overrides[nodeFullLocation].attributes[index] = keyValuePair;
+            const curNodeOverrides = curGraphOverrides.overrides[nodeFullLocation];
+
+            keyValuePairs.attributes.forEach((keyValuePair) => {
+              const existingAttrIndex = curNodeOverrides.attributes.findIndex(({ key }) => key === keyValuePair.key);
+
+              if (existingAttrIndex === -1) {
+                curNodeOverrides.attributes.push(keyValuePair);
+              } else {
+                curNodeOverrides.attributes[existingAttrIndex] = keyValuePair;
+              }
             });
           });
         });
@@ -124,6 +142,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
       return curOverrides;
     });
+
+    document.dispatchEvent(new CustomEvent('override-update', {
+      detail: this.overrides()
+    }));
   }
 
   get hasOverrides() {

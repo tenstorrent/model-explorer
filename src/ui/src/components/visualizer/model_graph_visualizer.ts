@@ -344,15 +344,20 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['graphCollections']) {
       if (!changes['graphCollections'].isFirstChange()) {
-        this.appService.reset();
-        this.uiStateService.reset();
-        this.ngOnInit();
+        this.reset();
       }
     }
   }
 
   ngOnDestroy() {
     this.cleanUp();
+  }
+
+  @HostListener('document:override-upload')
+  reset() {
+    this.appService.reset();
+    this.uiStateService.reset();
+    this.ngOnInit();
   }
 
   @HostListener('document:keydown', ['$event'])
