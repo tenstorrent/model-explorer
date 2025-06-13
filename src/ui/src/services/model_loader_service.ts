@@ -17,7 +17,7 @@
  */
 
 declare global {
-	interface GlobalEventHandlersEventMap {
+	interface DocumentEventMap {
 		'override-update': CustomEvent<OverridesPerCollection>;
 	}
 }
