@@ -24,6 +24,7 @@ import {
   Component,
   ElementRef,
   HostBinding,
+  HostListener,
   Inject,
   Input,
   OnChanges,
@@ -73,13 +74,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly appService: AppService,
     private readonly changeDetectorRef: ChangeDetectorRef,
-  ) {
-    document.addEventListener('override-update', (evt) => {
-      const graphOverrides = this.getGraphOverride(evt.detail);
-
-      this.updateDisplayText(graphOverrides);
-    });
-  }
+  ) {}
 
   @HostBinding('class.expanded') get hostExpanded() {
     return this.expanded;
@@ -99,8 +94,7 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
       this.resizeObserver.observe(this.container.nativeElement);
     }
 
-    const graphOverrides = this.getGraphOverride(this.modelLoaderService.overrides());
-    this.updateDisplayText(graphOverrides);
+    this.handleOverrideChange(this.modelLoaderService.overrides());
   }
 
   ngOnChanges() {
@@ -123,6 +117,12 @@ export class ExpandableInfoText implements AfterViewInit, OnDestroy, OnChanges {
     const curModel = models.find(({ label }) => label === curCollectionLabel);
 
     return curModel !== undefined;
+  }
+
+  @HostListener('document:override-update', ['$event.detail'])
+  handleOverrideChange(newOverrides: OverridesPerCollection) {
+    const graphOverrides = this.getGraphOverride(newOverrides);
+    this.updateDisplayText(graphOverrides);
   }
 
   splitEditableList(value: string, separator = ',') {
