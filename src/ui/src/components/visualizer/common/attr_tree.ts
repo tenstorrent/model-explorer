@@ -29,6 +29,15 @@ export type AttrTreeNode = KeyValue;
  * - If an original framework attribute contains a slash, escape it as '//'.
  * - When rendering, un-escape '//' back to '/'.
  * 
+ * Each node in the tree contains:
+ * - key: The segment name at this level (e.g., "bar" for "foo/bar/baz")
+ * - fullKey: The path up to this node (e.g., "foo" -> "foo/bar" -> "foo/bar/baz")
+ * - originalKey: The complete original key (only for leaf nodes, useful for editable fields)
+ * - value: The attribute value (only for leaf nodes)
+ * 
+ * Uses a lookup map approach to efficiently provide originalKey for leaf nodes without
+ * impacting the recursive processing performance.
+ * 
  * @param attrs Flat key-value pairs where keys may represent paths
  * @returns Array of root nodes for the attribute tree
  */
@@ -42,6 +51,8 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
   }
   
   const root: Record<string, BuildingNode> = {};
+  // Create a lookup map from fullKey to originalKey for efficient retrieval
+  const fullKeyToOriginalKey: Record<string, string> = {};
 
   for (const [rawKey, value] of Object.entries(attrs)) {
     if (value === undefined || value === '') continue;
@@ -58,6 +69,9 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
       const segment = pathSegments[i];
       const isLeaf = i === pathSegments.length - 1;
       const fullKey = pathSegments.slice(0, i + 1).join('/');
+      
+      // Store the mapping from fullKey to originalKey (for editable fields)
+      fullKeyToOriginalKey[fullKey] = rawKey;
       
       // Create node if it doesn't exist
       if (!currentLevel[segment]) {
@@ -80,7 +94,7 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
       }
     }
   }
-  
+
   // Convert children from Record to array and sort alphabetically
   function processNode(nodeRecord: Record<string, BuildingNode>): AttrTreeNode[] {
     return Object.values(nodeRecord)
@@ -88,12 +102,14 @@ export function buildAttrTree(attrs: Record<string, unknown>): AttrTreeNode[] {
         key: node.key,
         value: node.value || '',
         fullKey: node.fullKey,
+        // Add originalKey for leaf nodes (those with values) using the lookup map
+        originalKey: node.value ? fullKeyToOriginalKey[node.fullKey] : undefined,
         children: node.children ? processNode(node.children) : undefined,
         type: 'tree' as const
       }))
       .sort((a, b) => a.key.localeCompare(b.key));
   }
-  
+
   return processNode(root);
 }
 

@@ -28,6 +28,8 @@ export declare interface KeyValue {
   value: string;
   /** Full path for hierarchical attributes (optional for tree structures) */
   fullKey?: string;
+  /** Complete original key for leaf nodes (useful for editable fields) */
+  originalKey?: string;
   /** Child nodes for hierarchical attributes (optional for tree structures) */
   children?: KeyValue[];
   /** Type identifier for distinguishing tree attributes */
