@@ -837,8 +837,16 @@ export class InfoPanel {
           items: [],
         };
         
+        // Filter to only include attributes that contain '/' (i.e., are truly nested)
+        const nestedAttrs = attrKeys
+          .filter(key => key.includes('/') && !key.startsWith('__') && !key.includes('//'))
+          .reduce((filtered, key) => {
+            filtered[key] = attrs[key];
+            return filtered;
+          }, {} as Record<string, unknown>);
+        
         // Convert attributes to tree structure
-        const attrTree = buildAttrTree(attrs);
+        const attrTree = buildAttrTree(nestedAttrs);
         
         // Add the tree view item
         nestedAttrSection.items.push({
