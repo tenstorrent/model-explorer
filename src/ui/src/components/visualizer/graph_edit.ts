@@ -147,38 +147,43 @@ export class GraphEdit {
       this.modelLoaderService.graphErrors.update(() => undefined);
       this.appService.addGraphCollections(newGraphCollections);
 
-      const modelGraphs = this.appService.panes().map((pane) => pane.modelGraph).filter((modelGraph) => modelGraph !== undefined);
+      document.addEventListener('visualizer-reset', () => {
+        const modelGraphs = this.appService.modelGraphs();
 
-      newGraphCollections.forEach((collection) => {
-        collection.graphs.forEach((graph: Partial<Graph>) => {
-          // TODO: find a better way to reference the model graph
-          // FIXME: resolve reference to all model graphs
-          const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
+        console.log(modelGraphs);
 
-          if (modelGraph) {
-            Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
-              const formattedRunName = runName === 'perf_data' ? `${modelGraph.id} (Performance Trace)` : runName;
-              const newRunId = genUid();
+        newGraphCollections.forEach((collection) => {
+          collection.graphs.forEach((graph: Partial<Graph>) => {
+            // TODO: find a better way to reference the model graph
+            // FIXME: resolve reference to all model graphs
+            const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
 
-              this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
-                .filter(({ runName: prevRunName }) => prevRunName === formattedRunName)
-                .map(({ runId }) => runId)
-                .forEach((runId) => {
-                  this.nodeDataProviderExtensionService.deleteRun(runId);
-                });
+            if (modelGraph) {
+              Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
+                const formattedRunName = runName === 'perf_data' ? `${modelGraph.id} (Performance Trace)` : runName;
+                const newRunId = genUid();
 
-              // TODO: add run after timeout to wait for updated information
-              this.nodeDataProviderExtensionService.addRun(
-                newRunId,
-                formattedRunName,
-                curModel.selectedAdapter?.id ?? '',
-                modelGraph,
-                overlayData,
-              );
-            });
-          }
+                // this.nodeDataProviderExtensionService.getRunsForModelGraph(curGraph)
+                //   .filter(({ runName: prevRunName }) => prevRunName === formattedRunName)
+                //   .map(({ runId }) => runId)
+                //   .forEach((runId) => {
+                //     this.nodeDataProviderExtensionService.deleteRun(runId);
+                //   });
+
+                // // TODO: add run after timeout to wait for updated information
+                // this.nodeDataProviderExtensionService.addRun(
+                //   newRunId,
+                //   formattedRunName,
+                //   curModel.selectedAdapter?.id ?? '',
+                //   modelGraph,
+                //   overlayData,
+                // );
+              });
+            }
+          });
         });
-      });
+      }, { once: true });
+
 
       this.showSuccessMessage('Model updated');
     } else {
