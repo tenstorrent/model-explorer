@@ -16,6 +16,12 @@
  * ==============================================================================
  */
 
+declare global {
+	interface DocumentEventMap {
+		'override-update': CustomEvent<OverridesPerCollection>;
+	}
+}
+
 import {Injectable, signal} from '@angular/core';
 
 import {GRAPHS_MODEL_SOURCE_PREFIX} from '../common/consts';
@@ -134,6 +140,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
       return curOverrides;
     });
+
+    document.dispatchEvent(new CustomEvent('override-update', {
+      detail: this.overrides()
+    }));
   }
 
   get hasOverrides() {

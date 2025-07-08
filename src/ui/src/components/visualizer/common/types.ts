@@ -814,3 +814,112 @@ export declare interface SyncNavigationModeChangedEvent {
   // Used when mode is LOAD_MAPPING_FROM_CNS.
   cnsPath?: string;
 }
+
+/** Config for legend panel. */
+export declare interface LegendConfig {
+  /** Whether to hide the "Op node" legend row. */
+  hideOp?: boolean;
+
+  /** Whether to hide the "Layer node" legend row. */
+  hideLayer?: boolean;
+
+  /** Whether to hide the "Artificial layer" legend row. */
+  hideArtificialLayers?: boolean;
+
+  /** Whether to hide the "Selected op" legend row. */
+  hideSelectedOp?: boolean;
+
+  /** Whether to hide the "Selected layer" legend row. */
+  hideSelectedLayer?: boolean;
+
+  /** Whether to hide the "Identical layer" legend row. */
+  hideIdenticalLayers?: boolean;
+
+  /** Whether to hide the "Inputs" legend row. */
+  hideInputs?: boolean;
+
+  /** Whether to hide the "Outputs" legend row. */
+  hideOutputs?: boolean;
+
+  /** Whether to hide the navigation shortcuts legend rows. */
+  hideShortcuts?: boolean;
+
+  /**
+   * If set, rename the "op" label to this string.
+   */
+  renameOpTo?: string;
+
+  /**
+   * If set, rename the "layer" label to this string.
+   */
+  renameLayerTo?: string;
+
+  /**
+   * If set, rename the "inputs" label to this string.
+   */
+  renameInputsTo?: string;
+
+  /**
+   * If set, rename the "outputs" label to this string.
+   */
+  renameOutputsTo?: string;
+}
+
+/** Config for "View on node" menu. */
+export declare interface ViewOnNodeConfig {
+  /** Whether to hide the "Op node id" item. */
+  hideOpNodeId?: boolean;
+
+  /** Whether to hide the "Op node attributes" item. */
+  hideOpNodeAttributes?: boolean;
+
+  /** Whether to hide the "Op node inputs" item. */
+  hideOpNodeInputs?: boolean;
+
+  /** Whether to hide the "Op node outputs" item. */
+  hideOpNodeOutputs?: boolean;
+
+  /** Whether to hide the "Layer node children count" item. */
+  hideLayerNodeChildrenCount?: boolean;
+
+  /** Whether to hide the "Layer node descendants count" item. */
+  hideLayerNodeDescendantsCount?: boolean;
+
+  /** Whether to hide the "Layer node attributes" item. */
+  hideLayerNodeAttributes?: boolean;
+
+  /** Whether to hide the "View on edges" section. */
+  hideViewOnEdgesSection?: boolean;
+
+  /**
+   * If set, rename the "Op node id" item to this string.
+   */
+  renameOpNodeIdTo?: string;
+
+  /**
+   * If set, rename the "Op node attributes" item to this string.
+   */
+  renameOpNodeAttributesTo?: string;
+
+  /**
+   * If set, rename the "Op node inputs" item to this string.
+   */
+  renameOpNodeInputsTo?: string;
+
+  /**
+   * If set, rename the "Op node outputs" item to this string.
+   */
+  renameOpNodeOutputsTo?: string;
+}
+
+/** Config for the toolbar. */
+export declare interface ToolbarConfig {
+  /** Whether to hide the "Expand/collapse all layers" button. */
+  hideExpandCollapseAllLayers?: boolean;
+
+  /** Whether to hide the "Flatten all layers" button. */
+  hideFlattenAllLayers?: boolean;
+
+  /** Whether to hide the "Custom edge overlays" button. */
+  hideCustomEdgeOverlays?: boolean;
+}

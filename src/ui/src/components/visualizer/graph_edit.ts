@@ -20,6 +20,12 @@ import type { Graph } from './common/input_graph';
 import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
 import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_code_dialog.js';
 
+declare global {
+	interface DocumentEventMap {
+		'override-upload': CustomEvent<undefined>;
+	}
+}
+
 /**
  * The graph edit component.
  *
@@ -333,6 +339,8 @@ export class GraphEdit {
           }
         }
       });
+
+      document.dispatchEvent(new CustomEvent('override-upload'));
     } catch (err) {
       const errorMessage = (err as Error).message ?? 'An error has occured';
 

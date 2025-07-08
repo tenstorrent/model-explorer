@@ -16,6 +16,7 @@
  * ==============================================================================
  */
 
+import {EdgeOverlaysData} from './edge_overlays';
 import type { OverridesPerNode } from '../../../common/model_loader_service_interface.js';
 import {
   GraphNodeConfig,
@@ -94,6 +95,11 @@ export declare interface Graph {
 
   // The ids of its parent graphs.
   parentGraphIds?: string[];
+
+  // The data for various tasks that provide extra data to be visualized, such
+  // as node data, edge overlay, etc.
+  tasksData?: TasksData;
+
   overlays?: Record<string, NodeDataProviderData>;
   overrides?: OverridesPerNode;
   cppCode?: string;
@@ -162,4 +168,16 @@ export declare interface GraphNode {
 
   /** Custom configs for the node. */
   config?: GraphNodeConfig;
+}
+
+/** Data for various tasks that provide extra data to be visualized. */
+export declare interface TasksData {
+  /**
+   * List of data for edge overlays that will be applied to the left pane
+   * (2-pane view) or the only pane (1-pane view).
+   */
+  edgeOverlaysDataListLeftPane?: EdgeOverlaysData[];
+
+  /** List of data for edge overlays that will be applied to the right pane. */
+  edgeOverlaysDataListRightPane?: EdgeOverlaysData[];
 }

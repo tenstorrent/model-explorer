@@ -23,6 +23,8 @@ import {
   Component,
   effect,
   Input,
+  signal,
+  viewChildren,
 } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 
@@ -41,10 +43,14 @@ import {AppService} from './app_service';
 })
 export class LegendsPanel {
   @Input({required: true}) paneId!: string;
+  readonly legendItems = viewChildren('item');
 
   showSelectedNodeKey = false;
   isSelectedNodeGroup = false;
   hasArtificialLayers = false;
+
+  protected showPanel = signal<boolean>(true);
+  protected showDivider = signal<boolean>(true);
 
   constructor(
     private readonly appService: AppService,
@@ -68,5 +74,78 @@ export class LegendsPanel {
       this.isSelectedNodeGroup = selectedNodeInfo.isGroupNode;
       this.changeDetectorRef.markForCheck();
     });
+
+    effect(() => {
+      const legendItems = this.legendItems();
+      this.showDivider.set(legendItems.length > 0);
+      this.showPanel.set(legendItems.length > 0 || !this.hideShortcuts);
+    });
+  }
+
+  get opLabel(): string {
+    return this.appService.config()?.legendConfig?.renameOpTo ?? 'Op';
+  }
+
+  get layerLabel(): string {
+    return this.appService.config()?.legendConfig?.renameLayerTo ?? 'Layer';
+  }
+
+  get inputsLabel(): string {
+    return this.appService.config()?.legendConfig?.renameInputsTo ?? 'Inputs';
+  }
+
+  get outputsLabel(): string {
+    return this.appService.config()?.legendConfig?.renameOutputsTo ?? 'Outputs';
+  }
+
+  get selectedItemLabel(): string {
+    const config = this.appService.config();
+    if (this.isSelectedNodeGroup) {
+      return `Selected ${config?.legendConfig?.renameLayerTo ?? 'layer'}`;
+    } else {
+      return `Selected ${config?.legendConfig?.renameOpTo ?? 'op'}`;
+    }
+  }
+
+  get identicalLayerLabel(): string {
+    return `Identical ${this.appService.config()?.legendConfig?.renameLayerTo ?? 'layer'} (if any)`;
+  }
+
+  get hideOp(): boolean {
+    return this.appService.config()?.legendConfig?.hideOp ?? false;
+  }
+
+  get hideLayer(): boolean {
+    return this.appService.config()?.legendConfig?.hideLayer ?? false;
+  }
+
+  get hideArtificialLayers(): boolean {
+    return (
+      this.appService.config()?.legendConfig?.hideArtificialLayers ?? false
+    );
+  }
+
+  get hideSelectedOp(): boolean {
+    return this.appService.config()?.legendConfig?.hideSelectedOp ?? false;
+  }
+
+  get hideSelectedLayer(): boolean {
+    return this.appService.config()?.legendConfig?.hideSelectedLayer ?? false;
+  }
+
+  get hideIdenticalLayers(): boolean {
+    return this.appService.config()?.legendConfig?.hideIdenticalLayers ?? false;
+  }
+
+  get hideInputs(): boolean {
+    return this.appService.config()?.legendConfig?.hideInputs ?? false;
+  }
+
+  get hideOutputs(): boolean {
+    return this.appService.config()?.legendConfig?.hideOutputs ?? false;
+  }
+
+  get hideShortcuts(): boolean {
+    return this.appService.config()?.legendConfig?.hideShortcuts ?? false;
   }
 }
