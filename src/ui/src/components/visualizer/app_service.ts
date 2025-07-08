@@ -1049,11 +1049,13 @@ export class AppService {
     this.config.set(undefined);
     this.curInitialUiState.set(undefined);
 
+    const curModelGraph = this.getSelectedPane()?.modelGraph;
     const curRunId = this.panes()[0].selectedNodeDataProviderRunId;
     this.panes.set([{
       id: genUid(),
       widthFraction: 1,
       selectedNodeDataProviderRunId: curRunId,
+      modelGraph: curModelGraph,
     }]);
     this.selectedPaneId.set(this.panes()[0].id);
 
