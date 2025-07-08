@@ -67,6 +67,7 @@ import {WorkerService} from './worker_service';
 @Injectable()
 export class AppService {
   readonly curGraphCollections = signal<GraphCollection[]>([]);
+  readonly modelGraphs = signal<ModelGraph[]>([]);
 
   readonly curToLocateNodeInfo = signal<LocateNodeInfo | undefined>(undefined);
 
@@ -316,6 +317,8 @@ export class AppService {
     snapshot?: SnapshotData,
     initialLayout = true,
   ) {
+    console.log('select graph');
+    console.log(this.modelGraphs());
     this.selectGraphInPane(
       graph,
       this.getPaneIndexById(this.selectedPaneId()),
@@ -1106,6 +1109,18 @@ export class AppService {
   }
 
   private handleGraphProcessed(modelGraph: ModelGraph, paneId: string) {
+    this.modelGraphs.update((prevModelGraphs) => {
+      const existingModelGraphIndex = prevModelGraphs.findIndex((curModelGraph) => modelGraph.id === curModelGraph.id && modelGraph.collectionLabel === curModelGraph.collectionLabel);
+
+      if (existingModelGraphIndex === -1) {
+        prevModelGraphs.push(modelGraph);
+      } else {
+        prevModelGraphs.splice(existingModelGraphIndex, 1, modelGraph);
+      }
+
+      return [...prevModelGraphs];
+    });
+
     this.panes.update((panes) => {
       for (const pane of panes) {
         if (pane.id === paneId) {
