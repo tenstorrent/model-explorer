@@ -756,6 +756,7 @@ export class InfoPanel {
     }
 
     const opNode = this.curSelectedNode as OpNode;
+    const config = this.appService.config();
 
     // Section for basic node data.
     const nodeSection: InfoSection = {
@@ -764,14 +765,16 @@ export class InfoPanel {
       items: [],
     };
     this.sections.push(nodeSection);
+
     // Node op.
+    let label = config?.renameNodeInfoOpNameTo ?? 'op name';
     nodeSection.items.push({
       section: nodeSection,
-      label: 'op name',
+      label,
       value: `${opNode.label}`,
     });
     // Node id.
-    let label = 'id';
+    label = 'id';
     nodeSection.items.push({
       section: nodeSection,
       label,
@@ -788,6 +791,15 @@ export class InfoPanel {
       canShowOnNode: true,
       showOnNode: this.curShowOnOpNodeInfoIds.has(label),
     });
+
+    // Filter out node info keys specified in the config.
+    const nodeInfoKeysToHide = config?.nodeInfoKeysToHide ?? [];
+    nodeSection.items = nodeSection.items.filter(
+      (item) =>
+        !(
+          config && nodeInfoKeysToHide.some((regex) => item.label.match(regex))
+        ),
+    );
 
     // Section for attrs.
     if (Object.keys(opNode.attrs || {}).length > 0) {
@@ -1096,7 +1108,15 @@ export class InfoPanel {
         });
       }
     }
-    return metadataList;
+
+    // Filter out hidden input metadata keys.
+    const config = this.appService.config();
+    const inputMetadataKeysToHide = config?.inputMetadataKeysToHide ?? [];
+    return metadataList.filter((item) => {
+      return !(
+        config && inputMetadataKeysToHide.some((regex) => item.key.match(regex))
+      );
+    });
   }
 
   private genOutputMetadataList(
@@ -1104,7 +1124,7 @@ export class InfoPanel {
     outputMetadata: KeyValuePairs,
     connectedNodes: OpNode[],
   ) {
-    const metadataList: OutputItemMetadata[] = [];
+    let metadataList: OutputItemMetadata[] = [];
     let tensorTag = '';
     for (const metadataKey of Object.keys(outputMetadata)) {
       const value = outputMetadata[metadataKey];
@@ -1128,6 +1148,16 @@ export class InfoPanel {
       connectedNodes,
     });
 
+    // Filter out hidden output metadata keys.
+    const config = this.appService.config();
+    const outputMetadataKeysToHide = config?.outputMetadataKeysToHide ?? [];
+    metadataList = metadataList.filter((item) => {
+      return !(
+        config &&
+        outputMetadataKeysToHide.some((regex) => item.key.match(regex))
+      );
+    });
+
     return {metadataList, tensorTag};
   }
 
@@ -1145,14 +1175,16 @@ export class InfoPanel {
       items: [],
     };
     this.sections.push(nodeSection);
+
     // Label.
+    let label = 'name';
     nodeSection.items.push({
       section: nodeSection,
       label: 'name',
       value: groupNode.label,
     });
     // Namespace.
-    let label = 'namespace';
+    label = 'namespace';
     nodeSection.items.push({
       section: nodeSection,
       label,
@@ -1177,6 +1209,15 @@ export class InfoPanel {
       value: String((groupNode.descendantsNodeIds || []).length),
       canShowOnNode: true,
       showOnNode: this.curShowOnGroupNodeInfoIds.has(label),
+    });
+
+    // Filter out hidden node info keys.
+    const config = this.appService.config();
+    const nodeInfoKeysToHide = config?.nodeInfoKeysToHide ?? [];
+    nodeSection.items = nodeSection.items.filter((item) => {
+      return !(
+        config && nodeInfoKeysToHide.some((regex) => item.label.match(regex))
+      );
     });
 
     // Section for custom attributes.

@@ -674,6 +674,7 @@ export function getRegexMatchesForNode(
   regex: RegExp,
   node: ModelNode,
   modelGraph: ModelGraph,
+  config?: VisualizerConfig,
 ): {
   matches: SearchMatch[];
   matchTypes: Set<string>;
@@ -693,7 +694,7 @@ export function getRegexMatchesForNode(
   }
   // Attribute.
   if (shouldMatchTypes.has(SearchMatchType.ATTRIBUTE)) {
-    const attrs = getAttributesFromNode(node, modelGraph);
+    const attrs = getAttributesFromNode(node, modelGraph, config);
     for (const attrId of Object.keys(attrs)) {
       const value = attrs[attrId];
       const text1 = `${attrId}:${value}`;
@@ -709,6 +710,7 @@ export function getRegexMatchesForNode(
   }
   // Inputs
   if (shouldMatchTypes.has(SearchMatchType.INPUT_METADATA) && isOpNode(node)) {
+    const inputMetadataKeysToHide = config?.inputMetadataKeysToHide ?? [];
     for (const incomingEdge of node.incomingEdges || []) {
       // Match source node's label.
       const sourceNode = modelGraph.nodesById[
@@ -743,6 +745,9 @@ export function getRegexMatchesForNode(
         if (metadataKey.startsWith('__')) {
           continue;
         }
+        if (inputMetadataKeysToHide.some((regex) => metadataKey.match(regex))) {
+          continue;
+        }
         const value = metadata[metadataKey];
         const text1 = `${metadataKey}:${value}`;
         const text2 = `${metadataKey}=${value}`;
@@ -762,6 +767,9 @@ export function getRegexMatchesForNode(
         if (metadataKey.startsWith('__')) {
           continue;
         }
+        if (inputMetadataKeysToHide.some((regex) => metadataKey.match(regex))) {
+          continue;
+        }
         const value = curInputMetadata[metadataKey];
         const text1 = `${metadataKey}:${value}`;
         const text2 = `${metadataKey}=${value}`;
@@ -778,6 +786,7 @@ export function getRegexMatchesForNode(
   // Outputs
   if (shouldMatchTypes.has(SearchMatchType.OUTPUT_METADATA) && isOpNode(node)) {
     const outputsMetadata = node.outputsMetadata || {};
+    const outputMetadataKeysToHide = config?.outputMetadataKeysToHide ?? [];
 
     for (const outgoingEdge of node.outgoingEdges || []) {
       const targetNode = modelGraph.nodesById[
@@ -808,6 +817,11 @@ export function getRegexMatchesForNode(
         if (metadataKey.startsWith('__')) {
           continue;
         }
+        if (
+          outputMetadataKeysToHide.some((regex) => metadataKey.match(regex))
+        ) {
+          continue;
+        }
         const value = metadata[metadataKey];
         const text1 = `${metadataKey}:${value}`;
         const text2 = `${metadataKey}=${value}`;
@@ -829,8 +843,10 @@ export function getRegexMatchesForNode(
 export function getAttributesFromNode(
   node: ModelNode,
   modelGraph: ModelGraph,
+  config?: VisualizerConfig,
 ): KeyValuePairs {
   let attrs: KeyValuePairs = {};
+  const nodeInfoKeysToHide = config?.nodeInfoKeysToHide ?? [];
   if (isOpNode(node)) {
     for (const [key, value] of Object.entries(node.attrs || {})) {
       if (typeof value === 'string') {
@@ -858,6 +874,14 @@ export function getAttributesFromNode(
       {};
     attrs = {...attrs, ...customAttrs};
   }
+
+  // Filter out node info keys specified in the config.
+  attrs = Object.fromEntries(
+    Object.entries(attrs).filter(
+      ([key, value]) => !nodeInfoKeysToHide.some((regex) => key.match(regex)),
+    ),
+  );
+
   return attrs;
 }
 
@@ -868,10 +892,11 @@ export function getAttrValueRangeMatchesForNode(
   max: number,
   node: ModelNode,
   modelGraph: ModelGraph,
+  config?: VisualizerConfig,
 ): SearchMatch[] {
   const matches: SearchMatch[] = [];
 
-  const attrs = getAttributesFromNode(node, modelGraph);
+  const attrs = getAttributesFromNode(node, modelGraph, config);
   const value = attrs[attrName];
   if (value != null) {
     const numValue = Number(value);
@@ -951,6 +976,7 @@ export function matchNodeForQueries(
   node: ModelNode,
   queries: ProcessedNodeQuery[],
   modelGraph: ModelGraph,
+  config?: VisualizerConfig,
 ): boolean {
   let matchedAll = true;
   for (const query of queries) {
@@ -972,6 +998,7 @@ export function matchNodeForQueries(
         query.queryRegex,
         node,
         modelGraph,
+        config,
       ).matches;
       if (matches.length === 0) {
         matchedAll = false;
@@ -985,6 +1012,7 @@ export function matchNodeForQueries(
           query.max ?? Number.POSITIVE_INFINITY,
           node,
           modelGraph,
+          config,
         );
         if (matches.length === 0) {
           matchedAll = false;

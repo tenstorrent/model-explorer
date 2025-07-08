@@ -25,11 +25,13 @@ cc_library(
         "@llvm-project//mlir:Support",
         "@shardy//shardy/dialect/sdy/ir:dialect",
         "@stablehlo//:stablehlo_ops",
+        "@org_tensorflow//tensorflow/compiler/mlir/lite:flatbuffer_tflite_operator_lib",  # buildcleaner: keep
         "@org_tensorflow//tensorflow/compiler/mlir/lite:tensorflow_lite",
         "//formats:schema_structs",
         "//tools:attribute_printer",
         "//tools:load_opdefs",
         "//tools:namespace_heuristics",
+        "//tools:shardy_utils",
         "@org_tensorflow//tensorflow/compiler/mlir/tensorflow:tensorflow_types",
         # copybara:uncomment "@org_tensorflow//tensorflow_text:ops_lib",
     ],
