@@ -58,15 +58,14 @@ import {LocalStorageService} from './local_storage_service';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
 
-interface GraphSelectedEventDetails {
-  graphId: string;
-  collectionLabel: string;
-  paneIndex: number;
+export interface GraphProcessedEventDetails {
+  modelGraph: ModelGraph;
+  paneId: string;
 }
 
 declare global {
   interface DocumentEventMap {
-    'app-service-graph-selected': CustomEvent<GraphSelectedEventDetails>;
+    'app-service-graph-processed': CustomEvent<GraphProcessedEventDetails>;
   }
 }
 
@@ -1144,6 +1143,13 @@ export class AppService {
       paneIndex: this.getPaneIndexById(paneId),
       modelGraph,
     });
+
+    requestAnimationFrame(() => document.dispatchEvent(new CustomEvent<GraphProcessedEventDetails>('app-service-graph-processed', {
+      detail: {
+        modelGraph,
+        paneId,
+      }
+    })))
   }
 
   private setPaneLoading(paneId: string) {
