@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ChangeDetectorRef, signal, Input, HostListener } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ModelLoaderServiceInterface, OverridesPerNode } from '../../common/model_loader_service_interface';
-import { AppService } from './app_service';
+import { AppService, type GraphProcessedEventDetails } from './app_service';
 import { UrlService } from '../../services/url_service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModelItemStatus, type ModelItem } from '../../common/types';
@@ -16,9 +16,10 @@ import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
-import type { Graph } from './common/input_graph';
+import type { Graph, GraphCollection } from './common/input_graph';
 import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
 import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_code_dialog.js';
+import type { NodeDataProviderData } from './common/types.js';
 
 declare global {
 	interface DocumentEventMap {
@@ -55,6 +56,8 @@ export class GraphEdit {
 
   executionProgress = 0;
   executionTotal = 0;
+
+  overlaysToProcess: Record<string, Record<string, Record<string, NodeDataProviderData>>> = {};
 
   constructor(
     @Inject('LoggingService')
@@ -114,6 +117,66 @@ export class GraphEdit {
     }, POOL_TIME_MS);
   }
 
+  private addOverlaysToProcess(graphCollections: GraphCollection[]) {
+    graphCollections.forEach((collection) => {
+      collection.graphs.forEach((graph) => {
+        Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
+          if (!this.overlaysToProcess[collection.label]) {
+            this.overlaysToProcess[collection.label] = {};
+          }
+
+          if (!this.overlaysToProcess[collection.label][graph.id]) {
+            this.overlaysToProcess[collection.label][graph.id] = {};
+          }
+
+          this.overlaysToProcess[collection.label][graph.id][runName] = overlayData;
+        });
+      });
+    });
+  }
+
+  private removeOverlayToProcess(collectionLabel: string, graphId: string, runName: string) {
+    delete this.overlaysToProcess[collectionLabel][graphId][runName];
+
+    if (Object.keys(this.overlaysToProcess[collectionLabel][graphId]).length) {
+      delete this.overlaysToProcess[collectionLabel][graphId];
+    }
+
+    if (Object.keys(this.overlaysToProcess[collectionLabel]).length) {
+      delete this.overlaysToProcess[collectionLabel];
+    }
+  }
+
+  @HostListener('document:app-service-graph-processed', ['$event.detail'])
+  handleProcessedGraphs({ modelGraph }: GraphProcessedEventDetails) {
+    if (!this.overlaysToProcess?.[modelGraph.collectionLabel]?.[modelGraph.id]) {
+      return;
+    }
+
+    Object.entries(this.overlaysToProcess[modelGraph.collectionLabel][modelGraph.id]).forEach(([runName, overlayData]) => {
+      const formattedRunName = runName === 'perf_data' ? `${modelGraph.id} (Performance Trace)` : runName;
+      const newRunId = genUid();
+
+      this.nodeDataProviderExtensionService.getRunsForModelGraph(modelGraph)
+        .filter(({ runName: prevRunName }) => prevRunName === formattedRunName)
+        .map(({ runId }) => runId)
+        .forEach((runId) => {
+          this.nodeDataProviderExtensionService.deleteRun(runId);
+        });
+
+      this.nodeDataProviderExtensionService.addRun(
+        newRunId,
+        formattedRunName,
+        // TODO: fix the extension id
+        '',
+        modelGraph,
+        overlayData,
+      );
+
+      this.removeOverlayToProcess(modelGraph.collectionLabel, modelGraph.id, runName);
+    });
+  }
+
   private async updateGraphInformation(curModel: ModelItem, models: ModelItem[]) {
     const newGraphCollections = await this.modelLoaderService.loadModel(curModel);
 
@@ -145,45 +208,9 @@ export class GraphEdit {
       this.modelLoaderService.updateOverrides(overridesPerGraphCollection);
 
       this.modelLoaderService.graphErrors.update(() => undefined);
+      this.addOverlaysToProcess(newGraphCollections);
       this.appService.addGraphCollections(newGraphCollections);
-
-      document.addEventListener('visualizer-reset', () => {
-        const modelGraphs = this.appService.modelGraphs();
-
-        console.log(modelGraphs);
-
-        newGraphCollections.forEach((collection) => {
-          collection.graphs.forEach((graph: Partial<Graph>) => {
-            // TODO: find a better way to reference the model graph
-            // FIXME: resolve reference to all model graphs
-            const modelGraph = modelGraphs.find(({ id, collectionLabel }) => collectionLabel === collection.label && (graph.id ? id.startsWith(graph.id) : false));
-
-            if (modelGraph) {
-              Object.entries(graph.overlays ?? {}).forEach(([runName, overlayData]) => {
-                const formattedRunName = runName === 'perf_data' ? `${modelGraph.id} (Performance Trace)` : runName;
-                const newRunId = genUid();
-
-                // this.nodeDataProviderExtensionService.getRunsForModelGraph(curGraph)
-                //   .filter(({ runName: prevRunName }) => prevRunName === formattedRunName)
-                //   .map(({ runId }) => runId)
-                //   .forEach((runId) => {
-                //     this.nodeDataProviderExtensionService.deleteRun(runId);
-                //   });
-
-                // // TODO: add run after timeout to wait for updated information
-                // this.nodeDataProviderExtensionService.addRun(
-                //   newRunId,
-                //   formattedRunName,
-                //   curModel.selectedAdapter?.id ?? '',
-                //   modelGraph,
-                //   overlayData,
-                // );
-              });
-            }
-          });
-        });
-      }, { once: true });
-
+      this.appService.selectGraphInCurrentPane(newGraphCollections[0].graphs[0]);
 
       this.showSuccessMessage('Model updated');
     } else {
