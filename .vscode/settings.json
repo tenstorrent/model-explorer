@@ -1,0 +1,15 @@
+{
+	"git.enableCommitSigning": false,
+	"files.watcherExclude": {
+		"**/node_modules/**": true,
+		"**/.git/**": true,
+		"**/dist/**": true,
+		"**/build/**": true,
+		"**/.angular/**": true,
+		"**/custom_element_demos/**": true,
+		"**/example_adapters/**": true,
+		"**/builtin-adapter/**": true,
+		"**/web_app/**": true,
+		"**/server/**": true
+	},
+}
