@@ -421,11 +421,25 @@ export class AppService {
   }
 
   processGraph(
-    paneId: string,
+    paneIdOrGraph: string | Graph,
     flattenLayers = false,
     snapshotToRestore?: SnapshotData,
     initialLayout = true,
   ) {
+    let paneId = '<background>';
+    let graph: Graph = paneIdOrGraph as Graph;
+
+    if (typeof paneIdOrGraph === 'string') {
+      paneId = paneIdOrGraph;
+      graph = this.paneIdToGraph[paneId];
+    }
+
+    const processedGraph = this.modelGraphs().find(({ collectionLabel, id }) => collectionLabel === graph.collectionLabel && id === graph.id);
+
+    if (processedGraph) {
+      return;
+    }
+
     // Store snapshotToResotre into pane if set.
     if (snapshotToRestore != null) {
       const pane = this.getPaneById(paneId);
@@ -435,12 +449,13 @@ export class AppService {
     }
 
     // Process the graph.
-    //
-    // TODO: properly cache the processed graph.
-    this.setPaneLoading(paneId);
+    if (paneId !== '<background>') {
+      this.setPaneLoading(paneId);
+    }
+
     const processGraphReq: ProcessGraphRequest = {
       eventType: WorkerEventType.PROCESS_GRAPH_REQ,
-      graph: this.paneIdToGraph[paneId],
+      graph,
       showOnNodeItemTypes: this.getShowOnNodeItemTypes(paneId, paneId),
       nodeDataProviderRuns: {},
       config: this.config ? this.config() : undefined,
