@@ -16,12 +16,6 @@
  * ==============================================================================
  */
 
-declare global {
-	interface DocumentEventMap {
-		'visualizer-reset': CustomEvent<undefined>;
-	}
-}
-
 import {CommonModule} from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -364,8 +358,6 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
     this.appService.reset();
     this.uiStateService.reset();
     this.ngOnInit();
-
-    requestAnimationFrame(() => document.dispatchEvent(new CustomEvent<undefined>('visualizer-reset')));
   }
 
   @HostListener('document:keydown', ['$event'])
