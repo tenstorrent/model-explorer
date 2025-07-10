@@ -321,14 +321,6 @@ export class AppService {
 
     // Process the graph.
     this.processGraph(paneId, flattenLayers, snapshot, initialLayout);
-
-    requestAnimationFrame(() => document.dispatchEvent(new CustomEvent<GraphSelectedEventDetails>('app-service-graph-selected', {
-      detail: {
-        graphId: graph.id,
-        collectionLabel: graph.collectionLabel ?? '',
-        paneIndex
-      }
-    })));
   }
 
   selectGraphInCurrentPane(
