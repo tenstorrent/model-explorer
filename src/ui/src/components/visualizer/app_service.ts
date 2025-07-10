@@ -58,6 +58,18 @@ import {LocalStorageService} from './local_storage_service';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
 
+interface GraphSelectedEventDetails {
+  graphId: string;
+  collectionLabel: string;
+  paneIndex: number;
+}
+
+declare global {
+  interface DocumentEventMap {
+    'app-service-graph-selected': CustomEvent<GraphSelectedEventDetails>;
+  }
+}
+
 /**
  * A service to manage shared data and their updates.
  *
@@ -309,6 +321,14 @@ export class AppService {
 
     // Process the graph.
     this.processGraph(paneId, flattenLayers, snapshot, initialLayout);
+
+    requestAnimationFrame(() => document.dispatchEvent(new CustomEvent<GraphSelectedEventDetails>('app-service-graph-selected', {
+      detail: {
+        graphId: graph.id,
+        collectionLabel: graph.collectionLabel ?? '',
+        paneIndex
+      }
+    })));
   }
 
   selectGraphInCurrentPane(
@@ -317,8 +337,6 @@ export class AppService {
     snapshot?: SnapshotData,
     initialLayout = true,
   ) {
-    console.log('select graph');
-    console.log(this.modelGraphs());
     this.selectGraphInPane(
       graph,
       this.getPaneIndexById(this.selectedPaneId()),
