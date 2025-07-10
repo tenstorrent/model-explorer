@@ -217,7 +217,7 @@ export class GraphExpander {
     let curNode = node;
     while (true) {
       const nsParent = this.modelGraph.nodesById[
-        curNode.nsParentId || ''
+        curNode?.nsParentId || ''
       ] as GroupNode;
       if (!nsParent) {
         break;
