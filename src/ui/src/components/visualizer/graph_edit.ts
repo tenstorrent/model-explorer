@@ -211,6 +211,7 @@ export class GraphEdit {
       this.addOverlaysToProcess(newGraphCollections);
       this.appService.addGraphCollections(newGraphCollections);
       this.appService.selectGraphInCurrentPane(newGraphCollections[0].graphs[0]);
+      this.appService.processGraphCollections(newGraphCollections);
 
       this.showSuccessMessage('Model updated');
     } else {

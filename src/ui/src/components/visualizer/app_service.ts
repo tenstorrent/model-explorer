@@ -420,6 +420,14 @@ export class AppService {
     return panes.length === 2 && panes[1].modelGraph?.id === graphId;
   }
 
+  processGraphCollections(graphCollections: GraphCollection[]) {
+    graphCollections.forEach(({ graphs }) => {
+      graphs.forEach((graph) => {
+        this.processGraph(graph);
+      });
+    });
+  }
+
   processGraph(
     paneIdOrGraph: string | Graph,
     flattenLayers = false,
