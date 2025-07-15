@@ -1,0 +1,242 @@
+@use '@angular/material' as mat;
+@use 'sass:map';
+
+.attr-tree {
+  font-family: 'Roboto', sans-serif;
+  background: transparent;
+  overflow-x: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.attr-tree-node {
+  display: block;
+  min-height: 32px;
+  border-bottom: 1px solid #f0f0f0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+details {
+  margin: 0;
+  
+  summary {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: #f8f9fa;
+    }
+    
+    &::-webkit-details-marker {
+      display: none;
+    }
+    
+    &::before {
+      content: '▶';
+      margin-right: 8px;
+      font-size: 12px;
+      color: #5f6368;
+      transition: transform 0.2s ease;
+    }
+  }
+  
+  &[open] summary::before {
+    transform: rotate(90deg);
+  }
+}
+
+.leaf-node {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+.attr-key {
+  font-weight: 500;
+  color: #1a73e8;
+  margin-right: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 120px;
+  flex-shrink: 0;
+  
+  // For leaf nodes (simple attributes), match original styling
+  .leaf-node & {
+    color: #999;
+    font-weight: normal;
+    min-width: 100px;
+  }
+}
+
+.attr-value {
+  color: #202124;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+  flex: 1;
+  padding: 4px 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e8eaed;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #e8f0fe;
+    border-color: #1a73e8;
+  }
+  
+  // For leaf nodes (simple attributes), match original styling
+  .leaf-node & {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 12px;
+    color: #202124;
+    
+    &:hover {
+      background-color: transparent;
+      border: none;
+    }
+  }
+}
+
+.attr-value-empty,
+.attr-value-group {
+  color: #9aa0a6;
+  font-style: italic;
+  font-size: 12px;
+  flex: 1;
+  padding: 2px 4px;
+}
+
+.attr-value-group {
+  color: #1a73e8;
+  font-weight: 500;
+  background-color: rgba(26, 115, 232, 0.05);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.no-attributes {
+  color: #5f6368;
+  font-style: italic;
+  padding: 16px;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.children-container {
+  border-left: 1px solid #e0e0e0;
+  margin-left: 12px;
+}
+
+// Responsive adjustments
+@media (max-width: 600px) {
+  .attr-tree-node {
+    font-size: 13px;
+    min-height: 28px;
+  }
+  
+  .leaf-node,
+  details summary {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .attr-key {
+      margin-bottom: 4px;
+      min-width: auto;
+    }
+    
+    .attr-value {
+      font-size: 11px;
+      width: 100%;
+      margin-left: 20px;
+    }
+  }
+}
+
+// Dark theme support
+.dark-theme {
+  .attr-tree {
+    border-color: #3c4043;
+  }
+  
+  .attr-tree-node {
+    border-bottom-color: #3c4043;
+  }
+  
+  .leaf-node,
+  details summary {
+    &:hover {
+      background-color: #2d2e30;
+    }
+  }
+  
+  .attr-key {
+    color: #8ab4f8;
+    
+    // For leaf nodes in dark theme
+    .leaf-node & {
+      color: #9aa0a6;
+    }
+  }
+  
+  .attr-value {
+    color: #e8eaed;
+    background-color: #2d2e30;
+    border-color: #5f6368;
+    
+    // For leaf nodes in dark theme
+    .leaf-node & {
+      background-color: transparent;
+      border: none;
+      color: #e8eaed;
+      
+      &:hover {
+        background-color: transparent;
+        border: none;
+      }
+    }
+  }
+  
+  .attr-value-empty {
+    color: #5f6368;
+  }
+  
+  .attr-value-group {
+    color: #8ab4f8;
+  }
+  
+  details summary::before {
+    color: #9aa0a6;
+  }
+  
+  .no-attributes {
+    color: #9aa0a6;
+    background-color: #2d2e30;
+  }
+  
+  .children-container {
+    border-left-color: #5f6368;
+  }
+}

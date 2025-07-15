@@ -18,26 +18,18 @@
 
 import {ConnectedPosition, OverlaySizeConfig} from '@angular/cdk/overlay';
 import {CommonModule} from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  effect,
-  ElementRef,
-  HostBinding,
-  Input,
-  QueryList,
-  ViewChildren,
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostBinding, Input, ViewChildren, QueryList, effect} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {combineLatest, fromEvent} from 'rxjs';
+import {combineLatest, fromEvent, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
 import {Bubble} from '../bubble/bubble';
+import {AttrTreeView} from './attr_tree_view/attr_tree_view';
+import {buildAttrTree, AttrTreeNode} from './common/attr_tree';
 
 import {AppService} from './app_service';
 import {TENSOR_TAG_METADATA_KEY, TENSOR_VALUES_KEY} from './common/consts';
@@ -86,6 +78,7 @@ enum SectionLabel {
   LAYER_INFO = 'Layer info',
   LAYER_ATTRS = 'Layer attributes',
   ATTRIBUTES = 'Attributes',
+  NESTED_ATTRIBUTES = 'Nested attributes',
   NODE_DATA_PROVIDERS = 'Node data providers',
   IDENTICAL_GROUPS = 'Identical groups',
   INPUTS = 'inputs',
@@ -106,6 +99,9 @@ interface InfoItem {
   textColor?: string;
   loading?: boolean;
   specialValue?: SpecialNodeAttributeValue;
+  // For tree view of nested attributes
+  isTreeView?: boolean;
+  attrs?: AttrTreeNode[] | null;
   editable?: EditableAttributeTypes;
   displayType?: AttributeDisplayType;
 }
@@ -139,6 +135,7 @@ const DEFAULT_WIDTH = 370;
   standalone: true,
   selector: 'info-panel',
   imports: [
+    AttrTreeView,
     Bubble,
     CommonModule,
     ExpandableInfoText,
@@ -806,34 +803,73 @@ export class InfoPanel {
 
     // Section for attrs.
     if (Object.keys(opNode.attrs || {}).length > 0) {
-      const attrSection: InfoSection = {
-        label: SectionLabel.ATTRIBUTES,
-        sectionType: 'op',
-        items: [],
-      };
       const attrs = opNode.attrs || {};
-      for (const key of Object.keys(attrs)) {
-        // Ignore reserved keys.
-        if (key.startsWith('__')) {
-          continue;
+      const attrKeys = Object.keys(attrs);
+      const hasNestedAttributes = attrKeys.some(
+        key => key.includes('/') && !key.startsWith('__') && !key.includes('//')
+      );
+      
+      // Regular attributes section
+      const regularAttrs = attrKeys.filter(key => 
+        !key.startsWith('__') && (!hasNestedAttributes || !key.includes('/') || key.includes('//'))
+      );
+      
+      if (regularAttrs.length > 0) {
+        const attrSection: InfoSection = {
+          label: SectionLabel.ATTRIBUTES,
+          sectionType: 'op',
+          items: [],
+        };
+        
+        for (const key of regularAttrs) {
+          const value = attrs[key];
+          const strValue = typeof value === 'string' ? value : '';
+          const specialValue: SpecialNodeAttributeValue | undefined =
+            typeof value === 'string' ? undefined : value;
+          attrSection.items.push({
+            section: attrSection,
+            label: key,
+            value: strValue,
+            canShowOnNode: true,
+            showOnNode: this.curShowOnOpNodeAttrIds.has(key),
+            specialValue,
+            editable: opNode.editableAttrs?.[key],
+            displayType: opNode.attrDisplayTypes?.[key],
+          });
         }
-        const value = attrs[key];
-        const strValue = typeof value === 'string' ? value : '';
-        const specialValue: SpecialNodeAttributeValue | undefined =
-          typeof value === 'string' ? undefined : value;
-        attrSection.items.push({
-          section: attrSection,
-          label: key,
-          value: strValue,
-          canShowOnNode: true,
-          showOnNode: this.curShowOnOpNodeAttrIds.has(key),
-          specialValue,
-          editable: opNode.editableAttrs?.[key],
-          displayType: opNode.attrDisplayTypes?.[key],
-        });
-      }
-      if (attrSection.items.length > 0) {
+        
         this.sections.push(attrSection);
+      }
+      
+      // Nested attributes section
+      if (hasNestedAttributes) {
+        const nestedAttrSection: InfoSection = {
+          label: SectionLabel.NESTED_ATTRIBUTES,
+          sectionType: 'op',
+          items: [],
+        };
+        
+        // Filter to only include attributes that contain '/' (i.e., are truly nested)
+        const nestedAttrs = attrKeys
+          .filter(key => key.includes('/') && !key.startsWith('__') && !key.includes('//'))
+          .reduce((filtered, key) => {
+            filtered[key] = attrs[key];
+            return filtered;
+          }, {} as Record<string, unknown>);
+        
+        // Convert attributes to tree structure
+        const attrTree = buildAttrTree(nestedAttrs);
+        
+        // Add the tree view item
+        nestedAttrSection.items.push({
+          section: nestedAttrSection,
+          label: 'nested attributes',
+          value: '',
+          isTreeView: true,
+          attrs: attrTree,
+        });
+        
+        this.sections.push(nestedAttrSection);
       }
     }
 

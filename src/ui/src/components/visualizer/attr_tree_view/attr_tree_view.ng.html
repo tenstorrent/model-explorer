@@ -1,0 +1,60 @@
+<!--
+  @license
+  Copyright 2024 The Model Explorer Authors. All Rights Reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ==============================================================================
+-->
+
+<div class="attr-tree">
+  <ng-container *ngTemplateOutlet="nodeTemplate; context: { nodes: data, level: 0 }"></ng-container>
+</div>
+
+<ng-container *ngIf="!data || data.length === 0">
+  <div class="no-attributes">No attributes available</div>
+</ng-container>
+
+<ng-template #nodeTemplate let-nodes="nodes" let-level="level">
+  <ng-container *ngFor="let node of nodes; trackBy: trackByNode">
+    <div class="attr-tree-node" [style.padding-left.px]="level * 20">
+      <ng-container *ngIf="node.children && node.children.length > 0; else leafNode">
+        <details [open]="expandAll">
+          <summary class="attr-key-with-children">
+            <span class="attr-key">{{node.key}}</span>
+            <span class="attr-value" *ngIf="node.value" [title]="node.value">
+              {{getDisplayValue(node.value)}}
+            </span>
+            <span class="attr-value-group" *ngIf="!node.value">
+              (group)
+            </span>
+          </summary>
+          <div class="children-container">
+            <ng-container *ngTemplateOutlet="nodeTemplate; context: { nodes: node.children, level: level + 1 }"></ng-container>
+          </div>
+        </details>
+      </ng-container>
+      
+      <ng-template #leafNode>
+        <div class="leaf-node">
+          <span class="attr-key">{{node.key}}</span>
+          <span class="attr-value" *ngIf="node.value" [title]="node.value">
+            {{getDisplayValue(node.value)}}
+          </span>
+          <span class="attr-value-empty" *ngIf="!node.value">
+            (no value)
+          </span>
+        </div>
+      </ng-template>
+    </div>
+  </ng-container>
+</ng-template>
