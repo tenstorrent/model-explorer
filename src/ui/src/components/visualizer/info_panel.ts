@@ -18,7 +18,19 @@
 
 import {ConnectedPosition, OverlaySizeConfig} from '@angular/cdk/overlay';
 import {CommonModule} from '@angular/common';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostBinding, Input, ViewChildren, QueryList, effect} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  effect,
+  ElementRef,
+  HostBinding,
+  Input,
+  QueryList,
+  ViewChildren,
+} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
@@ -35,6 +47,7 @@ import {AppService} from './app_service';
 import {TENSOR_TAG_METADATA_KEY, TENSOR_VALUES_KEY} from './common/consts';
 import {GroupNode, ModelGraph, ModelNode, OpNode} from './common/model_graph';
 import {
+  CommandType,
   IncomingEdge,
   KeyValue,
   KeyValueList,
@@ -235,6 +248,7 @@ export class InfoPanel {
 
   constructor(
     private readonly appService: AppService,
+    private readonly destroyRef: DestroyRef,
     private readonly nodeDataProviderExtensionService: NodeDataProviderExtensionService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly infoPanelService: InfoPanelService,
@@ -283,6 +297,30 @@ export class InfoPanel {
         this.updateInputValueContentsExpandable();
       });
     });
+
+    // React to commands.
+    this.appService.command
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((command) => {
+        // Ignore commands not for this pane.
+        if (
+          command.paneIndex !== this.appService.getPaneIndexById(this.paneId)
+        ) {
+          return;
+        }
+
+        // Handle commands.
+        switch (command.type) {
+          case CommandType.COLLAPSE_INFO_PANEL:
+            this.setHideInfoPanel(true);
+            break;
+          case CommandType.SHOW_INFO_PANEL:
+            this.setHideInfoPanel(false);
+            break;
+          default:
+            break;
+        }
+      });
   }
 
   isSearchMatchedAttrId(attrId: string): boolean {
@@ -409,7 +447,18 @@ export class InfoPanel {
     this.animateSidePanelWidth(targetWidth);
   }
 
-  handleToggleSection(sectionName: string, sectionEle?: HTMLElement) {
+  setHideInfoPanel(hide: boolean) {
+    this.hide = hide;
+    let targetWidth = 0;
+    if (this.hide) {
+      this.savedWidth = this.width;
+    } else {
+      targetWidth = this.savedWidth;
+    }
+    this.animateSidePanelWidth(targetWidth, 0);
+  }
+
+  handleToggleSection(sectionName: SectionLabel, sectionEle?: HTMLElement) {
     if (!sectionEle) return;
 
     const collapsed = this.isSectionCollapsed(sectionName);
@@ -440,11 +489,11 @@ export class InfoPanel {
     });
   }
 
-  isSectionCollapsed(sectionName: string): boolean {
+  isSectionCollapsed(sectionName: SectionLabel): boolean {
     return this.infoPanelService.collapsedSectionNames.has(sectionName);
   }
 
-  getSectionToggleIcon(sectionName: string): string {
+  getSectionToggleIcon(sectionName: SectionLabel): string {
     return this.isSectionCollapsed(sectionName)
       ? 'chevron_right'
       : 'expand_more';
@@ -576,6 +625,13 @@ export class InfoPanel {
     return (connectedNodesMetadataItem?.connectedNodes || []).length > 0;
   }
 
+  getSectionDisplayLabel(sectionLabel: SectionLabel): string {
+    if (sectionLabel === SectionLabel.NODE_DATA_PROVIDERS) {
+      return this.nodeDataProviderPanelTitle;
+    }
+    return sectionLabel;
+  }
+
   trackByItemIdOrLabel(index: number, item: InfoItem): string {
     return item.id || item.label;
   }
@@ -661,6 +717,13 @@ export class InfoPanel {
 
   get hideToggleIconName(): string {
     return this.hide ? 'chevron_left' : 'chevron_right';
+  }
+
+  get nodeDataProviderPanelTitle(): string {
+    return (
+      this.appService.config()?.renameNodeDataProviderPanelTitleTo ??
+      SectionLabel.NODE_DATA_PROVIDERS
+    );
   }
 
   private handleNodeSelected(nodeId: string) {
@@ -808,19 +871,19 @@ export class InfoPanel {
       const hasNestedAttributes = attrKeys.some(
         key => key.includes('/') && !key.startsWith('__') && !key.includes('//')
       );
-      
+
       // Regular attributes section
-      const regularAttrs = attrKeys.filter(key => 
+      const regularAttrs = attrKeys.filter(key =>
         !key.startsWith('__') && (!hasNestedAttributes || !key.includes('/') || key.includes('//'))
       );
-      
+
       if (regularAttrs.length > 0) {
         const attrSection: InfoSection = {
           label: SectionLabel.ATTRIBUTES,
           sectionType: 'op',
           items: [],
         };
-        
+
         for (const key of regularAttrs) {
           const value = attrs[key];
           const strValue = typeof value === 'string' ? value : '';
@@ -837,10 +900,10 @@ export class InfoPanel {
             displayType: opNode.attrDisplayTypes?.[key],
           });
         }
-        
+
         this.sections.push(attrSection);
       }
-      
+
       // Nested attributes section
       if (hasNestedAttributes) {
         const nestedAttrSection: InfoSection = {
@@ -848,7 +911,7 @@ export class InfoPanel {
           sectionType: 'op',
           items: [],
         };
-        
+
         // Filter to only include attributes that contain '/' (i.e., are truly nested)
         const nestedAttrs = attrKeys
           .filter(key => key.includes('/') && !key.startsWith('__') && !key.includes('//'))
@@ -856,10 +919,10 @@ export class InfoPanel {
             filtered[key] = attrs[key];
             return filtered;
           }, {} as Record<string, unknown>);
-        
+
         // Convert attributes to tree structure
         const attrTree = buildAttrTree(nestedAttrs);
-        
+
         // Add the tree view item
         nestedAttrSection.items.push({
           section: nestedAttrSection,
@@ -868,7 +931,7 @@ export class InfoPanel {
           isTreeView: true,
           attrs: attrTree,
         });
-        
+
         this.sections.push(nestedAttrSection);
       }
     }
@@ -1291,14 +1354,15 @@ export class InfoPanel {
     this.changeDetectorRef.markForCheck();
   }
 
-  private animateSidePanelWidth(targetWidth: number) {
+  private animateSidePanelWidth(
+    targetWidth: number,
+    duration = SIDE_PANEL_WIDTH_ANIMATION_DURATION,
+  ) {
     const startTs = Date.now();
     const startWidth = this.width;
     const animate = () => {
       const elapsed = Date.now() - startTs;
-      let t = this.appService.testMode
-        ? 1
-        : Math.min(1, elapsed / SIDE_PANEL_WIDTH_ANIMATION_DURATION);
+      let t = this.appService.testMode ? 1 : Math.min(1, elapsed / duration);
       // ease out sine.
       t = Math.sin((t * Math.PI) / 2);
       const curWidth = startWidth + (targetWidth - startWidth) * t;
