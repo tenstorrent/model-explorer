@@ -59,7 +59,7 @@ FIX_FORMAT_FLAG=${1}
   -e "\.pb" \
   -e "\.pbtxt" \
   -e "\.mlir" \
-  -e src/custom_element_demos \
+  -e src/server/package/model_explorer \
   --output-directory /tmp
 
 LICENSE_CHECK_RESULT=$?

@@ -28,19 +28,28 @@ import {
 } from './common/consts';
 import {ModelNode} from './common/model_graph';
 import {FontWeight, ShowOnNodeItemType} from './common/types';
+
+type KeyValuePair = {
+  key: string;
+  value: string;
+};
+
+type KeyValueList = KeyValuePair[];
+
 import {
   getGroupNodeAttrsKeyValuePairsForAttrsTable,
   getGroupNodeFieldLabelsFromShowOnNodeItemTypes,
   getMultiLineLabelExtraHeight,
   getNodeInfoFieldValue,
   getOpNodeAttrsKeyValuePairsForAttrsTable,
-  getOpNodeDataProviderKeyValuePairsForAttrsTable,
-  getOpNodeFieldLabelsFromShowOnNodeItemTypes,
   getOpNodeInputsKeyValuePairsForAttrsTable,
   getOpNodeOutputsKeyValuePairsForAttrsTable,
+  getOpNodeDataProviderKeyValuePairsForAttrsTable,
+  getOpNodeFieldLabelsFromShowOnNodeItemTypes,
   isGroupNode,
   isOpNode,
 } from './common/utils';
+import {AttrTreeNode} from './common/attr_tree';
 import {ThreejsService} from './threejs_service';
 import {WebglRenderer} from './webgl_renderer';
 import {WebglRendererThreejsService} from './webgl_renderer_threejs_service';
@@ -122,14 +131,37 @@ export class WebglRendererAttrsTableService {
           this.webglRenderer.curShowOnNodeItemTypes[ShowOnNodeItemType.OP_ATTRS]
             ?.selected
         ) {
-          keyValuePairs.push(
-            ...getOpNodeAttrsKeyValuePairsForAttrsTable(
-              node,
-              this.webglRenderer.curShowOnNodeItemTypes[
-                ShowOnNodeItemType.OP_ATTRS
-              ]?.filterRegex || '',
-            ),
+          const attrs = getOpNodeAttrsKeyValuePairsForAttrsTable(
+            node,
+            this.webglRenderer.curShowOnNodeItemTypes[
+              ShowOnNodeItemType.OP_ATTRS
+            ]?.filterRegex || '',
           );
+          
+          // Handle both AttrTreeNode[] and KeyValueList cases
+          const flattenTreeNodes = (nodes: AttrTreeNode[]): KeyValuePair[] => {
+            const result: KeyValuePair[] = [];
+            for (const node of nodes) {
+              if (node.value !== undefined) {
+                result.push({key: node.fullKey || node.key, value: node.value});
+              }
+              if (node.children?.length) {
+                result.push(...flattenTreeNodes(node.children));
+              }
+            }
+            return result;
+          };
+
+          for (const item of attrs) {
+            // Check if this is an AttrTreeNode with children
+            if ('children' in item) {
+              const treeNodes = [item as AttrTreeNode];
+              keyValuePairs.push(...flattenTreeNodes(treeNodes));
+            } else if ('key' in item && 'value' in item) {
+              // This is a simple KeyValuePair
+              keyValuePairs.push(item as KeyValuePair);
+            }
+          }
         }
 
         // Inputs.

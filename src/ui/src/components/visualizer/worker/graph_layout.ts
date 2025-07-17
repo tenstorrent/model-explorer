@@ -39,7 +39,11 @@ import {
   OpNode,
 } from '../common/model_graph';
 import {
+  AttrTreeNode,
+} from '../common/attr_tree';
+import {
   GraphNodeConfig,
+  KeyValue,
   KeyValueList,
   NodeDataProviderRunData,
   Point,
@@ -65,6 +69,8 @@ import {
   isOpNode,
   splitLabel,
 } from '../common/utils';
+
+// Import VisualizerConfig from the correct location
 import {VisualizerConfig} from '../common/visualizer_config';
 
 import {Dagre, DagreGraphInstance} from './dagre_types';
@@ -341,9 +347,9 @@ export class GraphLayout {
     // See available configs here:
     // https://github.com/dagrejs/dagre/wiki#configuring-the-layout.
     dagreGraph.setGraph({
-      nodesep: 20,
-      ranksep: 50,
-      edgesep: 20,
+      nodesep: this.modelGraph.layoutConfigs?.nodeSep ?? 20,
+      ranksep: this.modelGraph.layoutConfigs?.rankSep ?? 50,
+      edgesep: this.modelGraph.layoutConfigs?.edgeSep ?? 20,
       marginx: LAYOUT_MARGIN_X,
       marginy: LAYOUT_MARGIN_TOP,
     });
@@ -804,21 +810,43 @@ function addLayoutGraphEdge(
   layoutGraph.incomingEdges[toNodeId].push(fromNodeId);
 }
 
-function getMaxAttrLabelAndValueWidth(keyValuePairs: KeyValueList): {
+function getMaxAttrLabelAndValueWidth(
+  keyValuePairs: AttrTreeNode[] | KeyValueList,
+): {
   maxAttrLabelWidth: number;
   maxAttrValueWidth: number;
 } {
   let maxAttrLabelWidth = 0;
   let maxAttrValueWidth = 0;
-  for (const {key, value} of keyValuePairs) {
-    const attrLabelWidth = getLabelWidth(key, NODE_ATTRS_TABLE_FONT_SIZE, true);
-    maxAttrLabelWidth = Math.max(maxAttrLabelWidth, attrLabelWidth);
-    const attrValueWidth = getLabelWidth(
-      value,
-      NODE_ATTRS_TABLE_FONT_SIZE,
-      false,
-    );
-    maxAttrValueWidth = Math.max(maxAttrValueWidth, attrValueWidth);
+  
+  const processKeyValue = (maxLabelWidth: number, maxValueWidth: number, key: string, value: string) => {
+    const attrLabelWidth = getLabelWidth(key, NODE_ATTRS_TABLE_FONT_SIZE, false, false);
+    const attrValueWidth = getLabelWidth(value, NODE_ATTRS_TABLE_FONT_SIZE, false, false);
+    return {
+      maxAttrLabelWidth: Math.max(maxLabelWidth, attrLabelWidth),
+      maxAttrValueWidth: Math.max(maxValueWidth, attrValueWidth)
+    };
+  };
+
+  for (const item of keyValuePairs) {
+    // Handle AttrTreeNode
+    if ('children' in item) {
+      const node = item as AttrTreeNode;
+      const key = node.key;
+      const value = node.value ?? node.children?.[0]?.value ?? '';
+      
+      const result = processKeyValue(maxAttrLabelWidth, maxAttrValueWidth, key, value);
+      maxAttrLabelWidth = result.maxAttrLabelWidth;
+      maxAttrValueWidth = result.maxAttrValueWidth;
+    } 
+    // Handle KeyValue
+    else {
+      const kv = item as KeyValue;
+      const result = processKeyValue(maxAttrLabelWidth, maxAttrValueWidth, kv.key, kv.value);
+      maxAttrLabelWidth = result.maxAttrLabelWidth;
+      maxAttrValueWidth = result.maxAttrValueWidth;
+    }
   }
+  
   return {maxAttrLabelWidth, maxAttrValueWidth};
 }

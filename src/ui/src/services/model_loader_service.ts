@@ -250,9 +250,11 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             }
             modelItem.status.set(ModelItemStatus.DONE);
           } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            console.error('Error loading JSON file:', errorMessage);
             modelItem.selected = false;
             modelItem.status.set(ModelItemStatus.ERROR);
-            modelItem.errorMessage = e as string;
+            modelItem.errorMessage = errorMessage;
           }
           break;
 

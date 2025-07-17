@@ -40,15 +40,19 @@ import {BenchmarkRunner} from './benchmark_runner';
 import {Graph, GraphCollection} from './common/input_graph';
 import {ModelGraph, OpNode} from './common/model_graph';
 import {
+  CommandType,
   ModelGraphProcessedEvent,
+  NodeAttributePairs,
   NodeDataProviderData,
   NodeDataProviderGraphData,
   NodeInfo,
   SyncNavigationModeChangedEvent,
+  ViewOnEdgeMode,
 } from './common/types';
 import {genUid, inInputElement, isOpNode} from './common/utils';
 import {type VisualizerConfig} from './common/visualizer_config';
 import {type VisualizerUiState} from './common/visualizer_ui_state';
+import {WorkerEventType} from './common/worker_events';
 import {ExtensionService} from './extension_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
 import {NodeStylerService} from './node_styler_service';
@@ -144,6 +148,7 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly destroyRef: DestroyRef,
     private readonly el: ElementRef<HTMLElement>,
+    private readonly workerService: WorkerService,
     private readonly snackBar: MatSnackBar,
     private readonly threejsService: ThreejsService,
     private readonly uiStateService: UiStateService,
@@ -560,6 +565,110 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
       data,
       clearExisting,
     );
+  }
+
+  /**
+   * Adds attributes for the given node in the graph from the given pane.
+   *
+   * Note that this method only works when called after the graph has been
+   * processed. To ensure this, listen to the `modelGraphProcessed` event and
+   * call this method after the event is emitted. The event payload includes
+   * the processed graph (from which you can get the graph ID) and the index of
+   * the pane where the graph is located. You can use the graph ID to identify
+   * the appropriate node attributes to add within your application, and use
+   * the pane index to call this method.
+   *
+   * @param nodeId the id of the node to add attributes for.
+   * @param attrs the attributes to add.
+   * @param paneIndex the index of the pane to add attributes for. The system
+   *   will try to find the node in the processed graph of this pane.
+   */
+  addNodeAttributes(nodeId: string, attrs: NodeAttributePairs, paneIndex = 0) {
+    const modelGraph = this.appService.getModelGraphFromPaneIndex(paneIndex);
+    if (!modelGraph) {
+      console.warn(`Model graph in pane with index ${paneIndex} doesn't exist`);
+      return;
+    }
+    const node = modelGraph.nodesById[nodeId];
+    if (!node) {
+      console.warn(`Node with id "${nodeId}" not found`);
+      return;
+    }
+    if (isOpNode(node)) {
+      node.attrs = {...node.attrs, ...attrs};
+    }
+
+    // Update the model graph cache in the worker so that it includes the
+    // updated node attributes.
+    this.workerService.worker.postMessage({
+      eventType: WorkerEventType.UPDATE_MODEL_GRAPH_CACHE_WITH_NODE_ATTRIBUTES,
+      modelGraphId: modelGraph.id,
+      nodeId,
+      attrs,
+      paneId: this.appService.panes()[paneIndex].id,
+    });
+  }
+
+  /**
+   * Expands all layers for the graph in the given pane.
+   *
+   * @param paneIndex the index of the pane to expand all layers in.
+   */
+  expandAllLayers(paneIndex = 0) {
+    this.appService.expandOrCollapseAllGraphLayersClicked.next({
+      expandOrCollapse: true,
+      rendererId: this.appService.getPaneIdByIndex(paneIndex),
+    });
+  }
+
+  /**
+   * Collapses all layers for the graph in the given pane.
+   *
+   * @param paneIndex the index of the pane to collapse all layers in.
+   */
+  collapseAllLayers(paneIndex = 0) {
+    this.appService.expandOrCollapseAllGraphLayersClicked.next({
+      expandOrCollapse: false,
+      rendererId: this.appService.getPaneIdByIndex(paneIndex),
+    });
+  }
+
+  /**
+   * Collapses the info panel in the given pane.
+   *
+   * @param paneIndex the index of the pane to collapse the info panel in.
+   */
+  collapseInfoPanel(paneIndex = 0) {
+    this.appService.command.next({
+      type: CommandType.COLLAPSE_INFO_PANEL,
+      paneIndex,
+    });
+  }
+
+  /**
+   * Shows the info panel in the given pane.
+   *
+   * @param paneIndex the index of the pane to show the info panel in.
+   */
+  showInfoPanel(paneIndex = 0) {
+    this.appService.command.next({
+      type: CommandType.SHOW_INFO_PANEL,
+      paneIndex,
+    });
+  }
+
+  /**
+   * Sets the view on edge mode in the given pane.
+   *
+   * @param mode the view on edge mode to set.
+   * @param paneIndex the index of the pane to set the view on edge mode in.
+   */
+  setViewOnEdge(mode: ViewOnEdgeMode, paneIndex = 0) {
+    this.appService.command.next({
+      type: CommandType.SET_VIEW_ON_EDGE,
+      mode,
+      paneIndex,
+    });
   }
 
   async loadRemoteNodeDataPaths(paths: string[], modelGraph: ModelGraph) {
