@@ -28,11 +28,9 @@ import {
   HostListener,
   Inject,
   Input,
-  OnChanges,
   OnDestroy,
   OnInit,
   Output,
-  SimpleChanges,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -84,7 +82,7 @@ import type { ModelLoaderServiceInterface } from '../../common/model_loader_serv
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
+export class ModelGraphVisualizer implements OnInit, OnDestroy {
   @Input({required: true}) graphCollections!: GraphCollection[];
 
   /** Some visualization related configs. See `VisualizerConfig` for details. */
@@ -344,14 +342,6 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy, OnChanges {
       this.mouseDownHandler,
       true,
     );
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['graphCollections']) {
-      if (!changes['graphCollections'].isFirstChange()) {
-        this.reset();
-      }
-    }
   }
 
   ngOnDestroy() {

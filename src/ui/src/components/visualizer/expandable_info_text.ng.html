@@ -85,7 +85,7 @@ limitations under the License.
           @if (hasCurModel() && editable?.input_type) {
             @switch (editable?.input_type) {
               @case ('value_list') {
-                <select>
+                <select (change)="handleTextChange($event)">
                   @for (option of getEditableOptions(editable!, displayText); track $index) {
                     <option [selected]="option === displayText">{{option}}</option>
                   }
