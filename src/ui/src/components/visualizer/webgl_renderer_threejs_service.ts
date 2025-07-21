@@ -472,6 +472,11 @@ export class WebglRendererThreejsService {
     } else {
       setTimeout(() => {
         const node = modelGraph.nodesById[nodeId];
+
+        if (!node) {
+          return;
+        }
+
         this.zoomFit(
           {
             x: this.webglRenderer.getNodeX(node),

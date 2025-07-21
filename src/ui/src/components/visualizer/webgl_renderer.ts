@@ -1613,20 +1613,20 @@ export class WebglRenderer implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  getNodeX(node: ModelNode): number {
-    return (node.x || 0) + (node.globalX || 0);
+  getNodeX(node?: ModelNode): number {
+    return (node?.x || 0) + (node?.globalX || 0);
   }
 
-  getNodeY(node: ModelNode): number {
-    return (node.y || 0) + (node.globalY || 0);
+  getNodeY(node?: ModelNode): number {
+    return (node?.y || 0) + (node?.globalY || 0);
   }
 
-  getNodeWidth(node: ModelNode): number {
-    return node.width || 0;
+  getNodeWidth(node?: ModelNode): number {
+    return node?.width || 0;
   }
 
-  getNodeHeight(node: ModelNode): number {
-    return node.height || 0;
+  getNodeHeight(node?: ModelNode): number {
+    return node?.height || 0;
   }
 
   getNodeRect(node: ModelNode): Rect {

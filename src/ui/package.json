@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve model_explorer",
+    "start": "ng serve model_explorer --host 0.0.0.0",
     "build": "ng build model_explorer",
     "build-npm": "./scripts/build_npm.sh",
     "deploy": "./scripts/build_and_update_python_package.sh",

@@ -62,20 +62,6 @@ export declare interface AdapterConvertCommand extends ExtensionCommand {
 /** Adapter's "convert" command response. */
 export type AdapterConvertResponse = ExtensionResponse;
 
-/** Adapter's "override" command. */
-export declare interface AdapterOverrideCommand extends ExtensionCommand {
-  cmdId: 'override';
-  settings: {
-    graphs: Graph[];
-    overrides: OverridesPerNode;
-  };
-}
-
-/** Adapter's "override" command response. */
-export type AdapterOverrideResponse = ExtensionResponse<[{
-  success: boolean;
-}], never>;
-
 /** Adapter's "execute" settings. */
 export declare interface AdapterExecuteSettings {
   optimizationPolicy: string;

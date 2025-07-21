@@ -59,6 +59,17 @@ import {LocalStorageService} from './local_storage_service';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
 
+export interface GraphProcessedEventDetails {
+  modelGraph: ModelGraph;
+  paneId: string;
+}
+
+declare global {
+  interface DocumentEventMap {
+    'app-service-graph-processed': CustomEvent<GraphProcessedEventDetails>;
+  }
+}
+
 /**
  * A service to manage shared data and their updates.
  *
@@ -68,6 +79,7 @@ import {WorkerService} from './worker_service';
 @Injectable()
 export class AppService {
   readonly curGraphCollections = signal<GraphCollection[]>([]);
+  readonly modelGraphs = signal<ModelGraph[]>([]);
 
   readonly curToLocateNodeInfo = signal<LocateNodeInfo | undefined>(undefined);
 
@@ -233,7 +245,39 @@ export class AppService {
         visitGraph();
         collection.graphsWithLevel = dfsOrderedGraphs;
       }
-      newCollections.push(...graphCollections);
+
+      graphCollections.forEach((newCollection) => {
+        const existingCollectionIndex = newCollections.findIndex(({ label }) => label === newCollection.label);
+
+        if (existingCollectionIndex === -1) {
+          newCollections.push(newCollection);
+        } else {
+          newCollection.graphs.forEach((newGraph) => {
+            const existingGraphId = newCollections[existingCollectionIndex].graphs.findIndex(({ id }) => id === newGraph.id);
+
+            if (existingGraphId === -1) {
+              newCollections[existingCollectionIndex].graphs.push(newGraph);
+            } else {
+              newCollections[existingCollectionIndex].graphs.splice(existingGraphId, 1, newGraph);
+            }
+          });
+
+          newCollection.graphsWithLevel?.forEach((newGraph) => {
+            if (!newCollections[existingCollectionIndex].graphsWithLevel) {
+              newCollections[existingCollectionIndex].graphsWithLevel = [];
+            }
+
+            const existingGraphId = newCollections[existingCollectionIndex].graphsWithLevel!.findIndex(({ graph: { id } }) => id === newGraph.graph.id);
+
+            if (existingGraphId === -1) {
+              newCollections[existingCollectionIndex].graphsWithLevel!.push(newGraph);
+            } else {
+              newCollections[existingCollectionIndex].graphsWithLevel!.splice(existingGraphId, 1, newGraph);
+            }
+          });
+        }
+      });
+
       return newCollections;
     });
   }
@@ -379,12 +423,34 @@ export class AppService {
     return panes.length === 2 && panes[1].modelGraph?.id === graphId;
   }
 
+  processGraphCollections(graphCollections: GraphCollection[]) {
+    graphCollections.forEach(({ graphs }) => {
+      graphs.forEach((graph) => {
+        this.processGraph(graph);
+      });
+    });
+  }
+
   processGraph(
-    paneId: string,
+    paneIdOrGraph: string | Graph,
     flattenLayers = false,
     snapshotToRestore?: SnapshotData,
     initialLayout = true,
   ) {
+    let paneId = '<background>';
+    let graph: Graph = paneIdOrGraph as Graph;
+
+    if (typeof paneIdOrGraph === 'string') {
+      paneId = paneIdOrGraph;
+      graph = this.paneIdToGraph[paneId];
+    }
+
+    const processedGraph = this.modelGraphs().find(({ collectionLabel, id }) => collectionLabel === graph.collectionLabel && id === graph.id);
+
+    if (processedGraph) {
+      return;
+    }
+
     // Store snapshotToResotre into pane if set.
     if (snapshotToRestore != null) {
       const pane = this.getPaneById(paneId);
@@ -394,12 +460,13 @@ export class AppService {
     }
 
     // Process the graph.
-    //
-    // TODO: properly cache the processed graph.
-    this.setPaneLoading(paneId);
+    if (paneId !== '<background>') {
+      this.setPaneLoading(paneId);
+    }
+
     const processGraphReq: ProcessGraphRequest = {
       eventType: WorkerEventType.PROCESS_GRAPH_REQ,
-      graph: this.paneIdToGraph[paneId],
+      graph,
       showOnNodeItemTypes: this.getShowOnNodeItemTypes(paneId, paneId),
       nodeDataProviderRuns: {},
       config: this.config ? this.config() : undefined,
@@ -1027,11 +1094,13 @@ export class AppService {
     this.config.set(undefined);
     this.curInitialUiState.set(undefined);
 
+    const curModelGraph = this.getSelectedPane()?.modelGraph;
     const curRunId = this.panes()[0].selectedNodeDataProviderRunId;
     this.panes.set([{
       id: genUid(),
       widthFraction: 1,
       selectedNodeDataProviderRunId: curRunId,
+      modelGraph: curModelGraph,
     }]);
     this.selectedPaneId.set(this.panes()[0].id);
 
@@ -1082,6 +1151,18 @@ export class AppService {
   }
 
   private handleGraphProcessed(modelGraph: ModelGraph, paneId: string) {
+    this.modelGraphs.update((prevModelGraphs) => {
+      const existingModelGraphIndex = prevModelGraphs.findIndex((curModelGraph) => modelGraph.id === curModelGraph.id && modelGraph.collectionLabel === curModelGraph.collectionLabel);
+
+      if (existingModelGraphIndex === -1) {
+        prevModelGraphs.push(modelGraph);
+      } else {
+        prevModelGraphs.splice(existingModelGraphIndex, 1, modelGraph);
+      }
+
+      return [...prevModelGraphs];
+    });
+
     this.panes.update((panes) => {
       for (const pane of panes) {
         if (pane.id === paneId) {
@@ -1095,6 +1176,13 @@ export class AppService {
       paneIndex: this.getPaneIndexById(paneId),
       modelGraph,
     });
+
+    requestAnimationFrame(() => document.dispatchEvent(new CustomEvent<GraphProcessedEventDetails>('app-service-graph-processed', {
+      detail: {
+        modelGraph,
+        paneId,
+      }
+    })))
   }
 
   private setPaneLoading(paneId: string) {
