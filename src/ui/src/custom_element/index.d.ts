@@ -46,6 +46,13 @@ export declare interface ModelExplorerGlobal {
    * at 'worker.js'.
    */
   workerScriptPath?: string;
+
+  /**
+   * The base url used for backend calls.
+   *
+   * It should be a server URL, as it will be used as the `base` parameter for a `new URL()` calls.
+   */
+  backendUrl?: string;
 }
 
 // See comments in wrapper.ts for more details.
