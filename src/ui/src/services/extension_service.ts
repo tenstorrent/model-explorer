@@ -69,7 +69,7 @@ export class ExtensionService {
       // In internal colab, use GET request.
       if (this.internalColab) {
         const url = `${EXTERNAL_SEND_CMD_GET_API_PATH}?json=${JSON.stringify(cmd)}`;
-        resp = await fetch(url);
+        resp = await fetch(new URL(url, this.backendUrl));
       }
       // In other environments, use POST request.
       else {
@@ -81,7 +81,7 @@ export class ExtensionService {
         };
         requestData.body = JSON.stringify(cmd);
 
-        resp = await fetch(EXTERNAL_SEND_CMD_POST_API_PATH, requestData);
+        resp = await fetch(new URL(EXTERNAL_SEND_CMD_POST_API_PATH, this.backendUrl), requestData);
       }
 
       if (!resp.ok) {
@@ -137,7 +137,7 @@ export class ExtensionService {
 
   private async getExtensionsForExternal(): Promise<Extension[]> {
     try {
-      const resp = await fetch(EXTERNAL_GET_EXTENSIONS_API_PATH, {
+      const resp = await fetch(new URL(EXTERNAL_GET_EXTENSIONS_API_PATH, this.backendUrl), {
         credentials: 'include',
       });
       if (!resp.ok) {
