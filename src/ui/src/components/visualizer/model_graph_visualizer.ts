@@ -676,6 +676,7 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
     await Promise.all(
       paths.map((path) =>
         this.nodeDataProviderExtensionService.addRunFromRemoteSource(
+          this.modelLoaderService.backendUrl,
           path,
           modelGraph,
         ),
