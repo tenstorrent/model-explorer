@@ -16,6 +16,7 @@
  * ==============================================================================
  */
 
+import { ExtensionService } from '../../services/extension_service.js';
 import {
   NavigationSourceInfo,
   SyncNavigationData,
@@ -60,6 +61,10 @@ export class SyncNavigationService {
   readonly savedProcessedSyncNavigationData = signal<
     Record<string, ProcessedSyncNavigationData>
   >({});
+
+  constructor(
+    private readonly extensionService: ExtensionService
+  ) {}
 
   updateNavigationSource(info: NavigationSourceInfo) {
     if (this.mode() === SyncNavigationMode.DISABLED) {
@@ -175,7 +180,7 @@ export class SyncNavigationService {
     // Call API to read file content.
     this.loadingFromCns.set(true);
     const url = `/read_file?path=${path}`;
-    const resp = await fetch(url);
+    const resp = await fetch(new URL(url, this.extensionService.backendUrl));
     if (!resp.ok) {
       this.loadingFromCns.set(false);
       return `Failed to load JSON file "${path}"`;

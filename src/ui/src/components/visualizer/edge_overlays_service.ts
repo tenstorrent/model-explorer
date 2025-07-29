@@ -24,6 +24,7 @@ import {
 } from './common/edge_overlays';
 import {ReadFileResp} from './common/types';
 import {genUid} from './common/utils';
+import { ExtensionService } from '../../services/extension_service.js';
 
 /** A service for managing edge overlays. */
 @Injectable()
@@ -45,6 +46,10 @@ export class EdgeOverlaysService {
     }
     return overlays;
   });
+
+  constructor(
+    private readonly extensionService: ExtensionService
+  ) {}
 
   addOverlay(overlay: EdgeOverlaysData) {
     this.loadedEdgeOverlays.update((loadedOverlays) => {
@@ -112,7 +117,7 @@ export class EdgeOverlaysService {
     // Call API to read file content.
     this.remoteSourceLoading.set(true);
     const url = `/read_file?path=${path}`;
-    const resp = await fetch(url);
+    const resp = await fetch(new URL(url, this.extensionService.backendUrl));
     if (!resp.ok) {
       this.remoteSourceLoading.set(false);
       return `Failed to load JSON file "${path}"`;
