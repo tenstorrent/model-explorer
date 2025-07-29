@@ -53,7 +53,6 @@ import {genUid, inInputElement, isOpNode} from './common/utils';
 import {type VisualizerConfig} from './common/visualizer_config';
 import {type VisualizerUiState} from './common/visualizer_ui_state';
 import {WorkerEventType} from './common/worker_events';
-import {ExtensionService} from './extension_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
 import {NodeStylerService} from './node_styler_service';
 import {SplitPanesContainer} from './split_panes_container';
@@ -73,7 +72,6 @@ import type { ModelLoaderServiceInterface } from '../../common/model_loader_serv
   styleUrls: ['./model_graph_visualizer.scss'],
   providers: [
     AppService,
-    ExtensionService,
     NodeDataProviderExtensionService,
     NodeStylerService,
     SyncNavigationService,
