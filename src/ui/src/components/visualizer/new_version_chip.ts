@@ -22,6 +22,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {IS_EXTERNAL} from '../../common/flags';
 import {getElectronApi} from '../../common/utils';
 import {Bubble} from '../bubble/bubble';
+import { ExtensionService } from '../../services/extension_service.js';
 
 const CHECK_NEW_VERSION = '/api/v1/check_new_version';
 
@@ -44,7 +45,9 @@ export class NewVersionService {
     desktopAppUrl: '',
   });
 
-  constructor() {
+  constructor(
+    private readonly extensionService: ExtensionService,
+  ) {
     // tslint:disable-next-line:no-any
     const isCustomElement = (window as any)['modelExplorer'] != null;
     if (IS_EXTERNAL && !isCustomElement) {
@@ -54,7 +57,7 @@ export class NewVersionService {
 
   private async checkNewVersion() {
     try {
-      const resp = await fetch(CHECK_NEW_VERSION);
+      const resp = await fetch(new URL(CHECK_NEW_VERSION, this.extensionService.backendUrl));
       if (resp.ok) {
         const json = (await resp.json()) as CheckNewVersionResponse;
         this.info.set(json);
@@ -155,14 +158,14 @@ export class NewVersionService {
     padding: 4px;
     font-size: 11px;
   }
- 
+
   .items {
     display: flex;
     flex-direction: column;
     gap: 4px;
     margin-top: 12px;
   }
- 
+
   .release-notes,
   .download-desktop-app {
     display: flex;
