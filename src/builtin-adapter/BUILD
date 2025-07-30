@@ -12,6 +12,7 @@ cc_library(
         ":status_macros",
         ":visualize_config",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -23,6 +24,7 @@ cc_library(
         "@llvm-project//mlir:FuncDialect",
         "@llvm-project//mlir:IR",
         "@llvm-project//mlir:Support",
+        "@llvm-project//mlir:TosaDialect",
         "@shardy//shardy/dialect/sdy/ir:dialect",
         "@stablehlo//:stablehlo_ops",
         "@org_tensorflow//tensorflow/compiler/mlir/lite:flatbuffer_tflite_operator_lib",  # buildcleaner: keep
@@ -76,6 +78,7 @@ cc_library(
         "@llvm-project//mlir:SCFDialect",
         "@llvm-project//mlir:ShapeDialect",
         "@llvm-project//mlir:Support",
+        "@llvm-project//mlir:TosaDialect",
         "@shardy//shardy/dialect/sdy/ir:dialect",
         "@stablehlo//stablehlo/tests:check_ops",
         "@stablehlo//:chlo_ops",
@@ -96,7 +99,10 @@ cc_library(
         "@org_tensorflow//tensorflow/core:lib",
         "@org_tensorflow//tensorflow/core:tensorflow",
         "@org_tensorflow//tensorflow/core/protobuf:for_core_protos_cc",
-    ],
+    ] + select({
+        "//conditions:default": [
+        ],
+    }),
 )
 
 cc_library(
