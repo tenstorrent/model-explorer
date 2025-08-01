@@ -67,6 +67,15 @@ limitations under the License.
           <div class="reset" (click)="handleClickResetToDefaultNumber(setting)">Reset to default</div>
         </ng-container>
 
+        <!-- Text setting -->
+        <ng-container *ngSwitchCase="SettingType.TEXT">
+          <input type="text" [value]="settingsService.getStringValue(setting)"
+              #input
+              (focus)="input.select()"
+              (change)="settingsService.saveStringValue(input.value, setting.key)">
+          <div class="reset" (click)="handleClickResetToDefaultText(setting)">Reset to default</div>
+        </ng-container>
+
         <!-- Multiline text -->
         <ng-container *ngSwitchCase="SettingType.TEXT_MULTILINE">
           <textarea type="number" [value]="settingsService.getStringValue(setting)"

@@ -16,17 +16,18 @@
  * ==============================================================================
  */
 
-import {Injectable} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {Component} from '@angular/core';
+import {MatIconModule} from '@angular/material/icon';
 
-import {ExtensionCommand} from './extension_command';
-
-/** Metadata from an extension. */
-export declare interface Extension {
-  id: string;
-  name: string;
-  description?: string;
-  type: 'node_data_provider';
-  language: 'python' | 'js';
-}
-
-const DEFAULT_EXTENSION_SERVER_ADDRESS = 'http://localhost:5000';
+/**
+ * The welcome card on homepage.
+ */
+@Component({
+  selector: 'api-error-card',
+  standalone: true,
+  imports: [CommonModule, MatIconModule],
+  templateUrl: './api_error_card.ng.html',
+  styleUrls: ['./api_error_card.scss'],
+})
+export class APIErrorCard {}

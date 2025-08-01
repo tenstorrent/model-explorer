@@ -16,6 +16,7 @@
  * ==============================================================================
  */
 
+import { SettingKey, SettingsService } from '../../services/settings_service.js';
 import {
   NavigationSourceInfo,
   SyncNavigationData,
@@ -60,6 +61,10 @@ export class SyncNavigationService {
   readonly savedProcessedSyncNavigationData = signal<
     Record<string, ProcessedSyncNavigationData>
   >({});
+
+  constructor(
+    private readonly settingsService: SettingsService
+  ) {}
 
   updateNavigationSource(info: NavigationSourceInfo) {
     if (this.mode() === SyncNavigationMode.DISABLED) {
@@ -172,10 +177,13 @@ export class SyncNavigationService {
   }
 
   async loadFromCns(path: string): Promise<string> {
+    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
+    const backendUrl = this.settingsService.getStringValue(setting);
+
     // Call API to read file content.
     this.loadingFromCns.set(true);
     const url = `/read_file?path=${path}`;
-    const resp = await fetch(url);
+    const resp = await fetch(new URL(url, backendUrl));
     if (!resp.ok) {
       this.loadingFromCns.set(false);
       return `Failed to load JSON file "${path}"`;

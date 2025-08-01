@@ -75,6 +75,7 @@ import {
 } from '../visualizer/new_version_chip';
 import {ThreejsService} from '../visualizer/threejs_service';
 import {WelcomeCard} from '../welcome_card/welcome_card';
+import { APIErrorCard } from '../api_error_card/api_error_card.js';
 
 /**
  * The component for the home page.
@@ -97,6 +98,7 @@ import {WelcomeCard} from '../welcome_card/welcome_card';
     NewVersionChip,
     OpenInNewTabButton,
     WelcomeCard,
+    APIErrorCard,
   ],
   templateUrl: './home_page.ng.html',
   styleUrls: ['./home_page.scss'],
@@ -315,6 +317,10 @@ export class HomePage implements AfterViewInit {
       return this.settingsService.getBooleanValue(setting);
     }
     return true;
+  }
+
+  get isExtensionLoadingError(): boolean {
+    return this.extensionService.errorLoadingExtension();
   }
 
   get curConfig(): VisualizerConfig {
