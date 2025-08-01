@@ -16,7 +16,7 @@
  * ==============================================================================
  */
 
-import { ExtensionService } from '../../services/extension_service.js';
+import { SettingKey, SettingsService } from '../../services/settings_service.js';
 import {
   NavigationSourceInfo,
   SyncNavigationData,
@@ -63,7 +63,7 @@ export class SyncNavigationService {
   >({});
 
   constructor(
-    private readonly extensionService: ExtensionService
+    private readonly settingsService: SettingsService
   ) {}
 
   updateNavigationSource(info: NavigationSourceInfo) {
@@ -177,10 +177,13 @@ export class SyncNavigationService {
   }
 
   async loadFromCns(path: string): Promise<string> {
+    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
+    const backendUrl = this.settingsService.getStringValue(setting);
+
     // Call API to read file content.
     this.loadingFromCns.set(true);
     const url = `/read_file?path=${path}`;
-    const resp = await fetch(new URL(url, this.extensionService.backendUrl));
+    const resp = await fetch(new URL(url, backendUrl));
     if (!resp.ok) {
       this.loadingFromCns.set(false);
       return `Failed to load JSON file "${path}"`;

@@ -62,6 +62,7 @@ import {TitleBar} from './title_bar';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import { SettingKey, SettingsService } from '../../services/settings_service.js';
 
 /** The main model graph visualizer component. */
 @Component({
@@ -140,6 +141,7 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
   };
 
   constructor(
+    private readonly settingsService: SettingsService,
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     readonly appService: AppService,
@@ -673,10 +675,13 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
   }
 
   async loadRemoteNodeDataPaths(paths: string[], modelGraph: ModelGraph) {
+    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
+    const backendUrl = this.settingsService.getStringValue(setting);
+
     await Promise.all(
       paths.map((path) =>
         this.nodeDataProviderExtensionService.addRunFromRemoteSource(
-          this.modelLoaderService.backendUrl,
+          backendUrl,
           path,
           modelGraph,
         ),

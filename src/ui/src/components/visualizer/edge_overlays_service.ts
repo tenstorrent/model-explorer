@@ -26,7 +26,7 @@ import {
 } from './common/edge_overlays';
 import {Pane, ReadFileResp} from './common/types';
 import {genUid} from './common/utils';
-import { ExtensionService } from '../../services/extension_service.js';
+import { SettingKey, SettingsService } from '../../services/settings_service.js';
 
 /** A service for managing edge overlays. */
 @Injectable()
@@ -66,7 +66,7 @@ export class EdgeOverlaysService {
 
   constructor(
     private readonly appService: AppService,
-    private readonly extensionService: ExtensionService
+    private readonly settingsService: SettingsService
   ) {}
 
   setPane(pane: Pane) {
@@ -159,10 +159,13 @@ export class EdgeOverlaysService {
   }
 
   async loadFromCns(path: string): Promise<string> {
+    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
+    const backendUrl = this.settingsService.getStringValue(setting);
+
     // Call API to read file content.
     this.remoteSourceLoading.set(true);
     const url = `/read_file?path=${path}`;
-    const resp = await fetch(new URL(url, this.extensionService.backendUrl));
+    const resp = await fetch(new URL(url, backendUrl));
     if (!resp.ok) {
       this.remoteSourceLoading.set(false);
       return `Failed to load JSON file "${path}"`;
