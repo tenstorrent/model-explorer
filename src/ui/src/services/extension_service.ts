@@ -21,6 +21,7 @@ import {Injectable, signal} from '@angular/core';
 import {type ExtensionCommand} from '../common/extension_command';
 import {type Extension, type ExtensionSettings, type SelectedExtensionSettings} from '../common/types';
 import {INTERNAL_COLAB} from '../common/utils';
+import { SettingKey, SettingsService } from './settings_service.js';
 
 const EXTERNAL_GET_EXTENSIONS_API_PATH = '/api/v1/get_extensions';
 const EXTERNAL_SEND_CMD_GET_API_PATH = '/api/v1/send_command';
@@ -39,25 +40,24 @@ export class ExtensionService {
   extensionSettings = new Map<string, ExtensionSettings>();
   selectedSettings = new Map<string, SelectedExtensionSettings>();
 
-  constructor() {
+  constructor(
+    private readonly settingsService: SettingsService
+  ) {
     this.loadExtensions();
   }
 
-  get backendUrl(): string | URL {
-    return localStorage.getItem('backend-url') ?? window['modelExplorer'].backendUrl ?? new URL('/', import.meta.url).href;
+  get backendUrl() {
+    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
+
+    return this.settingsService.getStringValue(setting);
   }
 
-  set backendUrl(newUrl) {
+  set backendUrl(newUrl: string | URL) {
     // Resolve the URL to an string for saving it.
     const resolvedUrl = new URL(newUrl).href;
 
     // Save the URL to local storage.
     localStorage.setItem('backend-url', resolvedUrl);
-
-    // Set the URL to the `modelExplorer` global object as a fallback.
-    if (window['modelExplorer']) {
-      window['modelExplorer'].backendUrl = resolvedUrl;
-    }
   }
 
   async sendCommandToExtension<T>(
