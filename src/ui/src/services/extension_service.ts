@@ -33,6 +33,7 @@ const EXTERNAL_SEND_CMD_POST_API_PATH = '/apipost/v1/send_command';
 @Injectable({providedIn: 'root'})
 export class ExtensionService {
   readonly loading = signal<boolean>(true);
+  readonly errorLoadingExtension = signal<boolean>(false);
   readonly internalColab = INTERNAL_COLAB;
 
   extensions: Extension[] = [];
@@ -129,6 +130,7 @@ export class ExtensionService {
 
   private async getExtensionsForExternal(): Promise<Extension[]> {
     try {
+      this.errorLoadingExtension.update(() => false);
       const resp = await fetch(new URL(EXTERNAL_GET_EXTENSIONS_API_PATH, this.backendUrl), {
         credentials: 'include',
       });
@@ -141,6 +143,7 @@ export class ExtensionService {
       return json;
     } catch (e) {
       console.error('Failed to get extensions.', e);
+      this.errorLoadingExtension.update(() => true);
       return [];
     }
   }
