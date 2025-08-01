@@ -46,6 +46,4 @@ export interface ModelLoaderServiceInterface {
   get generatedCppCode(): WritableSignal<CppCodePerCollection>;
   get graphErrors(): WritableSignal<string[] | undefined>;
   get hasOverrides(): boolean;
-
-  backendUrl: string | URL;
 }
