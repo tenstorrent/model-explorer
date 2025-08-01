@@ -46,18 +46,10 @@ export class ExtensionService {
     this.loadExtensions();
   }
 
-  get backendUrl() {
+  private get backendUrl() {
     const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
 
     return this.settingsService.getStringValue(setting);
-  }
-
-  set backendUrl(newUrl: string | URL) {
-    // Resolve the URL to an string for saving it.
-    const resolvedUrl = new URL(newUrl).href;
-
-    // Save the URL to local storage.
-    localStorage.setItem('backend-url', resolvedUrl);
   }
 
   async sendCommandToExtension<T>(
