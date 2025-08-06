@@ -44,21 +44,20 @@ limitations under the License.
             <option [selected]="selectedOptimizationPolicy === optimizationPolicy">{{optimizationPolicy}}</option>
           }
         </select>
+
+        <details>
+          <summary>Optimization Policies Description</summary>
+          <p><strong>Please note:</strong> only policies that are actively supported are described.</p>
+
+          <dl>
+            <dt>Optimizer disabled</dt>
+            <dd>Disables any optimizations and ignore overrides.</dd>
+
+            <dt>DFShardingPolicy</dt>
+            <dd>Improve model performance by optimizing tensor memory layouts to maximize the usage of fast, L1 memory instead of DRAM.</dd>
+          </dl>
+        </details>
       </div>
-      <details>
-        <summary>Optimization Policies Description</summary>
-
-        <p>Below is a list of the optimization policies and what changes they do.</p>
-        <p>Please note not all optimization policies may be available at the time.</p>
-
-        <dl>
-          <dt>Optimizer disabled</dt>
-          <dd>Disables any optimizations and ignore overrides.</dd>
-
-          <dt>DFShardingPolicy</dt>
-          <dd>Improve model performance by optimizing tensor memory layouts to maximize the usage of fast, L1 memory instead of DRAM.</dd>
-        </dl>
-      </details>
     }
 
     <div class="setting-item">
