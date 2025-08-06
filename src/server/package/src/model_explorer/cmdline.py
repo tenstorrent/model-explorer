@@ -35,11 +35,6 @@ parser.add_argument(
     '--node_data_paths', help='comma separated node data file paths'
 )
 parser.add_argument(
-    '--no_open_in_browser',
-    action='store_true',
-    help="Don't open the web app in browser after server starts",
-)
-parser.add_argument(
     '--extensions', help='comma separated extension module names'
 )
 parser.add_argument(
@@ -106,6 +101,5 @@ def main():
       config=config,
       extensions=extensions,
       cors_host=args.cors_host,
-      no_open_in_browser=args.no_open_in_browser,
       skip_health_check=args.skip_health_check,
   )

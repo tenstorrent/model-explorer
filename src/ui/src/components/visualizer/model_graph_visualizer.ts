@@ -53,7 +53,6 @@ import {genUid, inInputElement, isOpNode} from './common/utils';
 import {type VisualizerConfig} from './common/visualizer_config';
 import {type VisualizerUiState} from './common/visualizer_ui_state';
 import {WorkerEventType} from './common/worker_events';
-import {ExtensionService} from './extension_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
 import {NodeStylerService} from './node_styler_service';
 import {SplitPanesContainer} from './split_panes_container';
@@ -63,6 +62,7 @@ import {TitleBar} from './title_bar';
 import {UiStateService} from './ui_state_service';
 import {WorkerService} from './worker_service';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
+import { SettingKey, SettingsService } from '../../services/settings_service.js';
 
 /** The main model graph visualizer component. */
 @Component({
@@ -73,7 +73,6 @@ import type { ModelLoaderServiceInterface } from '../../common/model_loader_serv
   styleUrls: ['./model_graph_visualizer.scss'],
   providers: [
     AppService,
-    ExtensionService,
     NodeDataProviderExtensionService,
     NodeStylerService,
     SyncNavigationService,
@@ -142,6 +141,7 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
   };
 
   constructor(
+    private readonly settingsService: SettingsService,
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     readonly appService: AppService,
@@ -672,9 +672,13 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
   }
 
   async loadRemoteNodeDataPaths(paths: string[], modelGraph: ModelGraph) {
+    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
+    const backendUrl = this.settingsService.getStringValue(setting);
+
     await Promise.all(
       paths.map((path) =>
         this.nodeDataProviderExtensionService.addRunFromRemoteSource(
+          backendUrl,
           path,
           modelGraph,
         ),

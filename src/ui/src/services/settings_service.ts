@@ -26,6 +26,7 @@ import {LocalStorageService} from '../components/visualizer/local_storage_servic
 
 /** Keys for all settings. */
 export enum SettingKey {
+  API_HOST = 'api_host',
   CONST_ELEMENT_COUNT_LIMIT = 'const_element_count_limit',
   SHOW_WELCOME_CARD = 'show_welcome_card',
   HIDE_OP_NODES_WITH_LABELS = 'hide_op_nodes_with_labels',
@@ -46,6 +47,7 @@ export enum SettingType {
   NUMBER,
   TEXT_MULTILINE,
   COLOR,
+  TEXT
 }
 
 /** Interface of a setting. */
@@ -61,6 +63,14 @@ export declare interface Setting {
 export declare interface SavedSettings {
   [key: string]: boolean | number | string;
 }
+
+export const SETTING_API_HOST: Setting = {
+  label: 'API Server',
+  key: SettingKey.API_HOST,
+  type: SettingType.TEXT,
+  defaultValue: 'https://localhost:8080/',
+  help: 'Sets the server where the API is running. This is used to enable the UI and API to live in diferent servers.'
+};
 
 /** Setting for max const element count. */
 export const SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT: Setting = {
@@ -195,6 +205,7 @@ const SETTINGS_LOCAL_STORAGE_KEY = 'model_explorer_settings';
 
 /** All settings. */
 export const ALL_SETTINGS = [
+  SETTING_API_HOST,
   SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT,
   SETTING_HIDE_OP_NODES_WITH_LABELS,
   SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD,
