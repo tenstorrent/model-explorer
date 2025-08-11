@@ -48,9 +48,7 @@ export class ExtensionService {
   }
 
   private get backendUrl() {
-    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
-
-    return this.settingsService.getStringValue(setting);
+    return this.settingsService.getStringValue(SettingKey.API_HOST);
   }
 
   async sendCommandToExtension<T>(

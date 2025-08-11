@@ -177,8 +177,7 @@ export class SyncNavigationService {
   }
 
   async loadFromCns(path: string): Promise<string> {
-    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
-    const backendUrl = this.settingsService.getStringValue(setting);
+    const backendUrl = this.settingsService.getStringValue(SettingKey.API_HOST);
 
     // Call API to read file content.
     this.loadingFromCns.set(true);

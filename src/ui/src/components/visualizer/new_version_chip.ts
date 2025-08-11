@@ -57,8 +57,7 @@ export class NewVersionService {
 
   private async checkNewVersion() {
     try {
-      const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
-      const backendUrl = this.settingsService.getStringValue(setting);
+      const backendUrl = this.settingsService.getStringValue(SettingKey.API_HOST);
 
       const resp = await fetch(new URL(CHECK_NEW_VERSION, backendUrl));
       if (resp.ok) {
