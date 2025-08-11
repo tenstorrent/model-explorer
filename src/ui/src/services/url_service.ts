@@ -21,6 +21,7 @@ import {Params, Router} from '@angular/router';
 
 import {SyncNavigationModeChangedEvent} from '../components/visualizer/common/types';
 import {VisualizerUiState} from '../components/visualizer/common/visualizer_ui_state';
+import { SettingKey, SettingsService } from './settings_service.js';
 
 /** All URL query parameter keys. */
 enum QueryParamKey {
@@ -34,6 +35,7 @@ enum QueryParamKey {
   EXPORT_SELECTED_NODES_BUTTON_LABEL = 'esnbl',
   EXPORT_SELECTED_NODES_BUTTON_ICON = 'esnbi',
   INTERNAL_COLAB = 'internal_colab',
+  API_HOST = 'api_host'
 }
 
 declare interface OldEncodedUrlData {
@@ -85,7 +87,10 @@ export class UrlService {
   exportSelectedNodesButtonLabel = '';
   exportSelectedNodesButtonIcon = '';
 
-  constructor(private readonly router: Router) {
+  constructor(
+    private readonly settingsService: SettingsService,
+    private readonly router: Router,
+  ) {
     this.decodeUrl();
   }
 
@@ -245,5 +250,10 @@ export class UrlService {
     this.exportSelectedNodesButtonIcon =
       params.get(QueryParamKey.EXPORT_SELECTED_NODES_BUTTON_ICON) ?? '';
     this.benchmark = params.get(QueryParamKey.BENCHMARK) === '1';
+
+    const apiHost = params.get(QueryParamKey.API_HOST);
+    if (apiHost) {
+      this.settingsService.saveStringValue(apiHost, SettingKey.API_HOST);
+    }
   }
 }
