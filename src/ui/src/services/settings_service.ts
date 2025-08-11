@@ -55,7 +55,7 @@ export declare interface Setting {
   label: string;
   key: SettingKey;
   type: SettingType;
-  defaultValue?: boolean | number | string;
+  defaultValue: boolean | number | string;
   help?: string;
 }
 
@@ -64,16 +64,16 @@ export declare interface SavedSettings {
   [key: string]: boolean | number | string;
 }
 
-export const SETTING_API_HOST: Setting = {
+export const SETTING_API_HOST = {
   label: 'API Server',
   key: SettingKey.API_HOST,
   type: SettingType.TEXT,
   defaultValue: 'https://localhost:8080/',
   help: 'Sets the server where the API is running. This is used to enable the UI and API to live in diferent servers.'
-};
+} satisfies Setting;
 
 /** Setting for max const element count. */
-export const SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT: Setting = {
+export const SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT = {
   label: 'Maximum element count for constant tensor values',
   key: SettingKey.CONST_ELEMENT_COUNT_LIMIT,
   type: SettingType.NUMBER,
@@ -82,18 +82,18 @@ export const SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT: Setting = {
     'Controls the number of values extracted from the constant tensors ' +
     'during model processing. Increasing this number may impact performance ' +
     'due to larger payload sizes.',
-};
+} satisfies Setting;
 
 /** Setting for showing welcome card. */
-export const SETTING_SHOW_WELCOME_CARD: Setting = {
+export const SETTING_SHOW_WELCOME_CARD = {
   label: 'Show welcome card',
   key: SettingKey.SHOW_WELCOME_CARD,
   type: SettingType.BOOLEAN,
   defaultValue: true,
-};
+} satisfies Setting;
 
 /** Setting for hiding op nodes by label. */
-export const SETTING_HIDE_OP_NODES_WITH_LABELS: Setting = {
+export const SETTING_HIDE_OP_NODES_WITH_LABELS = {
   label: 'Hide op nodes with labels below (comma separated)',
   key: SettingKey.HIDE_OP_NODES_WITH_LABELS,
   type: SettingType.TEXT_MULTILINE,
@@ -101,10 +101,10 @@ export const SETTING_HIDE_OP_NODES_WITH_LABELS: Setting = {
   help:
     'Removes op nodes from model graphs if their label matches any ' +
     'of the labels entered below.',
-};
+} satisfies Setting;
 
 /** Setting for maximum number of nodes in an artificial layer. */
-export const SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD: Setting = {
+export const SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD = {
   label: 'Maximum number of nodes in an artificial layer',
   key: SettingKey.ARTIFICIAL_LAYER_NODE_COUNT_THRESHOLD,
   type: SettingType.NUMBER,
@@ -114,36 +114,36 @@ export const SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD: Setting = {
     'under a layer. When the number of child nodes exceeds this limit, ' +
     'Model Explorer automatically groups them into smaller, more manageable ' +
     'artificial layers to improve layout performance and readability.',
-};
+} satisfies Setting;
 
 /** Setting for edge label font size. */
-export const SETTING_EDGE_LABEL_FONT_SIZE: Setting = {
+export const SETTING_EDGE_LABEL_FONT_SIZE = {
   label: 'Edge label font size',
   key: SettingKey.EDGE_LABEL_FONT_SIZE,
   type: SettingType.NUMBER,
   defaultValue: DEFAULT_EDGE_LABEL_FONT_SIZE,
-};
+} satisfies Setting;
 
 /** Setting for edge color. */
-export const SETTING_EDGE_COLOR: Setting = {
+export const SETTING_EDGE_COLOR = {
   label: 'Edge color',
   key: SettingKey.EDGE_COLOR,
   type: SettingType.COLOR,
   defaultValue: '#aaaaaa',
-};
+} satisfies Setting;
 
 /** Setting for disabllowing laying out edge labels vertically. */
-export const SETTING_DISALLOW_VERTICAL_EDGE_LABELS: Setting = {
+export const SETTING_DISALLOW_VERTICAL_EDGE_LABELS = {
   label: 'Disallow vertical edge labels',
   key: SettingKey.DISALLOW_VERTICAL_EDGE_LABELS,
   type: SettingType.BOOLEAN,
   defaultValue: false,
   // The actual help content is in ng.html.
   help: '-',
-};
+} satisfies Setting;
 
 /** Setting for keeping layers with a single child. */
-export const SETTING_KEEP_LAYERS_WITH_A_SINGLE_CHILD: Setting = {
+export const SETTING_KEEP_LAYERS_WITH_A_SINGLE_CHILD = {
   label: 'Keep layers with a single op node child',
   key: SettingKey.KEEP_LAYERS_WITH_A_SINGLE_CHILD,
   type: SettingType.BOOLEAN,
@@ -152,10 +152,10 @@ export const SETTING_KEEP_LAYERS_WITH_A_SINGLE_CHILD: Setting = {
     'By default, layers with a single op node as its child are automatically ' +
     'removed to improve graph readability. ' +
     'Turn this toggle on to keep those layers.',
-};
+} satisfies Setting;
 
 /** Setting for showing op node out-of-layer edges without selecting. */
-export const SETTING_SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING: Setting =
+export const SETTING_SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING =
   {
     label: 'Show op node out-of-layer edges without selecting',
     key: SettingKey.SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING,
@@ -167,10 +167,10 @@ export const SETTING_SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING: Setting 
       'those edges without needing to select the node. ⚠️ This feature will ' +
       'make the model graph look more noisy and harder to read ' +
       'especially for larger models.',
-  };
+  } satisfies Setting;
 
 /** Setting for highlighting layer node inputs and outputs. */
-export const SETTING_HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS: Setting = {
+export const SETTING_HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS = {
   label: 'Highlight inputs and outputs of the selected layer node',
   key: SettingKey.HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS,
   type: SettingType.BOOLEAN,
@@ -180,10 +180,10 @@ export const SETTING_HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS: Setting = {
     'is selected. Enable this setting to see inputs and outputs for a ' +
     'selected layer node, including all its descendant op nodes within ' +
     'that layer.',
-};
+} satisfies Setting;
 
 /** Settings for hiding empty noda data entries. */
-export const SETTING_HIDE_EMPTY_NODE_DATA_ENTRIES: Setting = {
+export const SETTING_HIDE_EMPTY_NODE_DATA_ENTRIES = {
   label: 'Hide node data entries with empty values',
   key: SettingKey.HIDE_EMPTY_NODE_DATA_ENTRIES,
   type: SettingType.BOOLEAN,
@@ -191,15 +191,15 @@ export const SETTING_HIDE_EMPTY_NODE_DATA_ENTRIES: Setting = {
   help:
     'Enable this setting to hide node data entries ' +
     '(on node overlay and in side panel) with empty values.',
-};
+} satisfies Setting;
 
 /** Setting for showing side panel on node selection. */
-export const SETTING_SHOW_SIDE_PANEL_ON_NODE_SELECTION: Setting = {
+export const SETTING_SHOW_SIDE_PANEL_ON_NODE_SELECTION = {
   label: 'Show side panel only when a node is selected',
   key: SettingKey.SHOW_SIDE_PANEL_ON_NODE_SELECTION,
   type: SettingType.BOOLEAN,
   defaultValue: false,
-};
+} satisfies Setting;
 
 const SETTINGS_LOCAL_STORAGE_KEY = 'model_explorer_settings';
 
@@ -225,6 +225,22 @@ export const ALL_SETTINGS = [
  */
 @Injectable({providedIn: 'root'})
 export class SettingsService {
+  private defaultSettings: Record<SettingKey, boolean | number | string> = {
+    [SettingKey.API_HOST]: SETTING_API_HOST.defaultValue,
+    [SettingKey.CONST_ELEMENT_COUNT_LIMIT]: SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT.defaultValue,
+    [SettingKey.HIDE_OP_NODES_WITH_LABELS]: SETTING_HIDE_OP_NODES_WITH_LABELS.defaultValue,
+    [SettingKey.ARTIFICIAL_LAYER_NODE_COUNT_THRESHOLD]: SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD.defaultValue,
+    [SettingKey.EDGE_LABEL_FONT_SIZE]: SETTING_EDGE_LABEL_FONT_SIZE.defaultValue,
+    [SettingKey.EDGE_COLOR]: SETTING_EDGE_COLOR.defaultValue,
+    [SettingKey.KEEP_LAYERS_WITH_A_SINGLE_CHILD]: SETTING_KEEP_LAYERS_WITH_A_SINGLE_CHILD.defaultValue,
+    [SettingKey.SHOW_WELCOME_CARD]: SETTING_SHOW_WELCOME_CARD.defaultValue,
+    [SettingKey.DISALLOW_VERTICAL_EDGE_LABELS]: SETTING_DISALLOW_VERTICAL_EDGE_LABELS.defaultValue,
+    [SettingKey.SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING]: SETTING_SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING.defaultValue,
+    [SettingKey.HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS]: SETTING_HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS.defaultValue,
+    [SettingKey.HIDE_EMPTY_NODE_DATA_ENTRIES]: SETTING_HIDE_EMPTY_NODE_DATA_ENTRIES.defaultValue,
+    [SettingKey.SHOW_SIDE_PANEL_ON_NODE_SELECTION]: SETTING_SHOW_SIDE_PANEL_ON_NODE_SELECTION.defaultValue,
+  };
+
   private readonly savedSettings: SavedSettings;
 
   constructor(private readonly localStorageService: LocalStorageService) {
@@ -237,27 +253,32 @@ export class SettingsService {
         : (JSON.parse(strSavedSettings) as SavedSettings);
   }
 
-  getBooleanValue(setting: Setting): boolean {
-    if (this.savedSettings[setting.key] == null) {
-      return setting.defaultValue === true;
+  getBooleanValue(setting: SettingKey): boolean {
+    if (this.savedSettings[setting] == null) {
+      return this.defaultSettings[setting] === true;
     }
-    return this.savedSettings[setting.key] === true;
+
+    return this.savedSettings[setting] === true;
   }
 
-  getNumberValue(setting: Setting): number {
-    const savedStrNumber = this.savedSettings[setting.key];
+  getNumberValue(setting: SettingKey): number {
+    const savedStrNumber = this.savedSettings[setting];
+
     if (savedStrNumber != null) {
       return Number(savedStrNumber);
     }
-    return (setting.defaultValue as number) || 0;
+
+    return (this.defaultSettings[setting] as number) || 0;
   }
 
-  getStringValue(setting: Setting): string {
-    const savedStrString = this.savedSettings[setting.key] as string;
+  getStringValue(setting: SettingKey): string {
+    const savedStrString = this.savedSettings[setting] as string;
+
     if (savedStrString != null) {
       return savedStrString;
     }
-    return (setting.defaultValue as string) || '';
+
+    return (this.defaultSettings[setting] as string) || '';
   }
 
   saveBooleanValue(value: boolean, settingKey: SettingKey) {
@@ -293,10 +314,10 @@ export class SettingsService {
     for (const setting of ALL_SETTINGS) {
       switch (setting.type) {
         case SettingType.BOOLEAN:
-          settingsValues[setting.key] = this.getBooleanValue(setting);
+          settingsValues[setting.key] = this.getBooleanValue(setting.key);
           break;
         case SettingType.NUMBER:
-          settingsValues[setting.key] = this.getNumberValue(setting);
+          settingsValues[setting.key] = this.getNumberValue(setting.key);
           break;
         default:
           break;

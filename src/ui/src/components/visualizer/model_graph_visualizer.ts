@@ -675,8 +675,7 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
   }
 
   async loadRemoteNodeDataPaths(paths: string[], modelGraph: ModelGraph) {
-    const setting = this.settingsService.getSettingByKey(SettingKey.API_HOST)!;
-    const backendUrl = this.settingsService.getStringValue(setting);
+    const backendUrl = this.settingsService.getStringValue(SettingKey.API_HOST);
 
     await Promise.all(
       paths.map((path) =>

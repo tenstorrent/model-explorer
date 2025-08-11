@@ -42,17 +42,6 @@ import {ExtensionService} from '../../services/extension_service';
 import {GaEventType, GaService} from '../../services/ga_service';
 import {ServerDirectorService} from '../../services/server_director_service';
 import {
-  SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD,
-  SETTING_DISALLOW_VERTICAL_EDGE_LABELS,
-  SETTING_EDGE_COLOR,
-  SETTING_EDGE_LABEL_FONT_SIZE,
-  SETTING_HIDE_EMPTY_NODE_DATA_ENTRIES,
-  SETTING_HIDE_OP_NODES_WITH_LABELS,
-  SETTING_HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS,
-  SETTING_KEEP_LAYERS_WITH_A_SINGLE_CHILD,
-  SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT,
-  SETTING_SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING,
-  SETTING_SHOW_SIDE_PANEL_ON_NODE_SELECTION,
   SettingKey,
   SettingsService,
 } from '../../services/settings_service';
@@ -310,13 +299,7 @@ export class HomePage implements AfterViewInit {
   }
 
   get showWelcomeCard(): boolean {
-    const setting = this.settingsService.getSettingByKey(
-      SettingKey.SHOW_WELCOME_CARD,
-    );
-    if (setting) {
-      return this.settingsService.getBooleanValue(setting);
-    }
-    return true;
+    return this.settingsService.getBooleanValue(SettingKey.SHOW_WELCOME_CARD);
   }
 
   get isExtensionLoadingError(): boolean {
@@ -328,7 +311,7 @@ export class HomePage implements AfterViewInit {
       this.route.snapshot.queryParams['show_tflite_consts'] === '1';
     return {
       nodeLabelsToHide: this.settingsService
-        .getStringValue(SETTING_HIDE_OP_NODES_WITH_LABELS)
+        .getStringValue(SettingKey.HIDE_OP_NODES_WITH_LABELS)
         .split(',')
         .map((s) => s.trim())
         .filter(
@@ -340,17 +323,17 @@ export class HomePage implements AfterViewInit {
                 s !== 'pseudo_qconst')),
         ),
       artificialLayerNodeCountThreshold: this.settingsService.getNumberValue(
-        SETTING_ARTIFACIAL_LAYER_NODE_COUNT_THRESHOLD,
+        SettingKey.ARTIFICIAL_LAYER_NODE_COUNT_THRESHOLD,
       ),
       edgeLabelFontSize: this.settingsService.getNumberValue(
-        SETTING_EDGE_LABEL_FONT_SIZE,
+        SettingKey.EDGE_LABEL_FONT_SIZE,
       ),
-      edgeColor: this.settingsService.getStringValue(SETTING_EDGE_COLOR),
+      edgeColor: this.settingsService.getStringValue(SettingKey.EDGE_COLOR),
       maxConstValueCount: this.settingsService.getNumberValue(
-        SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT,
+        SettingKey.CONST_ELEMENT_COUNT_LIMIT,
       ),
       disallowVerticalEdgeLabels: this.settingsService.getBooleanValue(
-        SETTING_DISALLOW_VERTICAL_EDGE_LABELS,
+        SettingKey.DISALLOW_VERTICAL_EDGE_LABELS,
       ),
       enableSubgraphSelection: this.urlService.enableSubgraphSelection,
       enableExportToResource: this.urlService.enableExportToResource,
@@ -360,20 +343,20 @@ export class HomePage implements AfterViewInit {
       exportSelectedNodesButtonIcon:
         this.urlService.exportSelectedNodesButtonIcon,
       keepLayersWithASingleChild: this.settingsService.getBooleanValue(
-        SETTING_KEEP_LAYERS_WITH_A_SINGLE_CHILD,
+        SettingKey.KEEP_LAYERS_WITH_A_SINGLE_CHILD,
       ),
       showOpNodeOutOfLayerEdgesWithoutSelecting:
         this.settingsService.getBooleanValue(
-          SETTING_SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING,
+          SettingKey.SHOW_OP_NODE_OUT_OF_LAYER_EDGES_WITHOUT_SELECTING,
         ),
       highlightLayerNodeInputsOutputs: this.settingsService.getBooleanValue(
-        SETTING_HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS,
+        SettingKey.HIGHLIGHT_LAYER_NODE_INPUTS_OUTPUTS,
       ),
       hideEmptyNodeDataEntries: this.settingsService.getBooleanValue(
-        SETTING_HIDE_EMPTY_NODE_DATA_ENTRIES,
+        SettingKey.HIDE_EMPTY_NODE_DATA_ENTRIES,
       ),
       showSidePanelOnNodeSelection: this.settingsService.getBooleanValue(
-        SETTING_SHOW_SIDE_PANEL_ON_NODE_SELECTION,
+        SettingKey.SHOW_SIDE_PANEL_ON_NODE_SELECTION,
       ),
       nodeAttrsToHide: this.urlService.nodeAttributesToHide,
     };
