@@ -38,8 +38,19 @@
     font-size: 14px;
   }
 
-  .doc-links-container {
-    margin-top: 24px;
+  [mat-button] {
+    padding: 4px;
+    display: inline-flex;
+    vertical-align: -0.2em;
+    width: fit-content;
+    height: fit-content;
+
+    mat-icon {
+      width: fit-content;
+      height: fit-content;
+      font-size: 1rem;
+      margin-right: 0.2em;
+    }
   }
 
   .doc-link {
@@ -47,16 +58,14 @@
     color: #0b57d0;
     cursor: pointer;
     opacity: 0.8;
-    margin-bottom: 8px;
+    vertical-align: bottom;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 0.2em;
 
     .doc-text {
       color: #0b57d0;
-    }
-
-    a {
-      display: flex;
-      align-items: center;
-      text-decoration: none;
     }
 
     :hover {
@@ -71,20 +80,7 @@
       font-size: 18px;
       width: 18px;
       height: 18px;
-      margin-right: 8px;
       color: #0b57d0;
     }
-  }
-
-  .video-container {
-    width: 430px;
-    height: 100%;
-    border-radius: 8px;
-    background-color: #f1f1f1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 13px;
   }
 }
