@@ -18,7 +18,11 @@
 
 import {CommonModule} from '@angular/common';
 import {Component} from '@angular/core';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
+import { SettingsDialog } from '../settings_dialog/settings_dialog.js';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 /**
  * The welcome card on homepage.
@@ -26,8 +30,26 @@ import {MatIconModule} from '@angular/material/icon';
 @Component({
   selector: 'api-error-card',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './api_error_card.ng.html',
   styleUrls: ['./api_error_card.scss'],
 })
-export class APIErrorCard {}
+export class APIErrorCard {
+  constructor(
+    private readonly dialog: MatDialog,
+  ) {}
+
+  handleClickSettings() {
+    this.dialog.open(SettingsDialog, {});
+  }
+
+  handleClickReload() {
+    window.location.reload();
+  }
+}

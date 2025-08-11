@@ -23,24 +23,45 @@ limitations under the License.
     </div>
     <div class="description">
       <p>Could not connect to the API server.</p>
-      <p>Please check the server address in the settings.</p>
       <p>The most probable causes for this error are:</p>
       <ul>
-        <li>The server address is incorrect.</li>
-        <li>The server CORS headers are not configured correctly.</li>
+        <li>
+          The server address is incorrect in the app
+          <button
+            mat-button
+            aria-label="Open Settings"
+            (click)="handleClickSettings()"
+          >
+            <mat-icon>settings</mat-icon>
+            Settings
+          </button>
+          .
+        </li>
+        <li>
+          The server
+          <a
+            class="doc-link"
+            href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS"
+            target="_blank"
+          >
+            <span class="doc-text">CORS Headers</span>
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+          are not configured correctly.
+        </li>
       </ul>
-      <p>Once the issue is fixed, reload the page.</p>
-    </div>
-
-    <div class="doc-links-container">
-      <!-- Link to doc -->
-      <div class="doc-link">
-        <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS"
-            target="_blank">
-          <mat-icon>open_in_new</mat-icon>
-          <span class="doc-text">Learn more about CORS</span>
-        </a>
-      </div>
+      <p>
+          Once the issue is fixed,
+          <button
+            mat-button
+            aria-label="Open Settings"
+            (click)="handleClickReload()"
+          >
+            <mat-icon>refresh</mat-icon>
+            Reload the Page
+          </button>
+          .
+        </p>
     </div>
   </div>
 </div>
