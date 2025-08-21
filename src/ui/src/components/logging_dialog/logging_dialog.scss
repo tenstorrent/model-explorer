@@ -89,6 +89,11 @@
   overflow: auto;
   overflow-anchor: auto;
 
+  ::highlight(search-results) {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
   ul {
     margin: 0;
     padding: 0;

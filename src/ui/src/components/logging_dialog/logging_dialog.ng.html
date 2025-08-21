@@ -20,7 +20,7 @@ limitations under the License.
   <h2>Message log</h2>
 
   <search>
-    <input type="search" aria-label="Search Logs" />
+    <input type="search" aria-label="Search Logs" #searchInput />
     <button mat-icon-button matTooltip="Search Logs" (click)="searchLogs()">
       <mat-icon>search</mat-icon>
     </button>
@@ -46,7 +46,7 @@ limitations under the License.
   </button>
 </div>
 <div mat-dialog-content class="dialog-content">
-  <ul>
+  <ul #logList>
     @for (logMessage of messages; track $index) {
       <li [attr.data-log-level]="logMessage.level">
         <div class="log-message-header">

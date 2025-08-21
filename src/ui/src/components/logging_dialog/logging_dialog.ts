@@ -17,7 +17,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ViewChild, type ElementRef} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
@@ -46,6 +46,12 @@ export class LoggingDialog {
     @Inject('LoggingService')
     private readonly loggingService: LoggingServiceInterface,
   ) {}
+
+  @ViewChild('logList')
+  private logList!: ElementRef<HTMLUListElement>;
+
+  @ViewChild('searchInput')
+  private searchInput!: ElementRef<HTMLInputElement>;
 
   get messages() {
     return this.loggingService.getMessages();
@@ -103,6 +109,51 @@ export class LoggingDialog {
 
       URL.revokeObjectURL(textUrl);
     }
+  }
+
+  searchLogs() {
+    const MIN_SEARCH_LENGTH = 3;
+    const searchString = this.searchInput.nativeElement.value.trim().toLowerCase();
+
+    if (!searchString || searchString.length < MIN_SEARCH_LENGTH) {
+      return;
+    }
+
+    const treeWalker = document.createTreeWalker(this.logList.nativeElement, NodeFilter.SHOW_TEXT);
+    const ranges: Range[] = [];
+    let currentNode = treeWalker.nextNode();
+
+    while (currentNode) {
+      const nodeText = currentNode.textContent?.toLowerCase() ?? '';
+
+      let curTextPosition = 0;
+
+      while (curTextPosition < nodeText.length) {
+        const index = nodeText.indexOf(searchString, curTextPosition);
+
+        if (index === -1) {
+          break;
+        }
+
+        const range = new Range();
+
+        range.setStart(currentNode, index);
+        range.setEnd(currentNode, index + searchString.length);
+        ranges.push(range);
+
+        curTextPosition = index + searchString.length;
+      }
+
+      currentNode = treeWalker.nextNode();
+    }
+
+    // @ts-expect-error
+    CSS.highlights.clear();
+
+    const searchResultsHighlight = new Highlight(...ranges);
+
+    // @ts-expect-error
+    CSS.highlights.set("search-results", searchResultsHighlight);
   }
 
   formatDate(date: Date) {
