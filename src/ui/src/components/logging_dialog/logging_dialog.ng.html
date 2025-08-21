@@ -18,6 +18,13 @@ limitations under the License.
 
 <div mat-dialog-title class="title-container">
   <h2>Message log</h2>
+
+  <search>
+    <input type="search" aria-label="Search Logs" />
+    <button mat-icon-button matTooltip="Search Logs" (click)="searchLogs()">
+      <mat-icon>search</mat-icon>
+    </button>
+  </search>
   <div class="button-container">
     <button mat-icon-button matTooltip="Download logs" (click)="downloadLogs()">
       <mat-icon>download</mat-icon>
