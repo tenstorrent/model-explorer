@@ -25,6 +25,9 @@ limitations under the License.
       <mat-icon>search</mat-icon>
     </button>
   </search>
+
+  <hr />
+
   <div class="button-container">
     <button mat-icon-button class="composite-icon" matTooltip="Download Raw Logs" (click)="downloadRawLogs()">
       <mat-icon>download</mat-icon>
@@ -35,6 +38,12 @@ limitations under the License.
       <mat-icon>data_object</mat-icon>
     </button>
   </div>
+
+  <hr />
+
+  <button mat-icon-button matTooltip="Clear logs" (click)="clearLogs()">
+    <mat-icon>delete</mat-icon>
+  </button>
 </div>
 <div mat-dialog-content class="dialog-content">
   <ul>

@@ -37,6 +37,14 @@
     display: flex;
     gap: 1rem;
   }
+
+  hr {
+    width: 1px;
+    height: 28px;
+    border: none;
+    border-left: 1px solid #ccc;
+    margin: 0 16px;
+  }
   button[mat-icon-button].composite-icon {
     --badge-size: 0.7rem;
     --mask-size: 0.8rem;
