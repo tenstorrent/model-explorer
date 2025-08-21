@@ -45,6 +45,12 @@
     border-left: 1px solid #ccc;
     margin: 0 16px;
   }
+
+  search {
+    display: flex;
+    align-items: center;
+  }
+
   button[mat-icon-button].composite-icon {
     --badge-size: 0.7rem;
     --mask-size: 0.8rem;
