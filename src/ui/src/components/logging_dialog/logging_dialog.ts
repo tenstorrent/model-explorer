@@ -69,7 +69,7 @@ export class LoggingDialog {
     this.loggingService.clear();
   }
 
-  downloadLogs() {
+  downloadJsonLogs() {
     const messages = this.loggingService.getMessages();
 
     if (messages.length > 0) {
@@ -78,6 +78,26 @@ export class LoggingDialog {
 
       tempElement.hidden = true;
       tempElement.download = `logs-${new Date().toISOString()}.json`;
+      tempElement.href = textUrl;
+      tempElement.click();
+
+      URL.revokeObjectURL(textUrl);
+    }
+  }
+
+  downloadRawLogs() {
+    const messages = this.loggingService.getMessages()
+
+    if (messages.length > 0) {
+      const text = messages
+        .map(({ messages }) => messages)
+        .flat()
+        .join('\n');
+      const tempElement = document.createElement('a');
+      const textUrl = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+
+      tempElement.hidden = true;
+      tempElement.download = `logs-${new Date().toISOString()}.txt`;
       tempElement.href = textUrl;
       tempElement.click();
 
