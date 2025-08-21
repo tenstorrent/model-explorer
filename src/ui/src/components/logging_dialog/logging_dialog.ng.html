@@ -26,11 +26,13 @@ limitations under the License.
     </button>
   </search>
   <div class="button-container">
-    <button mat-icon-button matTooltip="Download logs" (click)="downloadLogs()">
+    <button mat-icon-button class="composite-icon" matTooltip="Download Raw Logs" (click)="downloadRawLogs()">
       <mat-icon>download</mat-icon>
+      <mat-icon>subject</mat-icon>
     </button>
-    <button mat-icon-button matTooltip="Clear logs" (click)="clearLogs()">
-      <mat-icon>delete</mat-icon>
+    <button mat-icon-button class="composite-icon" matTooltip="Download JSON Logs" (click)="downloadJsonLogs()">
+      <mat-icon>download</mat-icon>
+      <mat-icon>data_object</mat-icon>
     </button>
   </div>
 </div>

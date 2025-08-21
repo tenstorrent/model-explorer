@@ -37,8 +37,37 @@
     display: flex;
     gap: 1rem;
   }
-}
+  button[mat-icon-button].composite-icon {
+    --badge-size: 0.7rem;
+    --mask-size: 0.8rem;
+    --badge-offset: 1rem;
 
+    position: relative;
+    display: grid;
+    place-items: center;
+
+    mat-icon:nth-of-type(1) {
+      mask-image: radial-gradient(
+        circle at bottom right,
+        transparent,
+        transparent var(--mask-size),
+        black var(--mask-size),
+        black
+      );
+    }
+
+    mat-icon:nth-of-type(2) {
+      position: absolute;
+      display: block;
+      font-size: var(--badge-size);
+      margin-left: var(--badge-offset);
+      margin-top: var(--badge-offset);
+      pointer-events: none;
+      width: var(--badge-size);
+      height: var(--badge-size);
+    }
+  }
+}
 
 .dialog-content {
   padding: 0 1rem;
