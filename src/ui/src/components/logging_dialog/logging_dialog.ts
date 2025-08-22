@@ -123,6 +123,44 @@ export class LoggingDialog {
     }
   }
 
+  selectPreviousResult() {
+    if (this.ranges.length === 0) {
+      return;
+    }
+
+    const selection = document.getSelection();
+
+    this.currentRange -= 1;
+
+    if (this.currentRange < 0) {
+      this.currentRange = this.ranges.length - 1;
+    }
+
+    selection?.empty();
+    selection?.addRange(this.ranges[this.currentRange]);
+
+    this.ranges[this.currentRange].startContainer.parentElement?.scrollIntoView({ block: 'center' });
+  }
+
+  selectNextResult() {
+    if (this.ranges.length === 0) {
+      return;
+    }
+
+    const selection = document.getSelection();
+
+    this.currentRange += 1;
+
+    if (this.currentRange >= this.ranges.length) {
+      this.currentRange = 0;
+    }
+
+    selection?.empty();
+    selection?.addRange(this.ranges[this.currentRange]);
+
+    this.ranges[this.currentRange].startContainer.parentElement?.scrollIntoView({ block: 'center' });
+  }
+
   searchLogs(evt: SubmitEvent) {
     evt.preventDefault();
 
