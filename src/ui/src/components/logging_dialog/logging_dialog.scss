@@ -46,9 +46,19 @@
     margin: 0 16px;
   }
 
-  search {
+  search form {
     display: flex;
     align-items: center;
+    font-size: 1rem;
+    font-weight: normal;
+
+    [data-no-messages="true"] {
+      cursor: default;
+      pointer-events: none;
+      color: var(--mat-icon-button-disabled-icon-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent));
+    }
+
+    input[type="search"]::-webkit-search-cancel-button { display: none; }
   }
 
   button[mat-icon-button].composite-icon {
