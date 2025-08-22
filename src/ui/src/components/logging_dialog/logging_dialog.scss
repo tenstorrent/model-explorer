@@ -100,8 +100,13 @@
   overflow-anchor: auto;
 
   ::highlight(search-results) {
-    background-color: Highlight;
-    color: HighlightText;
+    background-color: yellow;
+    color: black;
+  }
+
+  ::selection {
+    background-color: dimgray;
+    color: white;
   }
 
   ul {
