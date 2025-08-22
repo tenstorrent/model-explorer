@@ -116,33 +116,26 @@
   }
 
   li {
+    --log-color: dimgray;
+
     list-style-type: none;
     padding: 0.2rem 0.5rem;
     margin-block: 0.2rem;
-    background: #f5f5f5;
-    color: black;
+    background: color-mix(in hwb, var(--log-color), white 85%);
+    color: color-mix(in hwb, var(--log-color), black 55%);
     width: 100%;
     box-sizing: border-box;
 
-    &[data-log-level="info"] {
-      color: #01014f;
-      background: #edf7ff;
-    }
-
-    &[data-log-level="warn"] {
-      color: #382900;
-      background: #ffffe5;
-    }
-
-    &[data-log-level="error"] {
-      color: #2d0101;
-      background: #fff2f4;
-    }
+    &[data-log-level="info"] { --log-color: royalblue; }
+    &[data-log-level="warn"] { --log-color: goldenrod; }
+    &[data-log-level="error"] { --log-color: orangered; }
+    &[data-log-level="debug"] { --log-color: deeppink; }
 
     .log-message-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      color: color-mix(in hwb, var(--log-color), black 40%);
     }
 
     .log-message-timestamp {
