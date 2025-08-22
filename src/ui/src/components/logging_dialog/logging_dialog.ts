@@ -53,8 +53,20 @@ export class LoggingDialog {
   @ViewChild('searchInput')
   private searchInput!: ElementRef<HTMLInputElement>;
 
+  private ranges: Range[] = [];
+
+  get totalRanges() {
+    return this.ranges.length;
+  }
+
+  currentRange = -1;
+
   get messages() {
     return this.loggingService.getMessages();
+  }
+
+  get hasMessages() {
+    return this.messages.length > 0;
   }
 
   getLogLevelIcon(level: LogLevel) {
@@ -111,16 +123,16 @@ export class LoggingDialog {
     }
   }
 
-  searchLogs() {
-    const MIN_SEARCH_LENGTH = 3;
+  searchLogs(evt: SubmitEvent) {
+    evt.preventDefault();
+
     const searchString = this.searchInput.nativeElement.value.trim().toLowerCase();
 
-    if (!searchString || searchString.length < MIN_SEARCH_LENGTH) {
+    if (!searchString) {
       return;
     }
 
     const treeWalker = document.createTreeWalker(this.logList.nativeElement, NodeFilter.SHOW_TEXT);
-    const ranges: Range[] = [];
     let currentNode = treeWalker.nextNode();
 
     while (currentNode) {
@@ -139,7 +151,7 @@ export class LoggingDialog {
 
         range.setStart(currentNode, index);
         range.setEnd(currentNode, index + searchString.length);
-        ranges.push(range);
+        this.ranges.push(range);
 
         curTextPosition = index + searchString.length;
       }
