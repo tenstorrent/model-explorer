@@ -29,11 +29,25 @@ limitations under the License.
   <hr />
 
   <div class="button-container">
-    <button mat-icon-button class="composite-icon" matTooltip="Download Raw Logs" (click)="downloadRawLogs()">
+    <button
+      mat-icon-button
+      [disabled]="!hasMessages"
+      class="composite-icon"
+      matTooltip="Download Raw Logs"
+      aria-label="Download Raw Logs"
+      (click)="downloadRawLogs()"
+    >
       <mat-icon>download</mat-icon>
       <mat-icon>subject</mat-icon>
     </button>
-    <button mat-icon-button class="composite-icon" matTooltip="Download JSON Logs" (click)="downloadJsonLogs()">
+    <button
+      mat-icon-button
+      [disabled]="!hasMessages"
+      class="composite-icon"
+      matTooltip="Download JSON Logs"
+      aria-label="Download JSON Logs"
+      (click)="downloadJsonLogs()"
+    >
       <mat-icon>download</mat-icon>
       <mat-icon>data_object</mat-icon>
     </button>
@@ -41,8 +55,16 @@ limitations under the License.
 
   <hr />
 
-  <button mat-icon-button matTooltip="Clear logs" (click)="clearLogs()">
+  <button
+    mat-icon-button
+    [disabled]="!hasMessages"
+    class="composite-icon"
+    matTooltip="Clear logs"
+    aria-label="Clear logs"
+    (click)="clearLogs()"
+  >
     <mat-icon>delete</mat-icon>
+      <mat-icon>subject</mat-icon>
   </button>
 </div>
 <div mat-dialog-content class="dialog-content">
