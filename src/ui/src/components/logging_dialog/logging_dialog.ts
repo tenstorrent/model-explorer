@@ -166,6 +166,12 @@ export class LoggingDialog {
 
     const searchString = this.searchInput.nativeElement.value.trim().toLowerCase();
 
+    // @ts-expect-error
+    CSS.highlights.clear();
+
+    this.currentRange = -1;
+    this.ranges = [];
+
     if (!searchString) {
       return;
     }
@@ -198,12 +204,9 @@ export class LoggingDialog {
     }
 
     // @ts-expect-error
-    CSS.highlights.clear();
+    CSS.highlights.set("search-results", new Highlight(...this.ranges));
 
-    const searchResultsHighlight = new Highlight(...ranges);
-
-    // @ts-expect-error
-    CSS.highlights.set("search-results", searchResultsHighlight);
+    this.selectNextResult();
   }
 
   formatDate(date: Date) {
