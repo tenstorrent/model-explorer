@@ -100,12 +100,12 @@
   overflow-anchor: auto;
 
   ::highlight(search-results) {
-    background-color: yellow;
+    background-color: color-mix(in srgb, yellow, transparent 30%);
     color: black;
   }
 
   ::selection {
-    background-color: dimgray;
+    background-color: deeppink;
     color: white;
   }
 
