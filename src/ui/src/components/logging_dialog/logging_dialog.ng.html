@@ -37,6 +37,34 @@ limitations under the License.
       >
         <mat-icon>search</mat-icon>
       </button>
+
+      <hr />
+
+      <button
+        type="button"
+        mat-icon-button
+        [disabled]="totalRanges === 0"
+        matTooltip="Previous Result"
+        aria-label="Previous Result"
+        (click)="selectPreviousResult()"
+      >
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
+      <button
+        type="button"
+        mat-icon-button
+        [disabled]="totalRanges === 0"
+        matTooltip="Next Result"
+        aria-label="Next Result"
+        (click)="selectNextResult()"
+      >
+        <mat-icon>arrow_downward</mat-icon>
+      </button>
+      <span [attr.data-no-messages]="!hasMessages">
+        <output>{{currentRange + 1}}</output>
+        <span>/</span>
+        <output>{{totalRanges}}</output>
+      </span>
     </form>
   </search>
 
