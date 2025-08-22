@@ -20,10 +20,24 @@ limitations under the License.
   <h2>Message log</h2>
 
   <search>
-    <input type="search" aria-label="Search Logs" #searchInput />
-    <button mat-icon-button matTooltip="Search Logs" (click)="searchLogs()">
-      <mat-icon>search</mat-icon>
-    </button>
+    <form action="#" (submit)="searchLogs($event)">
+      <input
+        type="search"
+        [disabled]="!hasMessages"
+        aria-label="Search Logs"
+        #searchInput
+      />
+
+      <button
+        type="submit"
+        mat-icon-button
+        [disabled]="!hasMessages"
+        matTooltip="Search Logs"
+        aria-label="Search Logs"
+      >
+        <mat-icon>search</mat-icon>
+      </button>
+    </form>
   </search>
 
   <hr />
