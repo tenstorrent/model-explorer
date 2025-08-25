@@ -47,6 +47,8 @@ export class GraphExpander {
   /** This is for testing purpose. */
   readonly dagreGraphs: DagreGraphInstance[] = [];
 
+  private deepestGroupNodeIds?: string[] = undefined;
+
   constructor(
     private readonly modelGraph: ModelGraph,
     private readonly dagre: Dagre,
@@ -381,10 +383,14 @@ export class GraphExpander {
   }
 
   expandAllGroups(): string[] {
+    if (this.deepestGroupNodeIds) {
+      return this.deepestGroupNodeIds;
+    }
+
     this.clearLayoutData(undefined, true);
 
     // Find all deepest group nodes.
-    const deepestGroupNodeIds = this.modelGraph.nodes
+    this.deepestGroupNodeIds = this.modelGraph.nodes
       .filter(
         (node) =>
           isGroupNode(node) &&
@@ -395,11 +401,11 @@ export class GraphExpander {
       .map((node) => node.id);
 
     // Expand from them.
-    if (deepestGroupNodeIds.length > 0) {
-      this.expandFromDeepestGroupNodes(deepestGroupNodeIds);
+    if (this.deepestGroupNodeIds.length > 0) {
+      this.expandFromDeepestGroupNodes(this.deepestGroupNodeIds);
     }
 
-    return deepestGroupNodeIds;
+    return this.deepestGroupNodeIds;
   }
 
   collapseAllGroup(): string[] {
