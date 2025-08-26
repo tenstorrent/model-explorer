@@ -67,7 +67,12 @@ class ExtensionManager(object, metaclass=Singleton):
   def get_extensions_metadata(self, enable_execution: bool) -> list:
     """Get metadata for all extensions."""
     exts = [
-        {**asdict(ext.metadata), 'type': ext.type, 'enableExecution': enable_execution} for ext in self.extensions
+        {
+            **asdict(ext.metadata),
+            'type': ext.type,
+            'enableExecution': enable_execution,
+        }
+        for ext in self.extensions
     ]
     exts.append({
         'fileExts': ['json'],
@@ -75,7 +80,7 @@ class ExtensionManager(object, metaclass=Singleton):
         'id': 'builtin_json',
         'name': 'JSON adapter',
         'description': 'Convert graphs json data file or tfjs model.',
-        'enableExecution': False
+        'enableExecution': False,
     })
     return exts
 
