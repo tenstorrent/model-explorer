@@ -55,6 +55,7 @@ export declare interface ExtensionBase {
 
 export interface ExtensionSettings {
   optimizationPolicies?: string[];
+  enableExecution?: boolean;
 };
 
 export interface SelectedExtensionSettings {
