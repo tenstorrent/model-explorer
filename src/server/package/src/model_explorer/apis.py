@@ -167,6 +167,7 @@ def visualize_pytorch(
 
 
 def visualize_from_config(
+    enable_execution: bool,
     config: Union[ModelExplorerConfig, None] = None,
     host=DEFAULT_HOST,
     port=DEFAULT_PORT,
@@ -174,7 +175,6 @@ def visualize_from_config(
     cors_host: Union[str, None] = None,
     no_open_in_browser: bool = False,
     colab_height=DEFAULT_COLAB_HEIGHT,
-    enable_execution: bool = True,
 ) -> None:
   """Visualizes with a config.
 

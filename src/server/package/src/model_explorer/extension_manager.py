@@ -64,7 +64,7 @@ class ExtensionManager(object, metaclass=Singleton):
     self.extensions = []
     self._import_extensions()
 
-  def get_extensions_metadata(self, enable_execution: bool = True) -> list:
+  def get_extensions_metadata(self, enable_execution: bool) -> list:
     """Get metadata for all extensions."""
     exts = [
         {**asdict(ext.metadata), 'type': ext.type, 'enableExecution': enable_execution} for ext in self.extensions
