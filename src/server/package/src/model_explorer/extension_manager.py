@@ -75,6 +75,7 @@ class ExtensionManager(object, metaclass=Singleton):
         'id': 'builtin_json',
         'name': 'JSON adapter',
         'description': 'Convert graphs json data file or tfjs model.',
+        'enableExecution': False
     })
     return exts
 
