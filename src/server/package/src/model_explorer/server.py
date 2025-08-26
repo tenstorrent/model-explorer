@@ -267,7 +267,7 @@ def start(
       f'Loaded {num_extensions} extension{"" if num_extensions == 1 else "s"}:'
   )
   for extension in extension_metadata_list:
-    print(f' - {extension["name"]}')
+    print(f' - {extension["name"]} {extension["enableExecution"]}')
 
   @app.route('/api/v1/check_new_version')
   def check_new_version():
