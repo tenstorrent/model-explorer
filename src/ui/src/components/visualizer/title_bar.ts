@@ -38,6 +38,7 @@ import {NodeDataProviderDropdown} from './node_data_provider_dropdown';
 import {NodeStyler} from './node_styler';
 import { GraphEdit } from './graph_edit';
 import type { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
+import { ExtensionService } from '../../services/extension_service.js';
 
 /** The title bar component. */
 @Component({
@@ -65,9 +66,15 @@ export class TitleBar {
   @Input({required: true}) nodeDataProviderExtensionService!: NodeDataProviderExtensionService;
   @Output() readonly titleClicked = new EventEmitter<void>();
 
-  constructor() {}
+  constructor(
+    private readonly extensionService: ExtensionService,
+  ) {}
 
   get disableTitleTooltip(): boolean {
     return this.appService.testMode;
+  }
+
+  get isExecutionEnabled() {
+    return [...this.extensionService.extensionSettings.values()].some(({ enableExecution }) => enableExecution === true);
   }
 }

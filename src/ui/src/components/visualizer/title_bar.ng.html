@@ -32,11 +32,15 @@ limitations under the License.
     <div class="divider"></div>
 
     <graph-edit
-        [appService]="appService"
-        [nodeDataProviderExtensionService]="nodeDataProviderExtensionService"
+      [appService]="appService"
+      [nodeDataProviderExtensionService]="nodeDataProviderExtensionService"
+      [hidden]="!isExecutionEnabled"
     ></graph-edit>
 
-    <div class="divider"></div>
+    <div
+      class="divider"
+      [hidden]="!isExecutionEnabled"
+    ></div>
 
     <node-styler></node-styler>
 
