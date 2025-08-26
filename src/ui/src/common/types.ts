@@ -51,11 +51,11 @@ export declare interface ExtensionBase {
   name: string;
   description: string;
   type: ExtensionType;
+  enableExecution?: boolean;
 }
 
 export interface ExtensionSettings {
   optimizationPolicies?: string[];
-  enableExecution?: boolean;
 };
 
 export interface SelectedExtensionSettings {

@@ -75,6 +75,6 @@ export class TitleBar {
   }
 
   get isExecutionEnabled() {
-    return [...this.extensionService.extensionSettings.values()].some(({ enableExecution }) => enableExecution === true);
+    return this.extensionService.extensions.some(({ enableExecution }) => enableExecution === true);
   }
 }
