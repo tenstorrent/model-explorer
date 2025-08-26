@@ -21,6 +21,7 @@ import {IS_EXTERNAL} from '../common/flags';
 import {INTERNAL_COLAB} from '../common/utils';
 
 import {Injectable} from '@angular/core';
+import {SettingKey, SettingsService} from './settings_service.js';
 
 enum DirectiveName {
   RefreshPage = 'refreshPage',
@@ -42,11 +43,17 @@ type Directive = RefreshPageDirective;
   providedIn: 'root',
 })
 export class ServerDirectorService {
+  constructor(
+    private readonly settingsService: SettingsService
+  ) {}
+
   init() {
     if (IS_EXTERNAL && !INTERNAL_COLAB) {
+      const backendUrl = this.settingsService.getStringValue(SettingKey.API_HOST);
+
       // Listen to the streaming events (directives) from the following source
       // that the server has established.
-      const eventSource = new EventSource('/apistream/server_director');
+      const eventSource = new EventSource(new URL('/apistream/server_director', backendUrl));
       eventSource.addEventListener('message', (e) => {
         if (!e.data) {
           return;
