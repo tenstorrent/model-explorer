@@ -64,10 +64,10 @@ class ExtensionManager(object, metaclass=Singleton):
     self.extensions = []
     self._import_extensions()
 
-  def get_extensions_metadata(self) -> list:
+  def get_extensions_metadata(self, enable_execution: bool = True) -> list:
     """Get metadata for all extensions."""
     exts = [
-        {**asdict(ext.metadata), 'type': ext.type} for ext in self.extensions
+        {**asdict(ext.metadata), 'type': ext.type, 'enableExecution': enable_execution} for ext in self.extensions
     ]
     exts.append({
         'fileExts': ['json'],
