@@ -282,7 +282,7 @@ export class GraphEdit {
               this.loggingService.debug(`Execution progress: ${progress} of ${total}`, curModel.path, `Elapsed time: ${elapsedTime}`);
 
               if (stdout) {
-                this.loggingService.info(stdout);
+                this.loggingService.info(...stdout.split('\n'));
               }
 
               this.changeDetectorRef.detectChanges();

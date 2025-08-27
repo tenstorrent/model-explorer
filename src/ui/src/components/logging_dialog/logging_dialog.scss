@@ -37,14 +37,77 @@
     display: flex;
     gap: 1rem;
   }
-}
 
+  hr {
+    width: 1px;
+    height: 28px;
+    border: none;
+    border-left: 1px solid #ccc;
+    margin: 0 16px;
+  }
+
+  search form {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: normal;
+
+    [data-no-messages="true"] {
+      cursor: default;
+      pointer-events: none;
+      color: var(--mat-icon-button-disabled-icon-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent));
+    }
+
+    input[type="search"]::-webkit-search-cancel-button { display: none; }
+  }
+
+  button[mat-icon-button].composite-icon {
+    --badge-size: 0.7rem;
+    --mask-size: 0.8rem;
+    --badge-offset: 1rem;
+
+    position: relative;
+    display: grid;
+    place-items: center;
+
+    mat-icon:nth-of-type(1) {
+      mask-image: radial-gradient(
+        circle at bottom right,
+        transparent,
+        transparent var(--mask-size),
+        black var(--mask-size),
+        black
+      );
+    }
+
+    mat-icon:nth-of-type(2) {
+      position: absolute;
+      display: block;
+      font-size: var(--badge-size);
+      margin-left: var(--badge-offset);
+      margin-top: var(--badge-offset);
+      pointer-events: none;
+      width: var(--badge-size);
+      height: var(--badge-size);
+    }
+  }
+}
 
 .dialog-content {
   padding: 0 1rem;
   max-height: 100%;
   overflow: auto;
   overflow-anchor: auto;
+
+  ::highlight(search-results) {
+    background-color: color-mix(in srgb, yellow, transparent 30%);
+    color: black;
+  }
+
+  ::selection {
+    background-color: deeppink;
+    color: white;
+  }
 
   ul {
     margin: 0;
@@ -53,33 +116,26 @@
   }
 
   li {
+    --log-color: dimgray;
+
     list-style-type: none;
     padding: 0.2rem 0.5rem;
     margin-block: 0.2rem;
-    background: #f5f5f5;
-    color: black;
+    background: color-mix(in hwb, var(--log-color), white 85%);
+    color: color-mix(in hwb, var(--log-color), black 55%);
     width: 100%;
     box-sizing: border-box;
 
-    &[data-log-level="info"] {
-      color: #01014f;
-      background: #edf7ff;
-    }
-
-    &[data-log-level="warn"] {
-      color: #382900;
-      background: #ffffe5;
-    }
-
-    &[data-log-level="error"] {
-      color: #2d0101;
-      background: #fff2f4;
-    }
+    &[data-log-level="info"] { --log-color: royalblue; }
+    &[data-log-level="warn"] { --log-color: goldenrod; }
+    &[data-log-level="error"] { --log-color: orangered; }
+    &[data-log-level="debug"] { --log-color: deeppink; }
 
     .log-message-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      color: color-mix(in hwb, var(--log-color), black 40%);
     }
 
     .log-message-timestamp {
