@@ -55,8 +55,8 @@ export const EXPANDED_NODE_DATA_PROVIDER_SYUMMARY_FONT_SIZE = 9;
 
 /** The maximum number of children nodes under a group node. */
 export const DEFAULT_GROUP_NODE_CHILDREN_COUNT_THRESHOLD = IS_EXTERNAL
-  ? 1000
-  : 400;
+  ? 2500
+  : 900;
 
 /** The corner radius of the op node. */
 export const OP_NODE_CORNER_RADIUS = 6;
