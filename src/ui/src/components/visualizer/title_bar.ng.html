@@ -31,16 +31,14 @@ limitations under the License.
 
     <div class="divider"></div>
 
-    <graph-edit
-      [appService]="appService"
-      [nodeDataProviderExtensionService]="nodeDataProviderExtensionService"
-      [hidden]="!isExecutionEnabled"
-    ></graph-edit>
+    @if (isExecutionEnabled) {
+      <graph-edit
+        [appService]="appService"
+        [nodeDataProviderExtensionService]="nodeDataProviderExtensionService"
+      ></graph-edit>
 
-    <div
-      class="divider"
-      [hidden]="!isExecutionEnabled"
-    ></div>
+      <div class="divider"></div>
+    }
 
     <node-styler></node-styler>
 
