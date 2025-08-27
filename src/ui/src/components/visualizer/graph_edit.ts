@@ -16,7 +16,7 @@ import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
-import type { Graph, GraphCollection } from './common/input_graph';
+import type { GraphCollection } from './common/input_graph';
 import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
 import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_code_dialog.js';
 import type { NodeDataProviderData } from './common/types.js';

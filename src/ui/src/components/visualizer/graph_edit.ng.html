@@ -23,25 +23,23 @@
 
   <div class="divider"></div>
 
-  @if (hasCurModel) {
-    <div class="mat-icon-container">
-      <button
-        mat-icon-button
-        matTooltip="Execute graph"
-        (click)="handleClickExecuteGraph()"
-        [disabled]="isProcessingExecuteRequest() && !hasOverrides && !graphHasErrors"
-        [ngStyle]="{ display: !isProcessingExecuteRequest() ? 'block' : 'none' }"
-      >
-        <mat-icon>play_arrow</mat-icon>
-      </button>
-      <mat-progress-spinner
-        diameter="24"
-        [mode]="executionProgress > 0 ? 'determinate' : 'indeterminate'"
-        [value]="executionProgress"
-        [ngStyle]="{ display: isProcessingExecuteRequest() ? 'block' : 'none' }"
-      ></mat-progress-spinner>
-    </div>
-  }
+  <div class="mat-icon-container">
+    <button
+      mat-icon-button
+      matTooltip="Execute graph"
+      (click)="handleClickExecuteGraph()"
+      [disabled]="!hasCurModel || (isProcessingExecuteRequest() && !hasOverrides && !graphHasErrors)"
+      [ngStyle]="{ display: !isProcessingExecuteRequest() ? 'block' : 'none' }"
+    >
+      <mat-icon>play_arrow</mat-icon>
+    </button>
+    <mat-progress-spinner
+      diameter="24"
+      [mode]="executionProgress > 0 ? 'determinate' : 'indeterminate'"
+      [value]="executionProgress"
+      [ngStyle]="{ display: isProcessingExecuteRequest() ? 'block' : 'none' }"
+    ></mat-progress-spinner>
+  </div>
 
   <button
     mat-icon-button
