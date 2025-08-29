@@ -24,7 +24,6 @@ import tempfile
 import threading
 import time
 import traceback
-import webbrowser
 from importlib import metadata
 from time import sleep
 from typing import Any, Union
