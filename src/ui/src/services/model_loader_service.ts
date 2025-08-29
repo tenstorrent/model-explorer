@@ -51,7 +51,7 @@ import {
 import {processErrorMessage} from '../components/visualizer/common/utils';
 
 import {ExtensionService} from './extension_service';
-import {SettingsService} from './settings_service';
+import {SettingKey, SettingsService} from './settings_service';
 
 const UPLOAD_API_PATH = '/apipost/v1/upload';
 const LOAD_GRAPHS_JSON_API_PATH = '/api/v1/load_graphs_json';
@@ -92,6 +92,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     private readonly settingsService: SettingsService,
     readonly extensionService: ExtensionService,
   ) {}
+
+  private get backendUrl() {
+      return this.settingsService.getStringValue(SettingKey.API_HOST);
+  }
 
   updateOverrides(newOverrides: OverridesPerCollection, wasSentToServer = false) {
     this.overrides.update((curOverrides) => {
@@ -356,7 +360,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   private async readTextFile(path: string): Promise<string> {
-    const resp = await fetch(`${READ_TEXT_FILE_API_PATH}?path=${path}`);
+    const resp = await fetch(new URL(`${READ_TEXT_FILE_API_PATH}?path=${path}`, this.backendUrl));
     const jsonObj = (await resp.json()) as ReadTextFileResponse;
     if (jsonObj.error) {
       throw new Error(`Failed to read file: ${jsonObj.error}`);
@@ -375,9 +379,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     const lastSlashIndex = partsStr.lastIndexOf('/');
     const name = partsStr.substring(0, lastSlashIndex);
     const index = Number(partsStr.substring(lastSlashIndex + 1));
-    const resp = await fetch(
-      `${LOAD_GRAPHS_JSON_API_PATH}?graph_index=${index}`,
-    );
+    const resp = await fetch(new URL(`${LOAD_GRAPHS_JSON_API_PATH}?graph_index=${index}`, this.backendUrl));
     const json = (await resp.json()) as AdapterConvertResponse;
     const graphCollections = this.processAdapterConvertResponse(json, name);
     this.processGeneratedCppCode(graphCollections);
@@ -390,7 +392,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   ): Promise<{path: string; error?: string}> {
     const data = new FormData();
     data.append('file', file, file.name);
-    const uploadResp = await fetch(UPLOAD_API_PATH, {
+    const uploadResp = await fetch(new URL(UPLOAD_API_PATH, this.backendUrl), {
       method: 'POST',
       body: data,
     });
