@@ -54,6 +54,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    font-weight: bold;
 
     .icon-container {
       width: 16px;
@@ -103,4 +104,26 @@
       font-weight: 700;
     }
   }
+}
+
+details {
+  margin-block-start: 0.5em;
+
+  summary { font-weight: bold; }
+  & > *:not(summary) {
+    font-size: smaller;
+    line-height: 1.7;
+  }
+}
+
+
+dl {
+  dt {
+    font-style: italic;
+    text-decoration: underline solid currentColor;
+    text-decoration-thickness: 0.1em;
+    text-underline-offset: 0.1em;
+  }
+
+  dd { margin-inline-start: 1.5em; }
 }

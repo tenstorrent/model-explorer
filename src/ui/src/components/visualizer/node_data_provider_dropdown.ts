@@ -36,9 +36,9 @@ import {AppService} from './app_service';
 import {ModelGraph} from './common/model_graph';
 import {NodeDataProviderData} from './common/types';
 import {genUid} from './common/utils';
-import {Extension} from './extension_service';
 import {LocalStorageService} from './local_storage_service';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
+import type { Extension } from '../../common/types.js';
 
 /** The drop down menu for add per-node data. */
 @Component({

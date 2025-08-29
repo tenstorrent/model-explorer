@@ -17,27 +17,44 @@
  */
 
 import {Injectable, computed, signal} from '@angular/core';
+import {AppService} from './app_service';
 import {
+  Edge,
   EdgeOverlaysData,
   ProcessedEdgeOverlay,
   ProcessedEdgeOverlaysData,
 } from './common/edge_overlays';
-import {ReadFileResp} from './common/types';
+import {Pane, ReadFileResp} from './common/types';
 import {genUid} from './common/utils';
 import { SettingKey, SettingsService } from '../../services/settings_service.js';
 
 /** A service for managing edge overlays. */
 @Injectable()
 export class EdgeOverlaysService {
+  readonly pane = signal<Pane | undefined>(undefined);
+
   readonly remoteSourceLoading = signal<boolean>(false);
 
-  readonly loadedEdgeOverlays = signal<ProcessedEdgeOverlaysData[]>([]);
+  readonly allLoadedEdgeOverlays = signal<ProcessedEdgeOverlaysData[]>([]);
+
+  readonly filteredLoadedEdgeOverlays = computed(() => {
+    const curPane = this.appService.getPaneById(this.pane()?.id ?? '');
+    if (!curPane) {
+      return [];
+    }
+    const allLoadedEdgeOverlays = this.allLoadedEdgeOverlays();
+    return allLoadedEdgeOverlays.filter(
+      (overlayData) =>
+        !overlayData.graphName ||
+        overlayData.graphName === curPane.modelGraph?.id,
+    );
+  });
 
   readonly selectedOverlayIds = signal<string[]>([]);
 
   readonly selectedOverlays = computed(() => {
     const overlays: ProcessedEdgeOverlay[] = [];
-    for (const overlayData of this.loadedEdgeOverlays()) {
+    for (const overlayData of this.filteredLoadedEdgeOverlays()) {
       for (const overlay of overlayData.processedOverlays) {
         if (this.selectedOverlayIds().includes(overlay.id)) {
           overlays.push(overlay);
@@ -48,20 +65,25 @@ export class EdgeOverlaysService {
   });
 
   constructor(
-    private readonly settingsService: SettingsService
+    private readonly appService: AppService,
+    private readonly settingsService: SettingsService,
   ) {}
 
+  setPane(pane: Pane) {
+    this.pane.set(pane);
+  }
+
   addOverlay(overlay: EdgeOverlaysData) {
-    this.loadedEdgeOverlays.update((loadedOverlays) => {
-      return [...loadedOverlays, processOverlay(overlay)];
+    this.allLoadedEdgeOverlays.update((allLoadedOverlays) => {
+      return [...allLoadedOverlays, processOverlay(overlay)];
     });
   }
 
   deleteOverlayData(id: string) {
-    const overlaysDataToDelete = this.loadedEdgeOverlays().find(
+    const overlaysDataToDelete = this.filteredLoadedEdgeOverlays().find(
       (overlaysData) => overlaysData.id === id,
     );
-    this.loadedEdgeOverlays.update((overlayDataList) => {
+    this.allLoadedEdgeOverlays.update((overlayDataList) => {
       return overlayDataList.filter((overlayData) => overlayData.id !== id);
     });
 
@@ -93,9 +115,9 @@ export class EdgeOverlaysService {
 
     // Select all newly-added overlays.
     this.selectedOverlayIds.update((selectedOverlayIds) => {
-      const loadedOverlaysDataList = this.loadedEdgeOverlays();
+      const allLoadedOverlaysDataList = this.allLoadedEdgeOverlays();
       const newOverlayData =
-        loadedOverlaysDataList[loadedOverlaysDataList.length - 1];
+        allLoadedOverlaysDataList[allLoadedOverlaysDataList.length - 1];
       const newIds = newOverlayData.processedOverlays.map(
         (overlay) => overlay.id,
       );
@@ -111,6 +133,29 @@ export class EdgeOverlaysService {
       return `Failed to parse JSON file. ${e}`;
     }
     return '';
+  }
+
+  toggleShowEdgesConnectedToSelectedNodeOnly(overlayId: string) {
+    this.allLoadedEdgeOverlays.update((loadedOverlays) => {
+      const overlay = this.getProcessedEdgeOverlayById(overlayId);
+      if (!overlay) {
+        return loadedOverlays;
+      }
+      overlay.showEdgesConnectedToSelectedNodeOnly =
+        !overlay.showEdgesConnectedToSelectedNodeOnly;
+      return [...loadedOverlays];
+    });
+  }
+
+  setVisibleEdgeHops(overlayId: string, visibleEdgeHops: number) {
+    this.allLoadedEdgeOverlays.update((loadedOverlays) => {
+      const overlay = this.getProcessedEdgeOverlayById(overlayId);
+      if (!overlay) {
+        return loadedOverlays;
+      }
+      overlay.visibleEdgeHops = visibleEdgeHops;
+      return [...loadedOverlays];
+    });
   }
 
   async loadFromCns(path: string): Promise<string> {
@@ -136,6 +181,19 @@ export class EdgeOverlaysService {
 
     return error;
   }
+
+  private getProcessedEdgeOverlayById(
+    overlayId: string,
+  ): ProcessedEdgeOverlay | undefined {
+    for (const overlayData of this.filteredLoadedEdgeOverlays()) {
+      for (const overlay of overlayData.processedOverlays) {
+        if (overlay.id === overlayId) {
+          return overlay;
+        }
+      }
+    }
+    return undefined;
+  }
 }
 
 function processOverlay(
@@ -147,15 +205,31 @@ function processOverlay(
     ...overlayData,
   };
   for (const overlay of overlayData.overlays) {
+    const adjacencyMap = new Map<string, Edge[]>();
     const processedOverlay: ProcessedEdgeOverlay = {
       id: genUid(),
       nodeIds: new Set<string>(),
+      adjacencyMap,
       ...overlay,
     };
     processedOverlayData.processedOverlays.push(processedOverlay);
     for (const edge of overlay.edges) {
       processedOverlay.nodeIds.add(edge.sourceNodeId);
       processedOverlay.nodeIds.add(edge.targetNodeId);
+
+      // Build the adjacency map.
+      //
+      // Add the edge to the source node's list
+      if (!adjacencyMap.has(edge.sourceNodeId)) {
+        adjacencyMap.set(edge.sourceNodeId, []);
+      }
+      adjacencyMap.get(edge.sourceNodeId)?.push(edge);
+
+      // Add the same edge to the target node's list
+      if (!adjacencyMap.has(edge.targetNodeId)) {
+        adjacencyMap.set(edge.targetNodeId, []);
+      }
+      adjacencyMap.get(edge.targetNodeId)?.push(edge);
     }
   }
   return processedOverlayData;
