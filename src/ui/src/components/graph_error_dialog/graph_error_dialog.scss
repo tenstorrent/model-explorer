@@ -27,6 +27,8 @@
 	font-weight: bold;
 }
 
-.error-dialog-items {
-	list-style: inside disc;
+.error-dialog-items pre {
+  text-wrap-mode: wrap;
+  white-space-collapse: break-spaces;
+  tab-size: 2;
 }
