@@ -368,7 +368,7 @@ export class ModelSourceInput {
         width: 'clamp(10rem, 60vw, 60rem)',
         height: 'clamp(10rem, 60vh, 60rem)',
         data: {
-          errorMessages: [item.errorMessage ?? ''],
+          errorMessages: item.errorMessage ?? '',
           title: 'Model Loading Error'
         }
       });}

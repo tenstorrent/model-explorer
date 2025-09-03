@@ -23,7 +23,7 @@ import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 
 export interface ErrorDialogData {
-	errorMessages: string[];
+	errorMessages: string;
 	title?: string
 }
 

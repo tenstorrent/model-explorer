@@ -250,7 +250,7 @@ export class GraphEdit {
       width: 'clamp(10rem, 60vw, 60rem)',
       height: 'clamp(10rem, 60vh, 60rem)',
       data: {
-        errorMessages: [...messages],
+        errorMessages: messages.join('\n'),
         title
       }
     });
