@@ -21,6 +21,9 @@ import {Component, Inject } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DomSanitizer } from '@angular/platform-browser';
+import Anser from 'anser';
 
 export interface ErrorDialogData {
 	errorMessages: string;
@@ -33,10 +36,26 @@ export interface ErrorDialogData {
 @Component({
   selector: 'graph-error-dialog',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDialogModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './graph_error_dialog.ng.html',
   styleUrls: ['./graph_error_dialog.scss'],
 })
 export class GraphErrorsDialog {
-	constructor(@Inject(MAT_DIALOG_DATA) public data: ErrorDialogData) {}
+	constructor(
+    @Inject(MAT_DIALOG_DATA) public data: ErrorDialogData,
+    private sanitizer: DomSanitizer,
+  ) {}
+
+  renderErrorMessages() {
+    const htmlText = Anser.ansiToHtml(this.data.errorMessages)
+    const sanitizedHtml = this.sanitizer.bypassSecurityTrustHtml(htmlText);
+
+    return sanitizedHtml;
+  }
 }
