@@ -109,10 +109,7 @@ export class GraphEdit {
       }
 
       if (progress !== -1) {
-        // Regular expression adapted from: https://github.com/chalk/ansi-regex
-        const formattedStdout = stdout?.replaceAll(new RegExp(`[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?(?:\\u0007|\\u001B\\u005C|\\u009C))|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))`,'giu'), '');
-
-        updateCallback(progress, total, intervalFormatter(deltaTime), formattedStdout);
+        updateCallback(progress, total, intervalFormatter(deltaTime), stdout);
       }
     }, POOL_TIME_MS);
   }
@@ -250,7 +247,7 @@ export class GraphEdit {
       width: 'clamp(10rem, 60vw, 60rem)',
       height: 'clamp(10rem, 60vh, 60rem)',
       data: {
-        errorMessages: [...messages],
+        errorMessages: messages.join('\n'),
         title
       }
     });
