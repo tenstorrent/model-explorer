@@ -216,7 +216,7 @@ export function maxRank(g: Graph) {
  * function returns true for an entry it goes into `lhs`. Otherwise it goes
  * into `rhs.
  */
-export function partition<T>(collection: T[], fn: Function) {
+export function partition<T>(collection: T[], fn: (value: T) => boolean) {
   let result: { lhs: T[], rhs: T[] } = { lhs: [], rhs: [] };
   collection.forEach((value) => {
     if (fn(value)) {
