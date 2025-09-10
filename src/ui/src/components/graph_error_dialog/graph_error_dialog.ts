@@ -22,8 +22,6 @@ import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { DomSanitizer } from '@angular/platform-browser';
-import Anser from 'anser';
 
 export interface ErrorDialogData {
 	errorMessages: string;
@@ -49,13 +47,12 @@ export interface ErrorDialogData {
 export class GraphErrorsDialog {
 	constructor(
     @Inject(MAT_DIALOG_DATA) public data: ErrorDialogData,
-    private sanitizer: DomSanitizer,
   ) {}
 
-  renderErrorMessages() {
-    const htmlText = Anser.ansiToHtml(this.data.errorMessages)
-    const sanitizedHtml = this.sanitizer.bypassSecurityTrustHtml(htmlText);
+  get formattedErrorMessages() {
+    // Regular expression adapted from: https://github.com/chalk/ansi-regex
+    const formattedMessages = this.data.errorMessages?.replaceAll(new RegExp(`[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?(?:\\u0007|\\u001B\\u005C|\\u009C))|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))`,'giu'), '');
 
-    return sanitizedHtml;
+    return formattedMessages;
   }
 }
