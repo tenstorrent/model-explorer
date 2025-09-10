@@ -21,9 +21,10 @@ import {Component, Inject } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface ErrorDialogData {
-	errorMessages: string[];
+	errorMessages: string;
 	title?: string
 }
 
@@ -33,10 +34,25 @@ export interface ErrorDialogData {
 @Component({
   selector: 'graph-error-dialog',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDialogModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './graph_error_dialog.ng.html',
   styleUrls: ['./graph_error_dialog.scss'],
 })
 export class GraphErrorsDialog {
-	constructor(@Inject(MAT_DIALOG_DATA) public data: ErrorDialogData) {}
+	constructor(
+    @Inject(MAT_DIALOG_DATA) public data: ErrorDialogData,
+  ) {}
+
+  get formattedErrorMessages() {
+    // Regular expression adapted from: https://github.com/chalk/ansi-regex
+    const formattedMessages = this.data.errorMessages?.replaceAll(new RegExp(`[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?(?:\\u0007|\\u001B\\u005C|\\u009C))|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))`,'giu'), '');
+
+    return formattedMessages;
+  }
 }
