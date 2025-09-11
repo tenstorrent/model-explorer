@@ -27,6 +27,6 @@ export class WorkerService {
 
   constructor() {
     this.worker = new Worker(
-        new URL('./worker/worker', import.meta.url), {type: 'classic'});
+        new URL('./worker/worker', import.meta.url), {type: 'module'});
   }
 }

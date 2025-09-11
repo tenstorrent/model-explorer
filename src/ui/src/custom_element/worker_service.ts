@@ -29,6 +29,6 @@ export class WorkerService {
     const workerScriptUrl =
       // tslint:disable-next-line:no-any
       (window as any)['modelExplorer'].workerScriptPath ?? 'worker.js';
-    this.worker = new Worker(workerScriptUrl);
+    this.worker = new Worker(workerScriptUrl, { type: 'module' });
   }
 }
