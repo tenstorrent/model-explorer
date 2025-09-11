@@ -26,10 +26,11 @@ on:
         default: "3.11"
         type: choice
         options:
-          - "3.12"
-          - "3.11"
-          - "3.10"
-          - "3.9"
+          - '3.13'
+          - '3.12'
+          - '3.11'
+          - '3.10'
+          - '3.9'
 
       package-version:
         description: "Package Version"
