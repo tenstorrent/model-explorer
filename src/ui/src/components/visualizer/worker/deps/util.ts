@@ -114,7 +114,8 @@ export function buildLayerMatrix(g: Graph) {
   let layering = range(maxRank(g) + 1).map(() => []) as string[][];
   g.nodes().forEach((v) => {
     let node = g.node(v);
-    let rank = node.rank;
+
+    let rank = node?.rank;
     if (rank !== undefined) {
       layering[rank][node.order] = v;
     }
@@ -197,7 +198,7 @@ export function maxRank(g: Graph) {
   let maxRank = Number.MIN_VALUE;
 
   for (const v of g.nodes()) {
-    let rank = g.node(v).rank;
+    let rank = g.node(v)?.rank ?? 0;
 
     if (rank === undefined) {
       continue;

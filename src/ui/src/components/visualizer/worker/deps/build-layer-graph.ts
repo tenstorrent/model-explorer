@@ -40,6 +40,10 @@ export function buildLayerGraph(g: Graph, rank: number, relationship: 'inEdges' 
     let node = g.node(v),
       parent = g.parent(v);
 
+    if (!node) {
+      return;
+    }
+
     if (node.rank === rank || node.minRank <= rank && rank <= node.maxRank) {
       result.setNode(v);
       result.setParent(v, parent || root);

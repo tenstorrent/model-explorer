@@ -39,6 +39,7 @@ export function run(g: Graph) {
   let weight = sumWeights(g) + 1;
 
   // Create border nodes and link them up
+  // @ts-expect-error
   g.children().forEach((child) => dfs(g, root, nodeSep, weight, height, depths, child));
 
   // Save the multiplier for node layers for later removal of empty border
@@ -101,6 +102,7 @@ function treeDepths(g: Graph) {
     depths[v] = depth;
   }
 
+  // @ts-expect-error
   g.children().forEach((v) => dfs(v, 1));
 
   return depths;

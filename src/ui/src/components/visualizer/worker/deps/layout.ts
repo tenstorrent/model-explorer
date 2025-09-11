@@ -8,7 +8,7 @@ import * as normalize from './normalize.js';
 import { order } from './order.js';
 import { parentDummyChains } from './parent-dummy-chains.js';
 import { rank } from './rank.js';
-import { addDummyNode, asNonCompoundGraph, buildLayerMatrix, intersectRect, normalizeRanks, removeEmptyRanks, time, uniqueId } from './util.js';
+import { addDummyNode, asNonCompoundGraph, buildLayerMatrix, intersectRect, normalizeRanks, removeEmptyRanks, time } from './util.js';
 import { position } from './position.js';
 
 /*
@@ -54,8 +54,8 @@ function assignRankMinMax(g: Graph) {
   g.nodes().forEach((v) => {
     let node = g.node(v);
     if (node.borderTop) {
-      node.minRank = g.node(node.borderTop).rank;
-      node.maxRank = g.node(node.borderBottom).rank;
+      node.minRank = g.node(node.borderTop)?.rank ?? 0;
+      node.maxRank = g.node(node.borderBottom)?.rank ?? 0;
       maxRank = Math.max(maxRank, node.maxRank);
     }
   });
@@ -82,10 +82,14 @@ function translateGraph(g: Graph) {
   let marginY = graphLabel.marginy || 0;
 
   function getExtremes(attrs: Rect) {
-    let x = attrs.x;
-    let y = attrs.y;
-    let w = attrs.width;
-    let h = attrs.height;
+    if (!attrs) {
+      return;
+    }
+
+    let x = attrs?.x ?? 0;
+    let y = attrs?.y ?? 0;
+    let w = attrs?.width ?? 0;
+    let h = attrs?.height ?? 0;
     minX = Math.min(minX, x - w / 2);
     maxX = Math.max(maxX, x + w / 2);
     minY = Math.min(minY, y - h / 2);
@@ -105,12 +109,21 @@ function translateGraph(g: Graph) {
 
   g.nodes().forEach((v) => {
     let node = g.node(v);
+
+    if (!node) {
+      return;
+    }
+
     node.x -= minX;
     node.y -= minY;
   });
 
   g.edges().forEach((e) => {
     let edge = g.edge(e);
+    if (!edge) {
+      return;
+    }
+
     edge.points.forEach((p: Point) => {
       p.x -= minX;
       p.y -= minY;
@@ -174,6 +187,11 @@ function removeBorderNodes(g: Graph) {
   g.nodes().forEach((v) => {
     if (g.children(v).length) {
       let node = g.node(v);
+
+      if (!node) {
+        return;
+      }
+
       let t = g.node(node.borderTop);
       let b = g.node(node.borderBottom);
       let l = g.node(node.borderLeft[node.borderLeft.length - 1]);
@@ -187,7 +205,7 @@ function removeBorderNodes(g: Graph) {
   });
 
   g.nodes().forEach((v) => {
-    if (g.node(v).dummy === 'border') {
+    if (g.node(v)?.dummy === 'border') {
       g.removeNode(v);
     }
   });
@@ -218,7 +236,7 @@ function insertSelfEdges(g: Graph) {
 function positionSelfEdges(g: Graph) {
   g.nodes().forEach((v) => {
     var node = g.node(v);
-    if (node.dummy === 'selfedge') {
+    if (node?.dummy === 'selfedge') {
       var selfNode = g.node(node.e.v);
       var x = selfNode.x + selfNode.width / 2;
       var y = selfNode.y;

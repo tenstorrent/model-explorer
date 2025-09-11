@@ -19,7 +19,7 @@ export function parentDummyChains(g: Graph) {
       if (ascending) {
         while (
           (pathV = path[pathIdx] ?? '') !== lca &&
-          g.node(pathV).maxRank < node.rank
+          g.node(pathV)?.maxRank < node.rank
         ) {
           pathIdx++;
         }
@@ -84,6 +84,7 @@ function postorder(g: Graph) {
     g.children(v).forEach(dfs);
     result[v] = { low: low, lim: lim++ };
   }
+  // @ts-expect-error
   g.children().forEach(dfs);
 
   return result;

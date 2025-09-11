@@ -9,9 +9,10 @@ export function addBorderSegments(g: Graph) {
       children.forEach(dfs);
     }
 
-    if (node.hasOwnProperty('minRank')) {
+    if (node?.hasOwnProperty('minRank')) {
       node.borderLeft = [];
       node.borderRight = [];
+
       for (let rank = node.minRank, maxRank = node.maxRank + 1; rank < maxRank; ++rank) {
         addBorderNode(g, 'borderLeft', '_bl', v, node, rank);
         addBorderNode(g, 'borderRight', '_br', v, node, rank);
@@ -19,6 +20,7 @@ export function addBorderSegments(g: Graph) {
     }
   }
 
+  // @ts-expect-error
   g.children().forEach(dfs);
 }
 
