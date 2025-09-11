@@ -172,6 +172,7 @@ def visualize_from_config(
     port=DEFAULT_PORT,
     extensions: list[str] = [],
     cors_host: Union[str, None] = None,
+    # Deprecated: kept here to not break consumers of this function
     no_open_in_browser: bool = False,
     colab_height=DEFAULT_COLAB_HEIGHT,
     enable_execution: bool = True,
@@ -185,7 +186,6 @@ def visualize_from_config(
     extensions: List of extension names to be run with model explorer.
     cors_host: The value of the Access-Control-Allow-Origin header. The header
       won't be present if it is None.
-    no_open_in_browser: Don't open the web app in browser after server starts.
     colab_height: The height of the embedded iFrame when running in colab.
   """
   # Start server.
@@ -195,7 +195,6 @@ def visualize_from_config(
       config=config,
       extensions=extensions,
       cors_host=cors_host,
-      no_open_in_browser=no_open_in_browser,
       colab_height=colab_height,
       enable_execution=enable_execution,
   )

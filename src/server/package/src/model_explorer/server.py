@@ -24,7 +24,6 @@ import tempfile
 import threading
 import time
 import traceback
-import webbrowser
 from importlib import metadata
 from time import sleep
 from typing import Any, Union
@@ -183,7 +182,6 @@ def start(
     host=DEFAULT_HOST,
     port=DEFAULT_PORT,
     config: Union[ModelExplorerConfig, None] = None,
-    no_open_in_browser: bool = False,
     extensions: list[str] = [],
     colab_height: int = DEFAULT_COLAB_HEIGHT,
     cors_host: Union[str, None] = None,
@@ -195,7 +193,6 @@ def start(
     host: The host of the server. Default to localhost.
     port: The port of the server. Default to 8080.
     config: the object that stores the data to be visualized.
-    no_open_in_browser: Don't open the web app in browser after server starts.
     extensions: A list of extension module names. Default to empty.
     colab_height: The height of the embedded iFrame when running in colab.
     cors_host: The value of the Access-Control-Allow-Origin header. The header
@@ -463,8 +460,6 @@ def start(
         f'\nStarting Model Explorer server at:\n{server_address}\n\nPress'
         ' Ctrl+C to stop.'
     )
-    if not no_open_in_browser:
-      webbrowser.open_new_tab(f'{server_address}')
 
     # Check installed version vs published version.
     threading.Thread(target=lambda: _check_new_version()).start()

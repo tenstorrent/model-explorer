@@ -72,6 +72,13 @@ limitations under the License.
       </div>
     }
 
+    <!-- Extension loading Error -->
+    @if (isExtensionLoadingError) {
+      <div class="welcome-card-container">
+        <api-error-card></api-error-card>
+      </div>
+    }
+
     <!-- Model source input -->
     @if (loadingExtensions()) {
       <div class="loading-adapter-extension-container">

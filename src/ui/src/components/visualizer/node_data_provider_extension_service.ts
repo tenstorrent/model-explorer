@@ -178,7 +178,7 @@ export class NodeDataProviderExtensionService {
     });
   }
 
-  async addRunFromRemoteSource(path: string, modelGraph: ModelGraph) {
+  async addRunFromRemoteSource(backendUrl: string | URL, path: string, modelGraph: ModelGraph) {
     this.remoteSourceLoading.set(true);
 
     const fileNameParts = path.split('/');
@@ -199,7 +199,7 @@ export class NodeDataProviderExtensionService {
     }
     const runId = genUid();
     this.addRun(runId, fileName, '', modelGraph, undefined, false, path);
-    const resp = await fetch(url);
+    const resp = await fetch(new URL(url, backendUrl));
     if (!resp.ok) {
       this.updateRunResults(
         runId,
