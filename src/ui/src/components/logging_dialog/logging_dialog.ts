@@ -17,7 +17,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ViewChild, type ElementRef} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
@@ -47,8 +47,26 @@ export class LoggingDialog {
     private readonly loggingService: LoggingServiceInterface,
   ) {}
 
+  @ViewChild('logList')
+  private logList!: ElementRef<HTMLUListElement>;
+
+  @ViewChild('searchInput')
+  private searchInput!: ElementRef<HTMLInputElement>;
+
+  private ranges: Range[] = [];
+
+  get totalRanges() {
+    return this.ranges.length;
+  }
+
+  currentRange = -1;
+
   get messages() {
     return this.loggingService.getMessages();
+  }
+
+  get hasMessages() {
+    return this.messages.length > 0;
   }
 
   getLogLevelIcon(level: LogLevel) {
@@ -69,7 +87,7 @@ export class LoggingDialog {
     this.loggingService.clear();
   }
 
-  downloadLogs() {
+  downloadJsonLogs() {
     const messages = this.loggingService.getMessages();
 
     if (messages.length > 0) {
@@ -83,6 +101,112 @@ export class LoggingDialog {
 
       URL.revokeObjectURL(textUrl);
     }
+  }
+
+  downloadRawLogs() {
+    const messages = this.loggingService.getMessages()
+
+    if (messages.length > 0) {
+      const text = messages
+        .map(({ messages }) => messages)
+        .flat()
+        .join('\n');
+      const tempElement = document.createElement('a');
+      const textUrl = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+
+      tempElement.hidden = true;
+      tempElement.download = `logs-${new Date().toISOString()}.txt`;
+      tempElement.href = textUrl;
+      tempElement.click();
+
+      URL.revokeObjectURL(textUrl);
+    }
+  }
+
+  selectPreviousResult() {
+    if (this.ranges.length === 0) {
+      return;
+    }
+
+    const selection = document.getSelection();
+
+    this.currentRange -= 1;
+
+    if (this.currentRange < 0) {
+      this.currentRange = this.ranges.length - 1;
+    }
+
+    selection?.empty();
+    selection?.addRange(this.ranges[this.currentRange]);
+
+    this.ranges[this.currentRange].startContainer.parentElement?.scrollIntoView({ block: 'center' });
+  }
+
+  selectNextResult() {
+    if (this.ranges.length === 0) {
+      return;
+    }
+
+    const selection = document.getSelection();
+
+    this.currentRange += 1;
+
+    if (this.currentRange >= this.ranges.length) {
+      this.currentRange = 0;
+    }
+
+    selection?.empty();
+    selection?.addRange(this.ranges[this.currentRange]);
+
+    this.ranges[this.currentRange].startContainer.parentElement?.scrollIntoView({ block: 'center' });
+  }
+
+  searchLogs(evt: SubmitEvent) {
+    evt.preventDefault();
+
+    const searchString = this.searchInput.nativeElement.value.trim().toLowerCase();
+
+    // @ts-expect-error
+    CSS.highlights.clear();
+
+    this.currentRange = -1;
+    this.ranges = [];
+
+    if (!searchString) {
+      return;
+    }
+
+    const treeWalker = document.createTreeWalker(this.logList.nativeElement, NodeFilter.SHOW_TEXT);
+    let currentNode = treeWalker.nextNode();
+
+    while (currentNode) {
+      const nodeText = currentNode.textContent?.toLowerCase() ?? '';
+
+      let curTextPosition = 0;
+
+      while (curTextPosition < nodeText.length) {
+        const index = nodeText.indexOf(searchString, curTextPosition);
+
+        if (index === -1) {
+          break;
+        }
+
+        const range = new Range();
+
+        range.setStart(currentNode, index);
+        range.setEnd(currentNode, index + searchString.length);
+        this.ranges.push(range);
+
+        curTextPosition = index + searchString.length;
+      }
+
+      currentNode = treeWalker.nextNode();
+    }
+
+    // @ts-expect-error
+    CSS.highlights.set("search-results", new Highlight(...this.ranges));
+
+    this.selectNextResult();
   }
 
   formatDate(date: Date) {

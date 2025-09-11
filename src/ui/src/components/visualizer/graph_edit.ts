@@ -16,7 +16,7 @@ import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog';
 import { LoggingDialog } from '../logging_dialog/logging_dialog';
 import { NodeDataProviderExtensionService } from './node_data_provider_extension_service';
 import type { LoggingServiceInterface } from '../../common/logging_service_interface';
-import type { Graph, GraphCollection } from './common/input_graph';
+import type { GraphCollection } from './common/input_graph';
 import { ExecutionSettingsDialog, type ExecutionSettingsDialogData } from '../execution_settings_dialog/execution_settings_dialog';
 import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_code_dialog.js';
 import type { NodeDataProviderData } from './common/types.js';
@@ -109,10 +109,7 @@ export class GraphEdit {
       }
 
       if (progress !== -1) {
-        // Regular expression adapted from: https://github.com/chalk/ansi-regex
-        const formattedStdout = stdout?.replaceAll(new RegExp(`[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?(?:\\u0007|\\u001B\\u005C|\\u009C))|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))`,'giu'), '');
-
-        updateCallback(progress, total, intervalFormatter(deltaTime), formattedStdout);
+        updateCallback(progress, total, intervalFormatter(deltaTime), stdout);
       }
     }, POOL_TIME_MS);
   }
@@ -250,7 +247,7 @@ export class GraphEdit {
       width: 'clamp(10rem, 60vw, 60rem)',
       height: 'clamp(10rem, 60vh, 60rem)',
       data: {
-        errorMessages: [...messages],
+        errorMessages: messages.join('\n'),
         title
       }
     });
@@ -282,7 +279,7 @@ export class GraphEdit {
               this.loggingService.debug(`Execution progress: ${progress} of ${total}`, curModel.path, `Elapsed time: ${elapsedTime}`);
 
               if (stdout) {
-                this.loggingService.info(stdout);
+                this.loggingService.info(...stdout.split('\n'));
               }
 
               this.changeDetectorRef.detectChanges();

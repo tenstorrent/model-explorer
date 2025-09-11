@@ -182,17 +182,14 @@ limitations under the License.
                     {{getModelItemStatusString(item)}}
                   </div>
                   @if (hasError(item)) {
-                    <div class="error-info-container"
-                        [bubble]="errorInfo"
-                        [overlaySize]="errorInfoPopupSize"
-                        [hoverDelayMs]="50">
+                    <button
+                      mat-icon-button
+                      [class.error]="hasError(item)"
+                      matTooltip="View Error Message"
+                      (click)="handleErrorDialogOpen(item)"
+                    >
                       <mat-icon>info</mat-icon>
-                    </div>
-                    <ng-template #errorInfo>
-                      <div class="model-explorer-error-info-popup">
-                        {{item.errorMessage}}
-                      </div>
-                    </ng-template>
+                    </button>
                   }
                 </div>
               </td>

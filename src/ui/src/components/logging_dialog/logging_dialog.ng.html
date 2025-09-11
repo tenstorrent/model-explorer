@@ -18,17 +18,99 @@ limitations under the License.
 
 <div mat-dialog-title class="title-container">
   <h2>Message log</h2>
+
+  <search>
+    <form action="#" (submit)="searchLogs($event)">
+      <input
+        type="search"
+        [disabled]="!hasMessages"
+        aria-label="Search Logs"
+        #searchInput
+      />
+
+      <button
+        type="submit"
+        mat-icon-button
+        [disabled]="!hasMessages"
+        matTooltip="Search Logs"
+        aria-label="Search Logs"
+      >
+        <mat-icon>search</mat-icon>
+      </button>
+
+      <hr />
+
+      <button
+        type="button"
+        mat-icon-button
+        [disabled]="totalRanges === 0"
+        matTooltip="Previous Result"
+        aria-label="Previous Result"
+        (click)="selectPreviousResult()"
+      >
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
+      <button
+        type="button"
+        mat-icon-button
+        [disabled]="totalRanges === 0"
+        matTooltip="Next Result"
+        aria-label="Next Result"
+        (click)="selectNextResult()"
+      >
+        <mat-icon>arrow_downward</mat-icon>
+      </button>
+      <span [attr.data-no-messages]="!hasMessages">
+        <output>{{currentRange + 1}}</output>
+        <span>/</span>
+        <output>{{totalRanges}}</output>
+      </span>
+    </form>
+  </search>
+
+  <hr />
+
   <div class="button-container">
-    <button mat-icon-button matTooltip="Download logs" (click)="downloadLogs()">
+    <button
+      mat-icon-button
+      [disabled]="!hasMessages"
+      class="composite-icon"
+      matTooltip="Download Raw Logs"
+      aria-label="Download Raw Logs"
+      (click)="downloadRawLogs()"
+    >
       <mat-icon>download</mat-icon>
+      <mat-icon>subject</mat-icon>
     </button>
-    <button mat-icon-button matTooltip="Clear logs" (click)="clearLogs()">
-      <mat-icon>delete</mat-icon>
+    <button
+      mat-icon-button
+      [disabled]="!hasMessages"
+      class="composite-icon"
+      matTooltip="Download JSON Logs"
+      aria-label="Download JSON Logs"
+      (click)="downloadJsonLogs()"
+    >
+      <mat-icon>download</mat-icon>
+      <mat-icon>data_object</mat-icon>
     </button>
   </div>
+
+  <hr />
+
+  <button
+    mat-icon-button
+    [disabled]="!hasMessages"
+    class="composite-icon"
+    matTooltip="Clear logs"
+    aria-label="Clear logs"
+    (click)="clearLogs()"
+  >
+    <mat-icon>delete</mat-icon>
+      <mat-icon>subject</mat-icon>
+  </button>
 </div>
 <div mat-dialog-content class="dialog-content">
-  <ul>
+  <ul #logList>
     @for (logMessage of messages; track $index) {
       <li [attr.data-log-level]="logMessage.level">
         <div class="log-message-header">

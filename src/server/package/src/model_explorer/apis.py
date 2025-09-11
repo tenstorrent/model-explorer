@@ -67,6 +67,7 @@ def visualize(
     reuse_server: bool = False,
     reuse_server_host: str = DEFAULT_HOST,
     reuse_server_port: Union[int, None] = None,
+    enable_execution: bool = True,
 ) -> None:
   """Starts the ME local server and visualizes the models by the given paths.
 
@@ -106,6 +107,7 @@ def visualize(
       config=cur_config,
       colab_height=colab_height,
       extensions=extensions,
+      enable_execution=enable_execution,
   )
 
 
@@ -121,6 +123,7 @@ def visualize_pytorch(
     reuse_server: bool = False,
     reuse_server_host: str = DEFAULT_HOST,
     reuse_server_port: Union[int, None] = None,
+    enable_execution: bool = True,
 ) -> None:
   """Visualizes a pytorch model.
 
@@ -159,6 +162,7 @@ def visualize_pytorch(
       config=cur_config,
       colab_height=colab_height,
       extensions=extensions,
+      enable_execution=enable_execution,
   )
 
 
@@ -170,6 +174,7 @@ def visualize_from_config(
     cors_host: Union[str, None] = None,
     no_open_in_browser: bool = False,
     colab_height=DEFAULT_COLAB_HEIGHT,
+    enable_execution: bool = True,
 ) -> None:
   """Visualizes with a config.
 
@@ -192,6 +197,7 @@ def visualize_from_config(
       cors_host=cors_host,
       no_open_in_browser=no_open_in_browser,
       colab_height=colab_height,
+      enable_execution=enable_execution,
   )
 
 

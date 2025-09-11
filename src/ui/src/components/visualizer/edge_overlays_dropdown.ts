@@ -80,7 +80,7 @@ export class EdgeOverlaysDropdown {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly overlaysSets: Signal<OverlaysSet[]> = computed(() => {
-    const overlays = this.edgeOverlaysService.loadedEdgeOverlays();
+    const overlays = this.edgeOverlaysService.filteredLoadedEdgeOverlays();
     return overlays.map((overlay) => ({
       id: overlay.id,
       name: overlay.name,
@@ -154,6 +154,16 @@ export class EdgeOverlaysDropdown {
 
     // Reveal it.
     this.appService.setNodeToReveal(this.paneId, firstNodeId);
+  }
+
+  toggleShowEdgesConnectedToSelectedNode(overlay: OverlayItem) {
+    this.edgeOverlaysService.toggleShowEdgesConnectedToSelectedNodeOnly(
+      overlay.id,
+    );
+  }
+
+  handleMaxHopsChanged(overlay: OverlayItem, value: number) {
+    this.edgeOverlaysService.setVisibleEdgeHops(overlay.id, value);
   }
 
   private showError(message: string) {

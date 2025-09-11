@@ -77,6 +77,8 @@ import {LocalStorageService} from '../visualizer/local_storage_service';
 
 import {AdapterSelectorPanel} from './adapter_selector_panel';
 import {getAdapterCandidates} from './utils';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
 
 interface SavedModelPath {
   path: string;
@@ -99,6 +101,7 @@ const MAX_SAVED_MODEL_PATHS_COUNT = 50;
     MatAutocompleteModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -165,6 +168,7 @@ export class ModelSourceInput {
     @Inject('ModelLoaderService')
     private readonly modelLoaderService: ModelLoaderServiceInterface,
     private readonly overlay: Overlay,
+    private readonly dialog: MatDialog,
     private readonly urlService: UrlService,
     private readonly viewContainerRef: ViewContainerRef,
   ) {
@@ -358,6 +362,16 @@ export class ModelSourceInput {
       this.modelPathInput.nativeElement.blur();
     });
   }
+
+  handleErrorDialogOpen(item: ModelItem) {
+      this.dialog.open(GraphErrorsDialog, {
+        width: 'clamp(10rem, 60vw, 60rem)',
+        height: 'clamp(10rem, 60vh, 60rem)',
+        data: {
+          errorMessages: item.errorMessage ?? '',
+          title: 'Model Loading Error'
+        }
+      });}
 
   handleAutocompleteOptionSelected(event: MatAutocompleteSelectedEvent) {
     if (this.disableAddEnteredModelPathButton) {
@@ -564,6 +578,21 @@ export class ModelSourceInput {
       return 'Processing';
     }
     return status;
+  }
+
+  linkifyErrorMessage(modelItem: ModelItem): string {
+    const errorMessage: string = modelItem.errorMessage || '';
+    const parts = errorMessage.split(' ');
+    return parts
+      .map((part) => {
+        // TODO(jingjin): Add support for other types of links.
+        if (part.startsWith('go/')) {
+          return `<a href='http://${part}' target='_blank'>${part}</a>`;
+        } else {
+          return part;
+        }
+      })
+      .join(' ');
   }
 
   get disableAddEnteredModelPathButton(): boolean {

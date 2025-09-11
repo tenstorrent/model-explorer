@@ -51,6 +51,7 @@ export declare interface ExtensionBase {
   name: string;
   description: string;
   type: ExtensionType;
+  enableExecution?: boolean;
 }
 
 export interface ExtensionSettings {

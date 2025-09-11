@@ -179,6 +179,7 @@ def _is_internal_colab() -> bool:
 
 
 def start(
+    enable_execution: bool,
     host=DEFAULT_HOST,
     port=DEFAULT_PORT,
     config: Union[ModelExplorerConfig, None] = None,
@@ -260,7 +261,9 @@ def start(
   print('Loading extensions...')
   extension_manager = ExtensionManager(extensions)
   extension_manager.load_extensions()
-  extension_metadata_list = extension_manager.get_extensions_metadata()
+  extension_metadata_list = extension_manager.get_extensions_metadata(
+      enable_execution
+  )
   num_extensions = len(extension_metadata_list)
   print(
       f'Loaded {num_extensions} extension{"" if num_extensions == 1 else "s"}:'
@@ -276,7 +279,9 @@ def start(
   @app.route('/api/v1/get_extensions')
   def get_extensions():
     """Loads all adapter extensions."""
-    return _make_json_response(extension_manager.get_extensions_metadata())
+    return _make_json_response(
+        extension_manager.get_extensions_metadata(enable_execution)
+    )
 
   # Note: using "/api/..." for POST requests is not allowed when running in
   # colab.
@@ -479,7 +484,7 @@ def start(
     colab_port = portpicker.pick_unused_port()
     shell = """
       (async () => {
-          let url = await google.colab.kernel.proxyPort(%PORT%, {"cache": true});
+          let url = await google.colab.kernel.proxyPort(%PORT%);
           if ('%HOSTED_RUNTIME%' !== 'True') {
             url = 'http://localhost:' + %PORT% + '/';
           }

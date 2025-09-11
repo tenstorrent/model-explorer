@@ -16,7 +16,7 @@
  * ==============================================================================
  */
 
-*:not(mat-icon, code) {
+*:not(mat-icon, code, pre) {
   /* stylelint-disable-next-line declaration-no-important -- override MDC */
   font-family: 'Google Sans Text', Arial, Helvetica, sans-serif !important;
   /* stylelint-disable-next-line declaration-no-important -- override MDC */
@@ -27,6 +27,16 @@
 	font-weight: bold;
 }
 
-.error-dialog-items {
-	list-style: inside disc;
+.mat-mdc-dialog-content { padding: 0; }
+
+.error-dialog-items pre {
+  text-wrap-mode: wrap;
+  white-space-collapse: break-spaces;
+  word-break: break-all;
+  tab-size: 2;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  font-weight: normal;
+  padding: 1rem;
+  box-sizing: border-box;
+  min-height: 100%;
 }
