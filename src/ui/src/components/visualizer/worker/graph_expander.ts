@@ -16,6 +16,7 @@
  * ==============================================================================
  */
 
+import type { Graph } from '@dagrejs/graphlib';
 import {LAYOUT_MARGIN_X, NODE_LABEL_LINE_HEIGHT} from '../common/consts';
 import {GroupNode, ModelGraph, OpNode} from '../common/model_graph';
 import {
@@ -31,7 +32,6 @@ import {
 } from '../common/utils';
 import {VisualizerConfig} from '../common/visualizer_config';
 
-import {Dagre, DagreGraphInstance} from './dagre_types';
 import {
   GraphLayout,
   LAYOUT_MARGIN_BOTTOM,
@@ -45,13 +45,12 @@ import {
  */
 export class GraphExpander {
   /** This is for testing purpose. */
-  readonly dagreGraphs: DagreGraphInstance[] = [];
+  readonly dagreGraphs: Graph[] = [];
 
   private deepestGroupNodeIds?: string[] = undefined;
 
   constructor(
     private readonly modelGraph: ModelGraph,
-    private readonly dagre: Dagre,
     private readonly showOnNodeItemTypes: Record<string, ShowOnNodeItemData>,
     private readonly nodeDataProviderRuns: Record<
       string,
@@ -87,7 +86,6 @@ export class GraphExpander {
       // Layout children.
       const layout = new GraphLayout(
         this.modelGraph,
-        this.dagre,
         this.showOnNodeItemTypes,
         this.nodeDataProviderRuns,
         this.selectedNodeDataProviderRunId,
@@ -112,7 +110,6 @@ export class GraphExpander {
     // Layout the root level nodes.
     const layout = new GraphLayout(
       this.modelGraph,
-      this.dagre,
       this.showOnNodeItemTypes,
       this.nodeDataProviderRuns,
       this.selectedNodeDataProviderRunId,
@@ -169,7 +166,6 @@ export class GraphExpander {
       // Layout children.
       const layout = new GraphLayout(
         this.modelGraph,
-        this.dagre,
         this.showOnNodeItemTypes,
         this.nodeDataProviderRuns,
         this.selectedNodeDataProviderRunId,
@@ -191,7 +187,6 @@ export class GraphExpander {
     // Layout the root level nodes.
     const layout = new GraphLayout(
       this.modelGraph,
-      this.dagre,
       this.showOnNodeItemTypes,
       this.nodeDataProviderRuns,
       this.selectedNodeDataProviderRunId,
@@ -282,7 +277,6 @@ export class GraphExpander {
       // Layout.
       const layout = new GraphLayout(
         this.modelGraph,
-        this.dagre,
         this.showOnNodeItemTypes,
         this.nodeDataProviderRuns,
         this.selectedNodeDataProviderRunId,
@@ -307,7 +301,6 @@ export class GraphExpander {
     // Layout the root level nodes.
     const layout = new GraphLayout(
       this.modelGraph,
-      this.dagre,
       this.showOnNodeItemTypes,
       this.nodeDataProviderRuns,
       this.selectedNodeDataProviderRunId,
@@ -369,7 +362,6 @@ export class GraphExpander {
     } else {
       const layout = new GraphLayout(
         this.modelGraph,
-        this.dagre,
         this.showOnNodeItemTypes,
         this.nodeDataProviderRuns,
         this.selectedNodeDataProviderRunId,
@@ -414,7 +406,6 @@ export class GraphExpander {
     // Layout the root level nodes.
     const layout = new GraphLayout(
       this.modelGraph,
-      this.dagre,
       this.showOnNodeItemTypes,
       this.nodeDataProviderRuns,
       this.selectedNodeDataProviderRunId,

@@ -16,38 +16,6 @@
  * ==============================================================================
  */
 
-/**
- * The main dagre type.
- */
-export declare interface Dagre {
-  graphlib: {Graph: DagreGraphConstructor};
-  layout(graph: DagreGraphInstance): void;
-}
-
-/** Constructor type for a dagre graph. */
-export declare interface DagreGraphConstructor {
-  new (): DagreGraphInstance;
-}
-
-/** Type for a dagre graph. */
-export declare interface DagreGraphInstance {
-  setGraph(cnofig: DagreGraphConfig): DagreGraphInstance;
-  setDefaultEdgeLabel(
-    callback:
-      | string
-      | ((v: string, w: string, name?: string) => string | DagreLabel),
-  ): DagreGraphInstance;
-  setNode(name: string, label: string | DagreLabel): DagreGraphInstance;
-  setEdge(
-    sourceId: string,
-    targetId: string,
-    value?: string | DagreLabel,
-    name?: string,
-  ): DagreGraphInstance;
-  edges(): DagreEdge[];
-  edge(edgeObj: DagreEdge): DagreGraphEdge;
-}
-
 /** Graph config options. */
 export declare interface DagreGraphConfig {
   width?: number | undefined;
@@ -62,12 +30,6 @@ export declare interface DagreGraphConfig {
   marginy?: number | undefined;
   acyclicer?: string | undefined;
   ranker?: string | undefined;
-}
-
-/** A label. */
-export declare interface DagreLabel {
-  // tslint:disable-next-line:no-any Allow arbitrary types.
-  [key: string]: any;
 }
 
 /** An edge in dagre. */

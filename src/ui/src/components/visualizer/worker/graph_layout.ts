@@ -73,7 +73,8 @@ import {
 // Import VisualizerConfig from the correct location
 import {VisualizerConfig} from '../common/visualizer_config';
 
-import {Dagre, DagreGraphInstance} from './dagre_types';
+import { Graph } from '@dagrejs/graphlib';
+import { layout } from './deps/layout.js';
 
 /** The margin for the top and bottom side of the layout. */
 export const LAYOUT_MARGIN_TOP = 36;
@@ -115,11 +116,10 @@ interface LayoutGraph {
  * TODO: distribute this task to multiple workers to improvement performance.
  */
 export class GraphLayout {
-  dagreGraph!: DagreGraphInstance;
+  dagreGraph!: Graph;
 
   constructor(
     private readonly modelGraph: ModelGraph,
-    private readonly dagre: Dagre,
     private readonly showOnNodeItemTypes: Record<string, ShowOnNodeItemData>,
     private readonly nodeDataProviderRuns: Record<
       string,
@@ -129,7 +129,7 @@ export class GraphLayout {
     private readonly testMode = false,
     private readonly config?: VisualizerConfig,
   ) {
-    this.dagreGraph = new this.dagre.graphlib.Graph();
+    this.dagreGraph = new Graph();
   }
 
   /** Lays out the model graph rooted from the given root node.  */
@@ -177,7 +177,7 @@ export class GraphLayout {
     }
 
     // Run the layout algorithm.
-    this.dagre.layout(this.dagreGraph);
+    layout(this.dagreGraph);
 
     // Set the results back to the original model nodes and calculate the bound
     // that contains all the nodes.
@@ -343,7 +343,7 @@ export class GraphLayout {
     };
   }
 
-  private configLayout(dagreGraph: DagreGraphInstance) {
+  private configLayout(dagreGraph: Graph) {
     // See available configs here:
     // https://github.com/dagrejs/dagre/wiki#configuring-the-layout.
     dagreGraph.setGraph({
@@ -818,7 +818,7 @@ function getMaxAttrLabelAndValueWidth(
 } {
   let maxAttrLabelWidth = 0;
   let maxAttrValueWidth = 0;
-  
+
   const processKeyValue = (maxLabelWidth: number, maxValueWidth: number, key: string, value: string) => {
     const attrLabelWidth = getLabelWidth(key, NODE_ATTRS_TABLE_FONT_SIZE, false, false);
     const attrValueWidth = getLabelWidth(value, NODE_ATTRS_TABLE_FONT_SIZE, false, false);
@@ -834,11 +834,11 @@ function getMaxAttrLabelAndValueWidth(
       const node = item as AttrTreeNode;
       const key = node.key;
       const value = node.value ?? node.children?.[0]?.value ?? '';
-      
+
       const result = processKeyValue(maxAttrLabelWidth, maxAttrValueWidth, key, value);
       maxAttrLabelWidth = result.maxAttrLabelWidth;
       maxAttrValueWidth = result.maxAttrValueWidth;
-    } 
+    }
     // Handle KeyValue
     else {
       const kv = item as KeyValue;
@@ -847,6 +847,6 @@ function getMaxAttrLabelAndValueWidth(
       maxAttrValueWidth = result.maxAttrValueWidth;
     }
   }
-  
+
   return {maxAttrLabelWidth, maxAttrValueWidth};
 }

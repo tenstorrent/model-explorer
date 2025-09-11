@@ -252,7 +252,6 @@ function handleProcessGraph(
   if (!error && initialLayout) {
     const layout = new GraphLayout(
       modelGraph,
-      dagre,
       showItemOnNodeTypes,
       nodeDataProviderRuns,
       undefined,
@@ -287,7 +286,6 @@ function handleExpandGroupNode(
 ): string[] {
   const expander = new GraphExpander(
     modelGraph,
-    dagre,
     showOnNodeItemTypes,
     nodeDataProviderRuns,
     selectedNodeDataProviderRunId,
@@ -365,7 +363,6 @@ function handleCollapseGroupNode(
 ): string[] {
   const expander = new GraphExpander(
     modelGraph,
-    dagre,
     showOnNodeItemTypes,
     nodeDataProviderRuns,
     selectedNodeDataProviderRunId,
@@ -403,7 +400,6 @@ function handleReLayoutGraph(
 ) {
   const expander = new GraphExpander(
     modelGraph,
-    dagre,
     showOnNodeItemTypes,
     nodeDataProviderRuns,
     selectedNodeDataProviderRunId,
@@ -426,7 +422,6 @@ function handleLocateNode(
 ): string[] {
   const expander = new GraphExpander(
     modelGraph,
-    dagre,
     showOnNodeItemTypes,
     nodeDataProviderRuns,
     selectedNodeDataProviderRunId,
