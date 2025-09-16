@@ -1,15 +1,20 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-# Build the UI
-cd src/ui
+echo "Rebuilding the UI..."
+cd "$(dirname "${BASH_SOURCE[0]}")/../src/ui"
 npm run deploy
 
-# Check for changes
-git diff-index --quiet HEAD
+echo "Checking for changes..."
+git diff --quiet --exit-code
 if [ $? -eq 1 ]; then
-  # Stage all changes
-  git add -A
+  echo "Changes detected. Staging and appending to the last commit..."
 
-  # Commit the changes
-  git commit -n -q -m "chore: rebuild the project"
+  git add -A
+  git commit --no-verify --quiet --message "chore: rebuild the project"
+
+  exit 1
+else
+  echo "No changes detected."
+
+  exit 0
 fi
