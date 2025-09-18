@@ -2,14 +2,14 @@
   "name": "model-explorer",
   "version": "0.0.0",
   "scripts": {
+    "prepare": "git config --local core.hooksPath .githooks/",
     "ng": "ng",
     "start": "ng serve model_explorer --host 0.0.0.0",
     "build": "ng build model_explorer",
     "build-npm": "./scripts/build_npm.sh",
     "deploy": "./scripts/build_and_update_python_package.sh",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test model_explorer",
-    "setup-git-hooks": "cd ../.. && git config --local core.hooksPath .githooks/"
+    "test": "ng test model_explorer"
   },
   "private": true,
   "dependencies": {
