@@ -26,20 +26,21 @@ import { slack } from './rank-util.js';
  * Returns a tree (undirected graph) that is constructed using only "tight"
  * edges.
  */
-export function feasibleTree(g: Graph) {
-  var t = new Graph({ directed: false });
+export function feasibleTree(graph: Graph) {
+  const t = new Graph({ directed: false });
 
   // Choose arbitrary node from which to start our tree
-  var start = g.nodes()[0];
-  var size = g.nodeCount();
+  const start = graph.nodes()[0];
+  const size = graph.nodeCount();
   t.setNode(start, {});
 
-  var edge, delta;
-  while (tightTree(t, g) < size) {
-    edge = findMinSlackEdge(t, g);
+  let delta;
+  let edge;
+  while (tightTree(t, graph) < size) {
+    edge = findMinSlackEdge(t, graph);
     if (edge) {
-      delta = t.hasNode(edge.v) ? slack(g, edge) : -slack(g, edge);
-      shiftRanks(t, g, delta);
+      delta = t.hasNode(edge.v) ? slack(graph, edge) : -slack(graph, edge);
+      shiftRanks(t, graph, delta);
     }
   }
 
@@ -50,12 +51,12 @@ export function feasibleTree(g: Graph) {
  * Finds a maximal tree of tight edges and returns the number of nodes in the
  * tree.
  */
-function tightTree(t: Graph, g: Graph) {
+function tightTree(t: Graph, graph: Graph) {
   function dfs(v: string) {
-    g.nodeEdges(v)?.forEach((e) => {
-      var edgeV = e.v,
-        w = (v === edgeV) ? e.w : edgeV;
-      if (!t.hasNode(w) && !slack(g, e)) {
+    graph.nodeEdges(v)?.forEach((e) => {
+      const edgeV = e.v;
+      const w = (v === edgeV) ? e.w : edgeV;
+      if (!t.hasNode(w) && !slack(graph, e)) {
         t.setNode(w, {});
         t.setEdge(v, w, {});
         dfs(w);

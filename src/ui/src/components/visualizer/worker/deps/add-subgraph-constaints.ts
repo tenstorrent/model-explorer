@@ -1,51 +1,31 @@
 import type { Graph } from '@dagrejs/graphlib';
 
-export function addSubgraphConstraints(g: Graph, cg: any, vs: string[]) {
-  let prev: Record<string, string> = {},
-    rootPrev: string;
+export function addSubgraphConstraints(graph: Graph, childGraph: any, nodes: string[]) {
+  const prev: Record<string, string> = {};
+  let rootPrev: string;
 
-  vs.forEach((v) => {
-    let child = g.parent(v),
-      parent,
-      prevChild;
+  nodes.forEach((node) => {
+    let child = graph.parent(node);
+    let parentNode;
+    let prevChild;
+
     while (child) {
-      parent = g.parent(child);
-      if (parent) {
-        prevChild = prev[parent];
-        prev[parent] = child;
+      parentNode = graph.parent(child);
+
+      if (parentNode) {
+        prevChild = prev[parentNode];
+        prev[parentNode] = child;
       } else {
         prevChild = rootPrev;
         rootPrev = child;
       }
+
       if (prevChild && prevChild !== child) {
-        cg.setEdge(prevChild, child);
+        childGraph.setEdge(prevChild, child);
         return;
       }
-      child = parent;
+
+      child = parentNode;
     }
   });
-
-  /*
-    function dfs(v) {
-      var children = v ? g.children(v) : g.children();
-      if (children.length) {
-        var min = Number.POSITIVE_INFINITY,
-            subgraphs = [];
-        children.forEach(function(child) {
-          var childMin = dfs(child);
-          if (g.children(child).length) {
-            subgraphs.push({ v: child, order: childMin });
-          }
-          min = Math.min(min, childMin);
-        });
-        _.sortBy(subgraphs, "order").reduce(function(prev, curr) {
-          cg.setEdge(prev.v, curr.v);
-          return curr;
-        });
-        return min;
-      }
-      return g.node(v).order;
-    }
-    dfs(undefined);
-    */
 }

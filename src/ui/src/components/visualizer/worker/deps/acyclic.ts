@@ -2,60 +2,61 @@ import type { Edge, Graph } from '@dagrejs/graphlib';
 import { greedyFAS } from './greedyFAS.js';
 import { uniqueId } from './util.js';
 
-export function run(g: Graph) {
-  let fas = g.graph().acyclicer === 'greedy'
-    ? greedyFAS(g, weightFn(g))
-    : dfsFAS(g);
-  fas.forEach((e) => {
-    let label = g.edge(e);
-    g.removeEdge(e);
-    label.forwardName = e.name;
-    label.reversed = true;
-    g.setEdge(e.w, e.v, label, uniqueId('rev'));
-  });
+function dfsFAS(graph: Graph) {
+  const fas: Edge[] = [];
+  const stack: Record<string, boolean> = {};
+  const visited: Record<string, boolean> = {};
 
-  function weightFn(g: Graph) {
-    return (e: Edge) => {
-      return g.edge(e).weight;
-    };
-  }
-}
-
-function dfsFAS(g: Graph) {
-  let fas: Edge[] = [];
-  let stack: Record<string, boolean> = {};
-  let visited: Record<string, boolean> = {};
-
-  function dfs(v: string) {
-    if (visited.hasOwnProperty(v)) {
+  const dfs = (node: string) => {
+    if (visited[node]) {
       return;
     }
-    visited[v] = true;
-    stack[v] = true;
-    g.outEdges(v)?.forEach((e) => {
-      if (stack.hasOwnProperty(e.w)) {
-        fas.push(e);
+
+    visited[node] = true;
+    stack[node] = true;
+
+    graph.outEdges(node)?.forEach((edge) => {
+      if (stack[edge.w]) {
+        fas.push(edge);
       } else {
-        dfs(e.w);
+        dfs(edge.w);
       }
     });
-    delete stack[v];
-  }
 
-  g.nodes().forEach(dfs);
+    delete stack[node];
+  };
+
+  graph.nodes().forEach(dfs);
+
   return fas;
 }
 
-export function undo(g: Graph) {
-  g.edges().forEach((e) => {
-    let label = g.edge(e);
-    if (label.reversed) {
-      g.removeEdge(e);
+function weightFn(graph: Graph) {
+  return (edge: Edge) => graph.edge(edge).weight;
+}
 
-      let forwardName = label.forwardName;
+export function run(graph: Graph) {
+  const fas = graph.graph().acyclicer === 'greedy'
+    ? greedyFAS(graph, weightFn(graph))
+    : dfsFAS(graph);
+  fas.forEach((edge) => {
+    const label = graph.edge(edge);
+    graph.removeEdge(edge);
+    label.forwardName = edge.name;
+    label.reversed = true;
+    graph.setEdge(edge.w, edge.v, label, uniqueId('rev'));
+  });
+}
+export function undo(graph: Graph) {
+  graph.edges().forEach((edge) => {
+    const label = graph.edge(edge);
+    if (label.reversed) {
+      graph.removeEdge(edge);
+
+      const { forwardName } = label;
       delete label.reversed;
       delete label.forwardName;
-      g.setEdge(e.w, e.v, label, forwardName);
+      graph.setEdge(edge.w, edge.v, label, forwardName);
     }
   });
 }

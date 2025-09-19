@@ -291,15 +291,16 @@ export function mapValues(obj: any, funcOrProp: string | Function) {
     func = (val: any) => val[funcOrProp];
   }
 
-  return Object.entries(obj).reduce((acc, [k, v]) => {
+  return Object.entries(obj).reduce<Record<string, any>>((acc, [k, v]) => {
     acc[k] = (func as Function)(v, k);
     return acc;
-  }, {} as Record<string, any>);
+  }, {});
 }
 
-export function zipObject(props: string[], values: any) {
-  return props.reduce((acc, key, i) => {
+export function zipObject<T>(props: string[], values: T[]) {
+  return props.reduce<Record<string, T | undefined>>((acc, key, i) => {
     acc[key] = values[i];
+
     return acc;
-  }, {} as Record<string, any>);
+  }, {});
 }
