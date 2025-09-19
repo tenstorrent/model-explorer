@@ -375,7 +375,7 @@ const rules = {
   '@typescript-eslint/no-shadow': ['warn', {
     builtinGlobals: true,
     hoist: 'all',
-    allow: ['name', 'status', 'event', 'prompt', 'alert', 'top', 'origin', 'self', 'length', 'close', 'open', 'stop', 'focus', 'blur', 'Image'],
+    allow: ['name', 'status', 'event', 'prompt', 'alert', 'top', 'origin', 'self', 'length', 'close', 'open', 'stop', 'focus', 'blur', 'Image', 'parent'],
     ignoreTypeValueShadow: true,
     ignoreFunctionTypeParameterNameValueShadow: false
   }],
