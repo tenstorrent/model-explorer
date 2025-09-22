@@ -1,6 +1,85 @@
 import type { Graph } from '@dagrejs/graphlib';
 import { addBorderNode, addDummyNode } from './util.js';
 
+// eslint-disable-next-line @typescript-eslint/max-params
+function dfs(graph: Graph, root: string, nodeSep: number, weight: number, height: number, depths: Record<string, number>, nodeName: string) {
+  const children = graph.children(nodeName);
+  if (!children.length) {
+    if (nodeName !== root) {
+      graph.setEdge(root, nodeName, { weight: 0, minlen: nodeSep });
+    }
+    return;
+  }
+
+  const top = addBorderNode(graph, '_bt');
+  const bottom = addBorderNode(graph, '_bb');
+  const label = graph.node(nodeName);
+
+  graph.setParent(top, nodeName);
+  label.borderTop = top;
+  graph.setParent(bottom, nodeName);
+  label.borderBottom = bottom;
+
+  children.forEach((child) => {
+    dfs(graph, root, nodeSep, weight, height, depths, child);
+
+    const childNode = graph.node(child);
+    const childTop = childNode.borderTop ?? child;
+    const childBottom = childNode.borderBottom ?? child;
+    const thisWeight = childNode.borderTop ? weight : 2 * weight;
+    const minlen = childTop !== childBottom ? 1 : height - ((depths[nodeName] ?? 0) + 1);
+
+    graph.setEdge(top, childTop, {
+      weight: thisWeight,
+      minlen,
+      nestingEdge: true
+    });
+
+    graph.setEdge(childBottom, bottom, {
+      weight: thisWeight,
+      minlen,
+      nestingEdge: true
+    });
+  });
+
+  if (!graph.parent(nodeName)) {
+    graph.setEdge(root, top, { weight: 0, minlen: height + (depths[nodeName] ?? 0) });
+  }
+}
+
+function treeDepths(graph: Graph) {
+  const depths: Record<string, number> = {};
+
+  function internalDfs(nodeName: string, depth: number) {
+    const children = graph.children(nodeName);
+    if (children?.length) {
+      children.forEach((child) => internalDfs(child, depth + 1));
+    }
+    depths[nodeName] = depth;
+  }
+
+  // @ts-expect-error
+  graph.children().forEach((child) => internalDfs(child, 1));
+
+  return depths;
+}
+
+function sumWeights(graph: Graph) {
+  return graph.edges().reduce((acc, edge) => acc + graph.edge(edge).weight, 0);
+}
+
+export function cleanup(graph: Graph) {
+  const graphLabel = graph.graph();
+  graph.removeNode(graphLabel.nestingRoot);
+  delete graphLabel.nestingRoot;
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    if (edgeData.nestingEdge) {
+      graph.removeEdge(edge);
+    }
+  });
+}
+
 /*
  * A nesting graph creates dummy nodes for the tops and bottoms of subgraphs,
  * adds appropriate edges to ensure that all cluster nodes are placed between
@@ -24,102 +103,28 @@ import { addBorderNode, addDummyNode } from './util.js';
  * The nesting graph idea comes from Sander, "Layout of Compound Directed
  * Graphs."
  */
-export function run(g: Graph) {
-  let root = addDummyNode(g, 'root', {}, '_root');
-  let depths = treeDepths(g);
-  let height = Math.max(...Object.values(depths)) - 1; // Note: depths is an Object not an array
-  let nodeSep = 2 * height + 1;
+export function run(graph: Graph) {
+  const root = addDummyNode(graph, 'root', {}, '_root');
+  const depths = treeDepths(graph);
+  // NOTE: depths is an Object not an array
+  const height = Math.max(...Object.values(depths)) - 1;
+  const nodeSep = 2 * height + 1;
 
-  g.graph().nestingRoot = root;
+  graph.graph().nestingRoot = root;
 
   // Multiply minlen by nodeSep to align nodes on non-border ranks.
-  g.edges().forEach((e) => g.edge(e).minlen *= nodeSep);
+  graph.edges().forEach((edge) => {
+    graph.edge(edge).minlen *= nodeSep;
+  });
 
   // Calculate a weight that is sufficient to keep subgraphs vertically compact
-  let weight = sumWeights(g) + 1;
+  const weight = sumWeights(graph) + 1;
 
   // Create border nodes and link them up
   // @ts-expect-error
-  g.children().forEach((child) => dfs(g, root, nodeSep, weight, height, depths, child));
+  graph.children().forEach((child) => dfs(graph, root, nodeSep, weight, height, depths, child));
 
   // Save the multiplier for node layers for later removal of empty border
   // layers.
-  g.graph().nodeRankFactor = nodeSep;
-}
-
-function dfs(g: Graph, root: string, nodeSep: number, weight: number, height: number, depths: Record<string, number>, v: string) {
-  let children = g.children(v);
-  if (!children.length) {
-    if (v !== root) {
-      g.setEdge(root, v, { weight: 0, minlen: nodeSep });
-    }
-    return;
-  }
-
-  let top = addBorderNode(g, '_bt');
-  let bottom = addBorderNode(g, '_bb');
-  let label = g.node(v);
-
-  g.setParent(top, v);
-  label.borderTop = top;
-  g.setParent(bottom, v);
-  label.borderBottom = bottom;
-
-  children.forEach((child) => {
-    dfs(g, root, nodeSep, weight, height, depths, child);
-
-    let childNode = g.node(child);
-    let childTop = childNode.borderTop ? childNode.borderTop : child;
-    let childBottom = childNode.borderBottom ? childNode.borderBottom : child;
-    let thisWeight = childNode.borderTop ? weight : 2 * weight;
-    let minlen = childTop !== childBottom ? 1 : height - depths[v] + 1;
-
-    g.setEdge(top, childTop, {
-      weight: thisWeight,
-      minlen: minlen,
-      nestingEdge: true
-    });
-
-    g.setEdge(childBottom, bottom, {
-      weight: thisWeight,
-      minlen: minlen,
-      nestingEdge: true
-    });
-  });
-
-  if (!g.parent(v)) {
-    g.setEdge(root, top, { weight: 0, minlen: height + depths[v] });
-  }
-}
-
-function treeDepths(g: Graph) {
-  var depths: Record<string, number> = {};
-  function dfs(v: string, depth: number) {
-    var children = g.children(v);
-    if (children && children.length) {
-      children.forEach((child) => dfs(child, depth + 1));
-    }
-    depths[v] = depth;
-  }
-
-  // @ts-expect-error
-  g.children().forEach((v) => dfs(v, 1));
-
-  return depths;
-}
-
-function sumWeights(g: Graph) {
-  return g.edges().reduce((acc, e) => acc + g.edge(e).weight, 0);
-}
-
-export function cleanup(g: Graph) {
-  var graphLabel = g.graph();
-  g.removeNode(graphLabel.nestingRoot);
-  delete graphLabel.nestingRoot;
-  g.edges().forEach((e) => {
-    var edge = g.edge(e);
-    if (edge.nestingEdge) {
-      g.removeEdge(e);
-    }
-  });
+  graph.graph().nodeRankFactor = nodeSep;
 }

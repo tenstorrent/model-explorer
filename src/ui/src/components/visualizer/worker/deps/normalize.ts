@@ -23,26 +23,27 @@ export function run(g: Graph) {
 }
 
 function normalizeEdge(g: Graph, e: Edge) {
-  let v = e.v;
+  let { v } = e;
   let vRank = g.node(v).rank;
-  let w = e.w;
-  let wRank = g.node(w).rank;
-  let name = e.name;
-  let edgeLabel = g.edge(e);
-  let labelRank = edgeLabel.labelRank;
+  const { w } = e;
+  const wRank = g.node(w).rank;
+  const { name } = e;
+  const edgeLabel = g.edge(e);
+  const { labelRank } = edgeLabel;
 
   if (wRank === vRank + 1) { return; }
 
   g.removeEdge(e);
 
-  let dummy, i;
+  let dummy;
+  let i;
   let attrs: { width: number, height: number, edgeLabel: string, edgeObj: Edge, rank: number, dummy?: string, labelpos?: number };
   for (i = 0, ++vRank; vRank < wRank; ++i, ++vRank) {
     edgeLabel.points = [];
     attrs = {
       width: 0,
       height: 0,
-      edgeLabel: edgeLabel,
+      edgeLabel,
       edgeObj: e,
       rank: vRank
     };
@@ -66,7 +67,7 @@ function normalizeEdge(g: Graph, e: Edge) {
 export function undo(g: Graph) {
   (g.graph().dummyChains as any[]).forEach((v) => {
     let node = g.node(v);
-    let origLabel = node.edgeLabel;
+    const origLabel = node.edgeLabel;
     let w;
     g.setEdge(node.edgeObj, origLabel);
     while (node.dummy) {

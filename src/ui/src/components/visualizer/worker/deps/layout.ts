@@ -141,86 +141,87 @@ function assignNodeIntersects(graph: Graph) {
     const edgeData = graph.edge(edge);
     const nodeV = graph.node(edge.v);
     const nodeW = graph.node(edge.w);
-    let p1;
-    let p2;
+    let point1;
+    let point2;
     if (!edgeData.points) {
       edgeData.points = [];
-      p1 = nodeW;
-      p2 = nodeV;
+      point1 = nodeW;
+      point2 = nodeV;
     } else {
-      p1 = edgeData.points[0];
-      p2 = edgeData.points[edgeData.points.length - 1];
+      [point1] = edgeData.points;
+      point2 = edgeData.points[edgeData.points.length - 1];
     }
-    edgeData.points.unshift(intersectRect(nodeV, p1));
-    edgeData.points.push(intersectRect(nodeW, p2));
+    edgeData.points.unshift(intersectRect(nodeV, point1));
+    edgeData.points.push(intersectRect(nodeW, point2));
   });
 }
 
-function fixupEdgeLabelCoords(g: Graph) {
-  g.edges().forEach((e) => {
-    const edge = g.edge(e);
-    if (edge.hasOwnProperty('x')) {
-      if (edge.labelpos === 'l' || edge.labelpos === 'r') {
-        edge.width -= edge.labeloffset;
+function fixupEdgeLabelCoords(graph: Graph) {
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    if (edgeData.x !== null && edgeData.x !== undefined) {
+      if (edgeData.labelpos === 'l' || edgeData.labelpos === 'r') {
+        edgeData.width -= edgeData.labeloffset;
       }
-      switch (edge.labelpos) {
+      switch (edgeData.labelpos) {
         case 'l':
-          edge.x -= edge.width / 2 + edge.labeloffset;
+          edgeData.x -= edgeData.width / 2 + edgeData.labeloffset;
           break;
         case 'r':
-          edge.x += edge.width / 2 + edge.labeloffset;
+          edgeData.x += edgeData.width / 2 + edgeData.labeloffset;
           break;
+        default:
       }
     }
   });
 }
 
-function reversePointsForReversedEdges(g: Graph) {
-  g.edges().forEach((e) => {
-    const edge = g.edge(e);
-    if (edge.reversed) {
-      edge.points.reverse();
+function reversePointsForReversedEdges(graph: Graph) {
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    if (edgeData.reversed) {
+      edgeData.points.reverse();
     }
   });
 }
 
-function removeBorderNodes(g: Graph) {
-  g.nodes().forEach((v) => {
-    if (g.children(v).length) {
-      const node = g.node(v);
+function removeBorderNodes(graph: Graph) {
+  graph.nodes().forEach((nodeName) => {
+    if (graph.children(nodeName).length) {
+      const node = graph.node(nodeName);
 
       if (!node) {
         return;
       }
 
-      const t = g.node(node.borderTop);
-      const b = g.node(node.borderBottom);
-      const l = g.node(node.borderLeft[node.borderLeft.length - 1]);
-      const r = g.node(node.borderRight[node.borderRight.length - 1]);
+      const borderTop = graph.node(node.borderTop);
+      const borderbottom = graph.node(node.borderBottom);
+      const borderLeft = graph.node(node.borderLeft[node.borderLeft.length - 1]);
+      const borderRight = graph.node(node.borderRight[node.borderRight.length - 1]);
 
-      node.width = Math.abs(r.x - l.x);
-      node.height = Math.abs(b.y - t.y);
-      node.x = l.x + node.width / 2;
-      node.y = t.y + node.height / 2;
+      node.width = Math.abs(borderRight.x - borderLeft.x);
+      node.height = Math.abs(borderbottom.y - borderTop.y);
+      node.x = borderLeft.x + node.width / 2;
+      node.y = borderTop.y + node.height / 2;
     }
   });
 
-  g.nodes().forEach((v) => {
-    if (g.node(v)?.dummy === 'border') {
-      g.removeNode(v);
+  graph.nodes().forEach((nodeName) => {
+    if (graph.node(nodeName)?.dummy === 'border') {
+      graph.removeNode(nodeName);
     }
   });
 }
 
-function insertSelfEdges(g: Graph) {
-  const layers = buildLayerMatrix(g);
+function insertSelfEdges(graph: Graph) {
+  const layers = buildLayerMatrix(graph);
   layers.forEach((layer) => {
     let orderShift = 0;
-    layer.forEach((v, i) => {
-      const node = g.node(v);
+    layer.forEach((layerName, i) => {
+      const node = graph.node(layerName);
       node.order = i + orderShift;
-      (node.selfEdges || []).forEach((selfEdge: any) => {
-        addDummyNode(g, 'selfedge', {
+      (node.selfEdges ?? []).forEach((selfEdge: any) => {
+        addDummyNode(graph, 'selfedge', {
           width: selfEdge.label.width,
           height: selfEdge.label.height,
           rank: node.rank,
@@ -234,17 +235,17 @@ function insertSelfEdges(g: Graph) {
   });
 }
 
-function positionSelfEdges(g: Graph) {
-  g.nodes().forEach((v) => {
-    const node = g.node(v);
+function positionSelfEdges(graph: Graph) {
+  graph.nodes().forEach((nodEName) => {
+    const node = graph.node(nodEName);
     if (node?.dummy === 'selfedge') {
-      const selfNode = g.node(node.e.v);
+      const selfNode = graph.node(node.e.v);
       const x = selfNode.x + selfNode.width / 2;
       const { y } = selfNode;
       const dx = node.x - x;
       const dy = selfNode.height / 2;
-      g.setEdge(node.e, node.label);
-      g.removeNode(v);
+      graph.setEdge(node.e, node.label);
+      graph.removeNode(nodEName);
       node.label.points = [
         { x: x + 2 * dx / 3, y: y - dy },
         { x: x + 5 * dx / 6, y: y - dy },
@@ -259,17 +260,14 @@ function positionSelfEdges(g: Graph) {
 }
 
 function canonicalize(attrs: Record<string, any>) {
-  const newAttrs: Record<string, any> = {};
-  if (attrs) {
-    Object.entries(attrs).forEach(([k, v]) => {
-      if (typeof k === 'string') {
-        k = k.toLowerCase();
-      }
-
-      newAttrs[k] = v;
-    });
+  if (!attrs) {
+    return {};
   }
-  return newAttrs;
+
+  return Object.fromEntries(
+    Object.entries(attrs)
+      .map(([key, value]) => [key.toString().toLowerCase(), value])
+  );
 }
 
 /*
@@ -279,10 +277,10 @@ function canonicalize(attrs: Record<string, any>) {
  * attributes can influence layout.
  */
 function buildLayoutGraph(inputGraph: Graph) {
-  const g = new Graph({ multigraph: true, compound: true });
+  const newGraph = new Graph({ multigraph: true, compound: true });
   const graph = canonicalize(inputGraph.graph());
 
-  g.setGraph({
+  newGraph.setGraph({
     ranksep: graph['ranksep'] ?? 50,
     edgesep: graph['edgesep'] ?? 20,
     nodesep: graph['nodesep'] ?? 50,
@@ -294,28 +292,28 @@ function buildLayoutGraph(inputGraph: Graph) {
     align: graph['align']
   });
 
-  inputGraph.nodes().forEach((v) => {
-    const node = canonicalize(inputGraph.node(v));
+  inputGraph.nodes().forEach((nodeName) => {
+    const node = canonicalize(inputGraph.node(nodeName));
     const newNode = { width: node?.['width'] ?? 0, height: node?.['height'] ?? 0 };
 
-    g.setNode(v, newNode);
-    g.setParent(v, inputGraph.parent(v) ?? undefined);
+    newGraph.setNode(nodeName, newNode);
+    newGraph.setParent(nodeName, inputGraph.parent(nodeName) ?? undefined);
   });
 
-  inputGraph.edges().forEach((e) => {
-    const edge = canonicalize(inputGraph.edge(e));
+  inputGraph.edges().forEach((edge) => {
+    const edgeData = canonicalize(inputGraph.edge(edge));
 
-    g.setEdge(e, {
-      minlen: edge['minlen'] ?? 1,
-      weight: edge['weight'] ?? 1,
-      width: edge['width'] ?? 0,
-      height: edge['height'] ?? 0,
-      labeloffset: edge['labeloffset'] ?? 10,
-      labelpos: edge['labelpos'] ?? 'r'
+    newGraph.setEdge(edge, {
+      minlen: edgeData['minlen'] ?? 1,
+      weight: edgeData['weight'] ?? 1,
+      width: edgeData['width'] ?? 0,
+      height: edgeData['height'] ?? 0,
+      labeloffset: edgeData['labeloffset'] ?? 10,
+      labelpos: edgeData['labelpos'] ?? 'r'
     });
   });
 
-  return g;
+  return newGraph;
 }
 
 /*
