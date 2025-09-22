@@ -7,9 +7,9 @@ import * as nestingGraph from './nesting-graph.js';
 import * as normalize from './normalize.js';
 import { order } from './order.js';
 import { parentDummyChains } from './parent-dummy-chains.js';
+import { position } from './position.js';
 import { rank } from './rank.js';
 import { addDummyNode, asNonCompoundGraph, buildLayerMatrix, intersectRect, normalizeRanks, removeEmptyRanks, time } from './util.js';
-import { position } from './position.js';
 
 /*
  * Copies final layout information from the layout graph back to the input
@@ -18,28 +18,28 @@ import { position } from './position.js';
  * attributes can influence layout.
  */
 function updateInputGraph(inputGraph: Graph, layoutGraph: Graph) {
-  inputGraph.nodes().forEach((v) => {
-    let inputLabel = inputGraph.node(v);
-    let layoutLabel = layoutGraph.node(v);
+  inputGraph.nodes().forEach((nodeName) => {
+    const inputLabel = inputGraph.node(nodeName);
+    const layoutLabel = layoutGraph.node(nodeName);
 
     if (inputLabel) {
       inputLabel.x = layoutLabel.x;
       inputLabel.y = layoutLabel.y;
       inputLabel.rank = layoutLabel.rank;
 
-      if (layoutGraph.children(v).length) {
+      if (layoutGraph.children(nodeName).length) {
         inputLabel.width = layoutLabel.width;
         inputLabel.height = layoutLabel.height;
       }
     }
   });
 
-  inputGraph.edges().forEach((e) => {
-    let inputLabel = inputGraph.edge(e);
-    let layoutLabel = layoutGraph.edge(e);
+  inputGraph.edges().forEach((edge) => {
+    const inputLabel = inputGraph.edge(edge);
+    const layoutLabel = layoutGraph.edge(edge);
 
     inputLabel.points = layoutLabel.points;
-    if (layoutLabel.hasOwnProperty('x')) {
+    if (layoutLabel.x !== null && layoutLabel.x !== undefined) {
       inputLabel.x = layoutLabel.x;
       inputLabel.y = layoutLabel.y;
     }
@@ -49,66 +49,66 @@ function updateInputGraph(inputGraph: Graph, layoutGraph: Graph) {
   inputGraph.graph().height = layoutGraph.graph().height;
 }
 
-function assignRankMinMax(g: Graph) {
+function assignRankMinMax(graph: Graph) {
   let maxRank = 0;
-  g.nodes().forEach((v) => {
-    let node = g.node(v);
+  graph.nodes().forEach((nodeName) => {
+    const node = graph.node(nodeName);
     if (node.borderTop) {
-      node.minRank = g.node(node.borderTop)?.rank ?? 0;
-      node.maxRank = g.node(node.borderBottom)?.rank ?? 0;
+      node.minRank = graph.node(node.borderTop)?.rank ?? 0;
+      node.maxRank = graph.node(node.borderBottom)?.rank ?? 0;
       maxRank = Math.max(maxRank, node.maxRank);
     }
   });
-  g.graph().maxRank = maxRank;
+  graph.graph().maxRank = maxRank;
 }
 
-function removeEdgeLabelProxies(g: Graph) {
-  g.nodes().forEach((v) => {
-    let node = g.node(v);
+function removeEdgeLabelProxies(graph: Graph) {
+  graph.nodes().forEach((nodeName) => {
+    const node = graph.node(nodeName);
     if (node.dummy === 'edge-proxy') {
-      g.edge(node.e).labelRank = node.rank;
-      g.removeNode(v);
+      graph.edge(node.e).labelRank = node.rank;
+      graph.removeNode(nodeName);
     }
   });
 }
 
-function translateGraph(g: Graph) {
+function translateGraph(graph: Graph) {
   let minX = Number.POSITIVE_INFINITY;
   let maxX = 0;
   let minY = Number.POSITIVE_INFINITY;
   let maxY = 0;
-  let graphLabel = g.graph();
-  let marginX = graphLabel.marginx || 0;
-  let marginY = graphLabel.marginy || 0;
+  const graphLabel = graph.graph();
+  const marginX = graphLabel.marginx || 0;
+  const marginY = graphLabel.marginy || 0;
 
   function getExtremes(attrs: Rect) {
     if (!attrs) {
       return;
     }
 
-    let x = attrs?.x ?? 0;
-    let y = attrs?.y ?? 0;
-    let w = attrs?.width ?? 0;
-    let h = attrs?.height ?? 0;
+    const x = attrs?.x ?? 0;
+    const y = attrs?.y ?? 0;
+    const w = attrs?.width ?? 0;
+    const h = attrs?.height ?? 0;
     minX = Math.min(minX, x - w / 2);
     maxX = Math.max(maxX, x + w / 2);
     minY = Math.min(minY, y - h / 2);
     maxY = Math.max(maxY, y + h / 2);
   }
 
-  g.nodes().forEach((v) => getExtremes(g.node(v)));
-  g.edges().forEach((e) => {
-    let edge = g.edge(e);
-    if (edge.hasOwnProperty('x')) {
-      getExtremes(edge);
+  graph.nodes().forEach((nodeName) => getExtremes(graph.node(nodeName)));
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    if (edgeData.x !== null && edgeData.x !== undefined) {
+      getExtremes(edgeData);
     }
   });
 
   minX -= marginX;
   minY -= marginY;
 
-  g.nodes().forEach((v) => {
-    let node = g.node(v);
+  graph.nodes().forEach((nodeName) => {
+    const node = graph.node(nodeName);
 
     if (!node) {
       return;
@@ -118,46 +118,47 @@ function translateGraph(g: Graph) {
     node.y -= minY;
   });
 
-  g.edges().forEach((e) => {
-    let edge = g.edge(e);
-    if (!edge) {
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    if (!edgeData) {
       return;
     }
 
-    edge.points.forEach((p: Point) => {
-      p.x -= minX;
-      p.y -= minY;
+    edgeData.points.forEach((point: Point) => {
+      point.x -= minX;
+      point.y -= minY;
     });
-    if (edge.hasOwnProperty('x')) { edge.x -= minX; }
-    if (edge.hasOwnProperty('y')) { edge.y -= minY; }
+    if (edgeData.x !== null && edgeData.x !== undefined) { edgeData.x -= minX; }
+    if (edgeData.y !== null && edgeData.y !== undefined) { edgeData.y -= minY; }
   });
 
   graphLabel.width = maxX - minX + marginX;
   graphLabel.height = maxY - minY + marginY;
 }
 
-function assignNodeIntersects(g: Graph) {
-  g.edges().forEach((e) => {
-    let edge = g.edge(e);
-    let nodeV = g.node(e.v);
-    let nodeW = g.node(e.w);
-    let p1, p2;
-    if (!edge.points) {
-      edge.points = [];
+function assignNodeIntersects(graph: Graph) {
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    const nodeV = graph.node(edge.v);
+    const nodeW = graph.node(edge.w);
+    let p1;
+    let p2;
+    if (!edgeData.points) {
+      edgeData.points = [];
       p1 = nodeW;
       p2 = nodeV;
     } else {
-      p1 = edge.points[0];
-      p2 = edge.points[edge.points.length - 1];
+      p1 = edgeData.points[0];
+      p2 = edgeData.points[edgeData.points.length - 1];
     }
-    edge.points.unshift(intersectRect(nodeV, p1));
-    edge.points.push(intersectRect(nodeW, p2));
+    edgeData.points.unshift(intersectRect(nodeV, p1));
+    edgeData.points.push(intersectRect(nodeW, p2));
   });
 }
 
 function fixupEdgeLabelCoords(g: Graph) {
   g.edges().forEach((e) => {
-    let edge = g.edge(e);
+    const edge = g.edge(e);
     if (edge.hasOwnProperty('x')) {
       if (edge.labelpos === 'l' || edge.labelpos === 'r') {
         edge.width -= edge.labeloffset;
@@ -176,7 +177,7 @@ function fixupEdgeLabelCoords(g: Graph) {
 
 function reversePointsForReversedEdges(g: Graph) {
   g.edges().forEach((e) => {
-    let edge = g.edge(e);
+    const edge = g.edge(e);
     if (edge.reversed) {
       edge.points.reverse();
     }
@@ -186,16 +187,16 @@ function reversePointsForReversedEdges(g: Graph) {
 function removeBorderNodes(g: Graph) {
   g.nodes().forEach((v) => {
     if (g.children(v).length) {
-      let node = g.node(v);
+      const node = g.node(v);
 
       if (!node) {
         return;
       }
 
-      let t = g.node(node.borderTop);
-      let b = g.node(node.borderBottom);
-      let l = g.node(node.borderLeft[node.borderLeft.length - 1]);
-      let r = g.node(node.borderRight[node.borderRight.length - 1]);
+      const t = g.node(node.borderTop);
+      const b = g.node(node.borderBottom);
+      const l = g.node(node.borderLeft[node.borderLeft.length - 1]);
+      const r = g.node(node.borderRight[node.borderRight.length - 1]);
 
       node.width = Math.abs(r.x - l.x);
       node.height = Math.abs(b.y - t.y);
@@ -212,11 +213,11 @@ function removeBorderNodes(g: Graph) {
 }
 
 function insertSelfEdges(g: Graph) {
-  var layers = buildLayerMatrix(g);
+  const layers = buildLayerMatrix(g);
   layers.forEach((layer) => {
-    var orderShift = 0;
+    let orderShift = 0;
     layer.forEach((v, i) => {
-      var node = g.node(v);
+      const node = g.node(v);
       node.order = i + orderShift;
       (node.selfEdges || []).forEach((selfEdge: any) => {
         addDummyNode(g, 'selfedge', {
@@ -235,19 +236,19 @@ function insertSelfEdges(g: Graph) {
 
 function positionSelfEdges(g: Graph) {
   g.nodes().forEach((v) => {
-    var node = g.node(v);
+    const node = g.node(v);
     if (node?.dummy === 'selfedge') {
-      var selfNode = g.node(node.e.v);
-      var x = selfNode.x + selfNode.width / 2;
-      var y = selfNode.y;
-      var dx = node.x - x;
-      var dy = selfNode.height / 2;
+      const selfNode = g.node(node.e.v);
+      const x = selfNode.x + selfNode.width / 2;
+      const { y } = selfNode;
+      const dx = node.x - x;
+      const dy = selfNode.height / 2;
       g.setEdge(node.e, node.label);
       g.removeNode(v);
       node.label.points = [
         { x: x + 2 * dx / 3, y: y - dy },
         { x: x + 5 * dx / 6, y: y - dy },
-        { x: x + dx, y: y },
+        { x: x + dx, y },
         { x: x + 5 * dx / 6, y: y + dy },
         { x: x + 2 * dx / 3, y: y + dy }
       ];
@@ -258,7 +259,7 @@ function positionSelfEdges(g: Graph) {
 }
 
 function canonicalize(attrs: Record<string, any>) {
-  var newAttrs: Record<string, any> = {};
+  const newAttrs: Record<string, any> = {};
   if (attrs) {
     Object.entries(attrs).forEach(([k, v]) => {
       if (typeof k === 'string') {
@@ -278,8 +279,8 @@ function canonicalize(attrs: Record<string, any>) {
  * attributes can influence layout.
  */
 function buildLayoutGraph(inputGraph: Graph) {
-  let g = new Graph({ multigraph: true, compound: true });
-  let graph = canonicalize(inputGraph.graph());
+  const g = new Graph({ multigraph: true, compound: true });
+  const graph = canonicalize(inputGraph.graph());
 
   g.setGraph({
     ranksep: graph['ranksep'] ?? 50,
@@ -325,17 +326,17 @@ function buildLayoutGraph(inputGraph: Graph) {
  * We also add some minimal padding to the width to push the label for the edge
  * away from the edge itself a bit.
  */
-function makeSpaceForEdgeLabels(g: Graph) {
-  let graph = g.graph();
-  graph.ranksep /= 2;
-  g.edges().forEach((e) => {
-    let edge = g.edge(e);
-    edge.minlen *= 2;
-    if (edge.labelpos.toLowerCase() !== 'c') {
-      if (graph.rankdir === 'TB' || graph.rankdir === 'BT') {
-        edge.width += edge.labeloffset;
+function makeSpaceForEdgeLabels(graph: Graph) {
+  const graphData = graph.graph();
+  graphData.ranksep /= 2;
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
+    edgeData.minlen *= 2;
+    if (edgeData.labelpos.toLowerCase() !== 'c') {
+      if (graphData.rankdir === 'TB' || graphData.rankdir === 'BT') {
+        edgeData.width += edgeData.labeloffset;
       } else {
-        edge.height += edge.labeloffset;
+        edgeData.height += edgeData.labeloffset;
       }
     }
   });
@@ -347,65 +348,64 @@ function makeSpaceForEdgeLabels(g: Graph) {
  * so that we can safely remove empty ranks while preserving balance for the
  * label's position.
  */
-function injectEdgeLabelProxies(g: Graph) {
-  g.edges().forEach((e) => {
-    let edge = g.edge(e);
-    if (edge.width && edge.height) {
-      let v = g.node(e.v);
-      let w = g.node(e.w);
-      let label = { rank: (w.rank - v.rank) / 2 + v.rank, e: e };
+function injectEdgeLabelProxies(graph: Graph) {
+  graph.edges().forEach((edge) => {
+    const edgeData = graph.edge(edge);
 
-      addDummyNode(g, 'edge-proxy', label, '_ep');
+    if (edgeData.width && edgeData.height) {
+      const nodeV = graph.node(edge.v);
+      const nodeW = graph.node(edge.w);
+      const label = { rank: (nodeW.rank - nodeV.rank) / 2 + nodeV.rank, e: edge };
+
+      addDummyNode(graph, 'edge-proxy', label, '_ep');
     }
   });
 }
 
-function removeSelfEdges(g: Graph) {
-  g.edges().forEach((e) => {
-    if (e.v === e.w) {
-      var node = g.node(e.v);
-      if (!node.selfEdges) {
-        node.selfEdges = [];
-      }
-      node.selfEdges.push({ e: e, label: g.edge(e) });
-      g.removeEdge(e);
+function removeSelfEdges(graph: Graph) {
+  graph.edges().forEach((edge) => {
+    if (edge.v === edge.w) {
+      const node = graph.node(edge.v);
+      node.selfEdges ??= [];
+      node.selfEdges.push({ e: edge, label: graph.edge(edge) });
+      graph.removeEdge(edge);
     }
   });
 }
 
-function runLayout(g: Graph) {
-  time('    makeSpaceForEdgeLabels', () => makeSpaceForEdgeLabels(g));
-  time('    removeSelfEdges', () => removeSelfEdges(g));
-  time('    acyclic', () => acyclic.run(g));
-  time('    nestingGraph.run', () => nestingGraph.run(g));
-  time('    rank', () => rank(asNonCompoundGraph(g)));
-  time('    injectEdgeLabelProxies', () => injectEdgeLabelProxies(g));
-  time('    removeEmptyRanks', () => removeEmptyRanks(g));
-  time('    nestingGraph.cleanup', () => nestingGraph.cleanup(g));
-  time('    normalizeRanks', () => normalizeRanks(g));
-  time('    assignRankMinMax', () => assignRankMinMax(g));
-  time('    removeEdgeLabelProxies', () => removeEdgeLabelProxies(g));
-  time('    normalize.run', () => normalize.run(g));
-  time('    parentDummyChains', () => parentDummyChains(g));
-  time('    addBorderSegments', () => addBorderSegments(g));
-  time('    order', () => order(g, null, time));
-  time('    insertSelfEdges', () => insertSelfEdges(g));
-  time('    adjustCoordinateSystem', () => coordinateSystem.adjust(g));
-  time('    position', () => position(g));
-  time('    positionSelfEdges', () => positionSelfEdges(g));
-  time('    removeBorderNodes', () => removeBorderNodes(g));
-  time('    normalize.undo', () => normalize.undo(g));
-  time('    fixupEdgeLabelCoords', () => fixupEdgeLabelCoords(g));
-  time('    undoCoordinateSystem', () => coordinateSystem.undo(g));
-  time('    translateGraph', () => translateGraph(g));
-  time('    assignNodeIntersects', () => assignNodeIntersects(g));
-  time('    reversePoints', () => reversePointsForReversedEdges(g));
-  time('    acyclic.undo', () => acyclic.undo(g));
+function runLayout(graph: Graph) {
+  time('    makeSpaceForEdgeLabels', () => makeSpaceForEdgeLabels(graph));
+  time('    removeSelfEdges', () => removeSelfEdges(graph));
+  time('    acyclic', () => acyclic.run(graph));
+  time('    nestingGraph.run', () => nestingGraph.run(graph));
+  time('    rank', () => rank(asNonCompoundGraph(graph)));
+  time('    injectEdgeLabelProxies', () => injectEdgeLabelProxies(graph));
+  time('    removeEmptyRanks', () => removeEmptyRanks(graph));
+  time('    nestingGraph.cleanup', () => nestingGraph.cleanup(graph));
+  time('    normalizeRanks', () => normalizeRanks(graph));
+  time('    assignRankMinMax', () => assignRankMinMax(graph));
+  time('    removeEdgeLabelProxies', () => removeEdgeLabelProxies(graph));
+  time('    normalize.run', () => normalize.run(graph));
+  time('    parentDummyChains', () => parentDummyChains(graph));
+  time('    addBorderSegments', () => addBorderSegments(graph));
+  time('    order', () => order(graph, null, time));
+  time('    insertSelfEdges', () => insertSelfEdges(graph));
+  time('    adjustCoordinateSystem', () => coordinateSystem.adjust(graph));
+  time('    position', () => position(graph));
+  time('    positionSelfEdges', () => positionSelfEdges(graph));
+  time('    removeBorderNodes', () => removeBorderNodes(graph));
+  time('    normalize.undo', () => normalize.undo(graph));
+  time('    fixupEdgeLabelCoords', () => fixupEdgeLabelCoords(graph));
+  time('    undoCoordinateSystem', () => coordinateSystem.undo(graph));
+  time('    translateGraph', () => translateGraph(graph));
+  time('    assignNodeIntersects', () => assignNodeIntersects(graph));
+  time('    reversePoints', () => reversePointsForReversedEdges(graph));
+  time('    acyclic.undo', () => acyclic.undo(graph));
 }
 
 export function layout(graph: Graph) {
   time('layout', () => {
-    let layoutGraph = time('  buildLayoutGraph', () => buildLayoutGraph(graph));
+    const layoutGraph = time('  buildLayoutGraph', () => buildLayoutGraph(graph));
     time('  runLayout', () => runLayout(layoutGraph));
     time('  updateInputGraph', () => updateInputGraph(graph, layoutGraph));
   });

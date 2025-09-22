@@ -12,9 +12,9 @@ import { range } from './util.js';
  * Returns a layering matrix with an array per layer and each layer sorted by
  * the order of its nodes.
  */
-export function initOrder(g: Graph) {
-  let visited: Record<string, boolean> = {};
-  let simpleNodes = g.nodes().filter((v) => !g.children(v).length);
+export function initOrder(graph: Graph) {
+  const visited: Record<string, boolean> = {};
+  const simpleNodes = graph.nodes().filter((nodeName) => !graph.children(nodeName).length);
 
   // The following code would throw "maximum call stack size exceeded" error
   // when handling large graphs. Change it to using loop.
@@ -22,14 +22,16 @@ export function initOrder(g: Graph) {
   // let maxRank = Math.max(...simpleNodes.map(v => g.node(v).rank));
 
   let maxRank = -Infinity;
-  for (let i = 0; i < simpleNodes.length; i++) {
-    const rank = g.node(simpleNodes[i]).rank;
+
+  for (const node of simpleNodes) {
+    const { rank } = graph.node(node);
+
     if (rank > maxRank) {
       maxRank = rank;
     }
   }
 
-  let layers = range(maxRank + 1).map(() => []) as string[][];
+  const layers = range(maxRank + 1).map(() => []) as string[][];
 
   /*
    * The following code uses dfs to iterate nodes which will case
@@ -52,19 +54,19 @@ export function initOrder(g: Graph) {
     const queue = [startV];
 
     while (queue.length > 0) {
-      const v = queue.shift() ?? '';
+      const nodeName = queue.shift() ?? '';
 
-      if (visited[v]) { continue; }
+      if (visited[nodeName]) { continue; }
 
-      visited[v] = true;
-      const node = g.node(v);
-      layers[node.rank].push(v);
+      visited[nodeName] = true;
+      const node = graph.node(nodeName);
+      layers[node.rank]?.push(nodeName);
 
-      g.successors(v)?.forEach((neighbor) => queue.push(neighbor));
+      graph.successors(nodeName)?.forEach((neighbor) => queue.push(neighbor));
     }
   }
 
-  let orderedVs = simpleNodes.sort((a, b) => g.node(a).rank - g.node(b).rank);
+  const orderedVs = simpleNodes.sort((nodeA, nodeB) => graph.node(nodeA).rank - graph.node(nodeB).rank);
   orderedVs.forEach(bfs);
 
   return layers;
