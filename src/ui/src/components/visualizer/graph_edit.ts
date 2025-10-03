@@ -22,9 +22,9 @@ import { CppCodeDialog, type CppCodedialogData } from '../cpp_code_dialog/cpp_co
 import type { NodeDataProviderData } from './common/types.js';
 
 declare global {
-	interface DocumentEventMap {
-		'override-upload': CustomEvent<undefined>;
-	}
+  interface DocumentEventMap {
+    'override-upload': CustomEvent<undefined>;
+  }
 }
 
 /**

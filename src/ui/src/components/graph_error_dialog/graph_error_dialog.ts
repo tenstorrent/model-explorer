@@ -24,8 +24,8 @@ import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface ErrorDialogData {
-	errorMessages: string;
-	title?: string
+  errorMessages: string;
+  title?: string
 }
 
 /**
@@ -45,7 +45,7 @@ export interface ErrorDialogData {
   styleUrls: ['./graph_error_dialog.scss'],
 })
 export class GraphErrorsDialog {
-	constructor(
+  constructor(
     @Inject(MAT_DIALOG_DATA) public data: ErrorDialogData,
   ) {}
 

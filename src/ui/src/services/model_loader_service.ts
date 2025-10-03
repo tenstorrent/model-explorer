@@ -17,9 +17,9 @@
  */
 
 declare global {
-	interface DocumentEventMap {
-		'override-update': CustomEvent<OverridesPerCollection>;
-	}
+  interface DocumentEventMap {
+    'override-update': CustomEvent<OverridesPerCollection>;
+  }
 }
 
 import {Injectable, signal} from '@angular/core';
