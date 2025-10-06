@@ -45,6 +45,10 @@ export class APIErrorCard {
     private readonly dialog: MatDialog,
   ) {}
 
+  get appUrl() {
+    return window.location.href;
+  }
+
   handleClickSettings() {
     this.dialog.open(SettingsDialog, {});
   }

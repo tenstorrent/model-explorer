@@ -24,44 +24,40 @@ limitations under the License.
     <div class="description">
       <p>Could not connect to the API server.</p>
       <p>The most probable causes for this error are:</p>
-      <ul>
-        <li>
+      <dl>
+        <dt>
           The server address is incorrect in the app
-          <button
-            mat-button
-            aria-label="Open Settings"
-            (click)="handleClickSettings()"
-          >
+          <button mat-button aria-label="Open Settings" (click)="handleClickSettings()">
             <mat-icon>settings</mat-icon>
-            Settings
+            <span>Settings</span>
           </button>
-          .
-        </li>
-        <li>
+        </dt>
+        <dd>To fix this issue, update the <strong>API Server</strong> address on the app's settings.</dd>
+
+        <dt>
           The server
-          <a
-            class="doc-link"
-            href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS"
-            target="_blank"
-          >
+          <a class="doc-link" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS" target="_blank">
             <span class="doc-text">CORS Headers</span>
             <mat-icon>open_in_new</mat-icon>
           </a>
           are not configured correctly.
-        </li>
-      </ul>
+        </dt>
+        <dd>
+          To fix this issue, start the Model Explorer server with the CORS option enabled.<br/>
+          The value should be the full URL for the UI app (e.g.: <code>{{appUrl}}</code>).</dd>
+      </dl>
       <p>
-          Once the issue is fixed,
-          <button
-            mat-button
-            aria-label="Open Settings"
-            (click)="handleClickReload()"
-          >
-            <mat-icon>refresh</mat-icon>
-            Reload the Page
-          </button>
-          .
-        </p>
+        Once the issue is fixed,
+        <button
+          mat-button
+          aria-label="Open Settings"
+          (click)="handleClickReload()"
+        >
+          <mat-icon>refresh</mat-icon>
+          Reload the Page
+        </button>
+        .
+      </p>
     </div>
   </div>
 </div>

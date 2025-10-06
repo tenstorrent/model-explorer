@@ -36,6 +36,17 @@
     color: maroon;
     margin-top: 8px;
     font-size: 14px;
+
+    dl { margin: 0 1em; }
+    dd { margin-inline-start: 0; }
+
+    dt {
+      font-weight: bold;
+      list-style: disc;
+      display: list-item;
+
+      &:not(:first-child) { margin-block-start: 1em; }
+    }
   }
 
   [mat-button] {
