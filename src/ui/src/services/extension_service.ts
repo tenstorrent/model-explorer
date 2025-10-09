@@ -21,6 +21,7 @@ import {Injectable, signal} from '@angular/core';
 import {type ExtensionCommand} from '../common/extension_command';
 import {type Extension, type ExtensionSettings, type SelectedExtensionSettings} from '../common/types';
 import {INTERNAL_COLAB} from '../common/utils';
+import { SettingKey, SettingsService } from './settings_service.js';
 
 const EXTERNAL_GET_EXTENSIONS_API_PATH = '/api/v1/get_extensions';
 const EXTERNAL_SEND_CMD_GET_API_PATH = '/api/v1/send_command';
@@ -32,6 +33,7 @@ const EXTERNAL_SEND_CMD_POST_API_PATH = '/apipost/v1/send_command';
 @Injectable({providedIn: 'root'})
 export class ExtensionService {
   readonly loading = signal<boolean>(true);
+  readonly errorLoadingExtension = signal<boolean>(false);
   readonly internalColab = INTERNAL_COLAB;
 
   extensions: Extension[] = [];
@@ -39,8 +41,14 @@ export class ExtensionService {
   extensionSettings = new Map<string, ExtensionSettings>();
   selectedSettings = new Map<string, SelectedExtensionSettings>();
 
-  constructor() {
+  constructor(
+    private readonly settingsService: SettingsService
+  ) {
     this.loadExtensions();
+  }
+
+  private get backendUrl() {
+    return this.settingsService.getStringValue(SettingKey.API_HOST);
   }
 
   async sendCommandToExtension<T>(
@@ -52,7 +60,7 @@ export class ExtensionService {
       // In internal colab, use GET request.
       if (this.internalColab) {
         const url = `${EXTERNAL_SEND_CMD_GET_API_PATH}?json=${JSON.stringify(cmd)}`;
-        resp = await fetch(url);
+        resp = await fetch(new URL(url, this.backendUrl));
       }
       // In other environments, use POST request.
       else {
@@ -64,7 +72,7 @@ export class ExtensionService {
         };
         requestData.body = JSON.stringify(cmd);
 
-        resp = await fetch(EXTERNAL_SEND_CMD_POST_API_PATH, requestData);
+        resp = await fetch(new URL(EXTERNAL_SEND_CMD_POST_API_PATH, this.backendUrl), requestData);
       }
 
       if (!resp.ok) {
@@ -120,7 +128,8 @@ export class ExtensionService {
 
   private async getExtensionsForExternal(): Promise<Extension[]> {
     try {
-      const resp = await fetch(EXTERNAL_GET_EXTENSIONS_API_PATH, {
+      this.errorLoadingExtension.update(() => false);
+      const resp = await fetch(new URL(EXTERNAL_GET_EXTENSIONS_API_PATH, this.backendUrl), {
         credentials: 'include',
       });
       if (!resp.ok) {
@@ -132,6 +141,7 @@ export class ExtensionService {
       return json;
     } catch (e) {
       console.error('Failed to get extensions.', e);
+      this.errorLoadingExtension.update(() => true);
       return [];
     }
   }

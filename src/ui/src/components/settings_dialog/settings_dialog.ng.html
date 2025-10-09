@@ -53,23 +53,32 @@ limitations under the License.
         </div>
         <!-- Boolean setting -->
         <ng-container *ngSwitchCase="SettingType.BOOLEAN">
-          <mat-slide-toggle [checked]="settingsService.getBooleanValue(setting)"
+          <mat-slide-toggle [checked]="settingsService.getBooleanValue(setting.key)"
               (change)="settingsService.saveBooleanValue($event.checked, setting.key)">
           </mat-slide-toggle>
         </ng-container>
 
         <!-- Number setting -->
         <ng-container *ngSwitchCase="SettingType.NUMBER">
-          <input type="number" [value]="settingsService.getNumberValue(setting)"
+          <input type="number" [value]="settingsService.getNumberValue(setting.key)"
               #input
               (focus)="input.select()"
               (change)="settingsService.saveNumberValue(input.valueAsNumber, setting.key)">
           <div class="reset" (click)="handleClickResetToDefaultNumber(setting)">Reset to default</div>
         </ng-container>
 
+        <!-- Text setting -->
+        <ng-container *ngSwitchCase="SettingType.TEXT">
+          <input type="text" [value]="settingsService.getStringValue(setting.key)"
+              #input
+              (focus)="input.select()"
+              (change)="settingsService.saveStringValue(input.value, setting.key)">
+          <div class="reset" (click)="handleClickResetToDefaultText(setting)">Reset to default</div>
+        </ng-container>
+
         <!-- Multiline text -->
         <ng-container *ngSwitchCase="SettingType.TEXT_MULTILINE">
-          <textarea type="number" [value]="settingsService.getStringValue(setting)"
+          <textarea type="number" [value]="settingsService.getStringValue(setting.key)"
               #input
               (focus)="input.select()"
               (change)="settingsService.saveStringValue(input.value, setting.key)"></textarea>
@@ -79,12 +88,12 @@ limitations under the License.
         <!-- Color picker -->
         <ng-container *ngSwitchCase="SettingType.COLOR">
           <div class="color-picker-container">
-            <label [style.background-color]="settingsService.getStringValue(setting)">
-              <input type="color" [value]="settingsService.getStringValue(setting)"
+            <label [style.background-color]="settingsService.getStringValue(setting.key)">
+              <input type="color" [value]="settingsService.getStringValue(setting.key)"
                   #colorPicker
                   (change)="settingsService.saveStringValue(colorPicker.value, setting.key)">
             </label>
-            <input type="text" [value]="settingsService.getStringValue(setting)"
+            <input type="text" [value]="settingsService.getStringValue(setting.key)"
                 #colorInput
                 (change)="settingsService.saveStringValue(colorPicker.value, setting.key)">
           </div>

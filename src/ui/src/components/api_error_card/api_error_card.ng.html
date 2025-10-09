@@ -1,0 +1,63 @@
+<!--
+@license
+Copyright 2024 The Model Explorer Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<div class="container">
+  <div class="left">
+    <div class="title">
+      Error Loading Extensions
+    </div>
+    <div class="description">
+      <p>Could not connect to the API server.</p>
+      <p>The most probable causes for this error are:</p>
+      <dl>
+        <dt>
+          The server address is incorrect in the app
+          <button mat-button aria-label="Open Settings" (click)="handleClickSettings()">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </button>
+        </dt>
+        <dd>To fix this issue, update the <strong>API Server</strong> address on the app's settings.</dd>
+
+        <dt>
+          The server
+          <a class="doc-link" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS" target="_blank">
+            <span class="doc-text">CORS Headers</span>
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+          are not configured correctly.
+        </dt>
+        <dd>
+          To fix this issue, start the Model Explorer server with the CORS option enabled.<br/>
+          The value should be the full URL for the UI app (e.g.: <code>{{appUrl}}</code>).</dd>
+      </dl>
+      <p>
+        Once the issue is fixed,
+        <button
+          mat-button
+          aria-label="Open Settings"
+          (click)="handleClickReload()"
+        >
+          <mat-icon>refresh</mat-icon>
+          Reload the Page
+        </button>
+        .
+      </p>
+    </div>
+  </div>
+</div>
