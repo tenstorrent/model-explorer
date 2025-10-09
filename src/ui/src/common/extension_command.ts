@@ -18,6 +18,7 @@
 
 import {Graph, GraphCollection,} from '../components/visualizer/common/input_graph';
 import type { OverridesPerNode } from './model_loader_service_interface';
+import type { AdapterExtension } from './types.js';
 
 /** A command sent to extension. */
 export declare interface ExtensionCommand {
@@ -100,3 +101,21 @@ export interface AdapterStatusCheckResults {
 
 /** Adapter's "status check" command response. */
 export type AdapterStatusCheckResponse = ExtensionResponse<[AdapterStatusCheckResults], never>;
+
+/** Adapter's "preload" command. */
+export interface AdapterPreloadCommand extends ExtensionCommand {
+  cmdId: 'preload'
+  extensionId: '';
+  modelPath: '';
+  settings: {};
+  deleteAfterConversion: false;
+}
+
+/** Adapter's "preload" results inside the response. */
+export interface AdapterPreloadResults {
+  graphPaths: string[];
+  adapterInfo: AdapterExtension;
+}
+
+/** Adapter's "preload" command response. */
+export type AdapterPreloadResponse = ExtensionResponse<[AdapterPreloadResults], never>;
