@@ -1,11 +1,17 @@
 <div>
-	<button
-		mat-button
-		aria-label="Reload the page"
-		(click)="handleClickReload()"
-	>
-		<mat-icon>refresh</mat-icon>
-		Load Graphs from server's default location
-	</button>
-	<output>Loading Graphs...</output>
+  <button
+    mat-flat-button
+    (click)="handleLoadGraphsFromServer()"
+    [disabled]="isLoadingGraphs()"
+  >
+    <mat-icon [ngStyle]="{ display: !isLoadingGraphs() ? 'block' : 'none' }">refresh</mat-icon>
+    <span [hidden]="isLoadingGraphs()">
+      Load Graphs from server
+    </span>
+    <mat-progress-spinner
+      diameter="24"
+      mode="indeterminate"
+      [ngStyle]="{ display: isLoadingGraphs() ? 'block' : 'none' }"
+    >Loading Graphs...</mat-progress-spinner>
+  </button>
 </div>
