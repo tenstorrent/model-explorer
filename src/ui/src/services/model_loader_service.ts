@@ -560,7 +560,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   ): GraphCollection[] {
     const graphCollections = resp.graphCollections?.map((item) => {
       return {
-        label: item.label === '' ? fileName : `${fileName} (${item.label})`,
+        label: item.label ? item.label : fileName,
         graphs: item.graphs
       };
     }) ?? [];
