@@ -79,7 +79,6 @@ import {AdapterSelectorPanel} from './adapter_selector_panel';
 import {getAdapterCandidates} from './utils';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
-import { GraphPreload } from '../graph_preload/graph_preload.js';
 
 interface SavedModelPath {
   path: string;
@@ -89,6 +88,7 @@ interface SavedModelPath {
 const MAX_MODELS_COUNT = 20;
 const SAVED_MODEL_PATHS_KEY = 'model_explorer_model_paths';
 const MAX_SAVED_MODEL_PATHS_COUNT = 50;
+const PRELOAD_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
 
 /**
  * The component where users enter the source of the model.
@@ -109,7 +109,6 @@ const MAX_SAVED_MODEL_PATHS_COUNT = 50;
     MatTooltipModule,
     MatIconModule,
     ReactiveFormsModule,
-    GraphPreload
   ],
   templateUrl: './model_source_input.ng.html',
   styleUrls: ['./model_source_input.scss'],
@@ -597,6 +596,10 @@ export class ModelSourceInput {
       .join(' ');
   }
 
+  get supportsPreload() {
+    return this.extensionService.extensions.findIndex(({ settings }) => settings?.supportsPreload) !== -1;
+  }
+
   get disableAddEnteredModelPathButton(): boolean {
     if (this.hasReachedMaxModelsCount) {
       return true;
@@ -745,4 +748,39 @@ export class ModelSourceInput {
     });
     return overlayRef;
   }
+
+  async handleLoadGraphsFromServer() {
+      this.loading.set(true);
+
+      try {
+        const errors = await Promise.race([
+          this.modelLoaderService.preloadModels(),
+          new Promise<{ graph: string, error: string }[]>((_, reject) => {
+            setTimeout(() => reject(new Error('Server request took too long and timed out.')), PRELOAD_REQUEST_TIMEOUT_MS);
+          })
+        ]);
+
+        if (errors.length > 0) {
+          this.dialog.open(GraphErrorsDialog, {
+            width: 'clamp(10rem, 60vw, 60rem)',
+            height: 'clamp(10rem, 60vh, 60rem)',
+            data: {
+              errorMessages: errors.map(({ graph, error}) => `${graph ? `Graph: "${graph}"\n` : ''}Error: ${error}`).join('\n'),
+              title: 'Error Loading Graphs from Server'
+            }
+          });
+        }
+      } catch (err) {
+        this.dialog.open(GraphErrorsDialog, {
+          width: 'clamp(10rem, 60vw, 60rem)',
+          height: 'clamp(10rem, 60vh, 60rem)',
+          data: {
+            errorMessages: (err as Error).message ?? (err as Error).toString(),
+            title: 'Error Loading Graphs from Server'
+          }
+        });
+      } finally {
+        this.loading.set(false);
+      }
+    }
 }

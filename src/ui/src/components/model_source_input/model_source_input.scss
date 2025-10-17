@@ -211,6 +211,24 @@ $warning_bg_color: #ffefd9;
     }
   }
 
+  .preload-container:not([hidden]) {
+    display: flex;
+    justify-content: center;
+
+    button {
+      min-height: 40px;
+      height: 100%;
+      border-radius: 99px;
+      background-color: white;
+      color: #0b57d0;
+
+      &[disabled] {
+        background-color: rgba(31, 31, 31, 0.12);
+        color: rgba(31, 31, 31, 0.38);
+      }
+    }
+  }
+
   .model-count-warning {
     color: $warning_text_color;
     background-color: $warning_bg_color;
