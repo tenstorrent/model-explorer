@@ -56,6 +56,7 @@ export declare interface ExtensionBase {
 
 export interface ExtensionSettings {
   optimizationPolicies?: string[];
+  supportsPreload?: boolean;
 };
 
 export interface SelectedExtensionSettings {
