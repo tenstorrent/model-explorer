@@ -216,7 +216,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       }
     });
 
-    return errors;
+    return {
+      modelItems,
+      errors
+    };
   }
 
   async loadModels(modelItems: ModelItem[]) {
