@@ -100,6 +100,12 @@ export declare interface ModelGraph {
 
   /** Layout-related configs. */
   layoutConfigs?: LayoutConfigs;
+
+  /** The absolute path of the model that contains this graph. */
+  modelPath?: string;
+
+  // The id of the adapter that generates this graph.
+  adapterId?: string;
 }
 
 /** Node tyoes in a model graph. */

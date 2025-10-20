@@ -40,14 +40,14 @@ limitations under the License.
         </span> (.mlir, .mlirbc).
       </div>
 
-      @if (customExtensions().length > 0) {
+      @if (customAdapterExtensions().length + customNdpExtensions().length > 0) {
         <div class="custom-extensions">
           <div class="section-title">
             <mat-icon>extension</mat-icon>
             Loaded custom extensions:
           </div>
           <ul>
-            @for (extension of customExtensions(); track extension) {
+            @for (extension of customAdapterExtensions(); track extension) {
               <li>
                 <div class="extension-name">
                   {{extension.name}}
@@ -56,6 +56,15 @@ limitations under the License.
                       <div class="ext">.{{ext}}</div>
                     }
                   </div>
+                </div>
+                <br>
+                <span class="description">{{extension.description}}</span>
+              </li>
+            }
+            @for (extension of customNdpExtensions(); track extension) {
+              <li>
+                <div class="extension-name">
+                  {{extension.name}}
                 </div>
                 <br>
                 <span class="description">{{extension.description}}</span>

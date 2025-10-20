@@ -251,6 +251,11 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             }
             if (jsonResult.graphCollections) {
               result = jsonResult.graphCollections;
+              if (result.length > 0 && result[0].graphs.length > 0) {
+                const graph = result[0].graphs[0];
+                graph.modelPath = modelItem.path;
+                graph.adapterId = InternalAdapterExtId.JSON_LOADER;
+              }
             }
             modelItem.status.set(ModelItemStatus.DONE);
           } catch (e) {
@@ -269,7 +274,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
           result = await this.sendConvertRequest(
             modelItem,
             filePath,
-            fileName
+            fileName,
+            false,
           );
           break;
       }
@@ -293,6 +299,11 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
             // Typical use cases where users pick a json file.
             else {
               result = await processUploadedJsonFile(file);
+              if (result.length > 0 && result[0].graphs.length > 0) {
+                const graph = result[0].graphs[0];
+                graph.modelPath = modelItem.path;
+                graph.adapterId = InternalAdapterExtId.JSON_LOADER;
+              }
               modelItem.status.set(ModelItemStatus.DONE);
             }
           } catch (e) {
@@ -323,7 +334,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
           result = await this.sendConvertRequest(
             modelItem,
             modelItem.path,
-            file.name
+            file.name,
+            false,
           );
           break;
       }
@@ -381,7 +393,12 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     const index = Number(partsStr.substring(lastSlashIndex + 1));
     const resp = await fetch(new URL(`${LOAD_GRAPHS_JSON_API_PATH}?graph_index=${index}`, this.backendUrl));
     const json = (await resp.json()) as AdapterConvertResponse;
-    const graphCollections = this.processAdapterConvertResponse(json, name);
+    const graphCollections = this.processAdapterConvertResponse(
+      json,
+      name,
+      InternalAdapterExtId.JSON_LOADER,
+    );
+
     this.processGeneratedCppCode(graphCollections);
 
     return graphCollections;
@@ -453,29 +470,47 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     modelItem: ModelItem,
     path: string,
     fileName: string,
+    deleteAfterConversion: boolean,
     settings: Record<string, any> = {},
   ): Promise<GraphCollection[]> {
-    const result = await this.sendExtensionRequest<AdapterConvertResponse, AdapterConvertCommand>(
-      'convert',
-      modelItem,
-      path,
-      {
+    let result: GraphCollection[] = [];
+    modelItem.status.set(ModelItemStatus.PROCESSING);
+    const extensionId = modelItem.selectedAdapter?.id || '';
+    const convertCommand: AdapterConvertCommand = {
+      cmdId: 'convert',
+      extensionId,
+      modelPath: path,
+      settings: {
         ...this.settingsService.getAllSettingsValues(),
         ...settings
       },
-    );
-
-    if (!result || modelItem.status() === ModelItemStatus.ERROR) {
+      deleteAfterConversion,
+    };
+    const {cmdResp, otherError: cmdError} =
+      await this.extensionService.sendCommandToExtension<AdapterConvertResponse>(
+        convertCommand,
+      );
+    const error = cmdResp?.error || cmdError;
+    if (error) {
+      modelItem.selected = false;
+      modelItem.status.set(ModelItemStatus.ERROR);
+      modelItem.errorMessage = error;
       return [];
+    } else if (cmdResp) {
+      result = this.processAdapterConvertResponse(
+        cmdResp,
+        fileName,
+        extensionId,
+        path,
+      );
+
+      this.processGeneratedCppCode(result);
+      // TODO: should these be updated here?
+      // this.updateGraphCollections(graphCollections);
+      // this.updateOverrides(graphCollections);
     }
-
-    const graphCollections = this.processAdapterConvertResponse(result, fileName);
-    this.processGeneratedCppCode(graphCollections);
-    // TODO: should these be updated here?
-    // this.updateGraphCollections(graphCollections);
-    // this.updateOverrides(graphCollections);
-
-    return graphCollections;
+    modelItem.status.set(ModelItemStatus.DONE);
+    return result;
   }
 
   private async sendExecuteRequest(
@@ -495,25 +530,29 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   private processAdapterConvertResponse(
     resp: AdapterConvertResponse,
     fileName: string,
+    extensionId: string,
+    path = '',
   ): GraphCollection[] {
-    const graphCollections = resp.graphCollections?.map((item) => {
-      return {
-        label: item.label === '' ? fileName : `${fileName} (${item.label})`,
-        graphs: item.graphs
-      };
-    }) ?? [];
-
     if (resp.graphs) {
-      graphCollections.push({label: fileName, graphs: resp.graphs });
-    }
-
-    graphCollections.forEach((graphCollection) => graphCollection.graphs.forEach((graph) => {
-      if (!graph?.overlays) {
-        graph.overlays = {};
+      for (const graph of resp.graphs) {
+          graph.modelPath = path;
+          graph.adapterId = extensionId;
       }
-    }));
+      return [{label: fileName, graphs: resp.graphs}];
 
-    return graphCollections;
+    } else if (resp.graphCollections) {
+      return resp.graphCollections.map((item) => {
+        for (const graph of item.graphs) {
+          graph.modelPath = path;
+          graph.adapterId = extensionId;
+        }
+        return {
+          label: item.label === '' ? fileName : `${fileName} (${item.label})`,
+          graphs: item.graphs,
+        };
+      });
+    }
+    return [];
   }
 
   private processGeneratedCppCode(graphCollections: GraphCollection[]) {

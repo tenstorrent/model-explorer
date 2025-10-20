@@ -51,6 +51,10 @@ import {
 } from './common/utils';
 import {AttrTreeNode} from './common/attr_tree';
 import {ThreejsService} from './threejs_service';
+import {
+  ColorVariable,
+  VisualizerThemeService,
+} from './visualizer_theme_service';
 import {WebglRenderer} from './webgl_renderer';
 import {WebglRendererThreejsService} from './webgl_renderer_threejs_service';
 import {
@@ -73,15 +77,18 @@ const THREE = three;
  */
 @Injectable()
 export class WebglRendererAttrsTableService {
-  readonly ATTRS_TABLE_KEY_COLOR = new THREE.Color('#808080');
-  readonly ATTRS_TABLE_VALUE_COLOR = new THREE.Color('#0d0d0d');
-
   private readonly threejsService: ThreejsService = inject(ThreejsService);
   readonly attrsTableTexts = new WebglTexts(this.threejsService);
 
   private webglRenderer!: WebglRenderer;
   private webglRendererThreejsService!: WebglRendererThreejsService;
-  private readonly attrsTableBgs = new WebglRoundedRectangles(4);
+  private readonly visualizerThemeService: VisualizerThemeService = inject(
+    VisualizerThemeService,
+  );
+  private readonly attrsTableBgs = new WebglRoundedRectangles(
+    4,
+    this.visualizerThemeService,
+  );
 
   init(webglRenderer: WebglRenderer) {
     this.webglRenderer = webglRenderer;
@@ -102,6 +109,11 @@ export class WebglRendererAttrsTableService {
     const fontSize = this.attrsTableTexts.getFontSize();
     const scale = 9 / fontSize;
     const tableBgRectangles: RoundedRectangleData[] = [];
+    const attrTableBgColor = new THREE.Color(
+      this.webglRenderer.visualizerThemeService.getColor(
+        ColorVariable.SURFACE_COLOR,
+      ),
+    );
     for (const {node, index} of this.webglRenderer.nodesToRender) {
       const rows: Array<{
         keyLabelData: LabelData;
@@ -284,8 +296,8 @@ export class WebglRendererAttrsTableService {
           },
           yOffset: WEBGL_ELEMENT_Y_FACTOR * index + ATTRS_TABLE_BG_Y_OFFSET,
           isRounded: true,
-          borderColor: {r: 1, g: 1, b: 1},
-          bgColor: {r: 1, g: 1, b: 1},
+          borderColor: attrTableBgColor,
+          bgColor: attrTableBgColor,
           borderWidth: 1,
           opacity: 1,
         });
@@ -314,6 +326,16 @@ export class WebglRendererAttrsTableService {
     zOffset: number,
     scale: number,
   ) {
+    const attrTableKeyColor = new THREE.Color(
+      this.webglRenderer.visualizerThemeService.getColor(
+        ColorVariable.ON_SURFACE_VARIANT_COLOR,
+      ),
+    );
+    const attrTableTextColor = new THREE.Color(
+      this.webglRenderer.visualizerThemeService.getColor(
+        ColorVariable.ON_SURFACE_COLOR,
+      ),
+    );
     const keyLabelData: LabelData = {
       id: `${node.id}_attrs_table_${key}_key`,
       nodeId: node.id,
@@ -325,7 +347,7 @@ export class WebglRendererAttrsTableService {
       x: this.webglRenderer.getNodeX(node),
       y: index * WEBGL_ELEMENT_Y_FACTOR + ATTRS_TABLE_TEXT_Y_OFFSET,
       z: this.webglRenderer.getNodeY(node) + zOffset,
-      color: this.ATTRS_TABLE_KEY_COLOR,
+      color: attrTableKeyColor,
     };
     const keyLabelSizes = this.attrsTableTexts.getLabelSizes(
       keyLabelData.label,
@@ -345,7 +367,7 @@ export class WebglRendererAttrsTableService {
       x: this.webglRenderer.getNodeX(node),
       y: index * WEBGL_ELEMENT_Y_FACTOR + ATTRS_TABLE_TEXT_Y_OFFSET,
       z: this.webglRenderer.getNodeY(node) + zOffset,
-      color: this.ATTRS_TABLE_VALUE_COLOR,
+      color: attrTableTextColor,
       maxWidth: NODE_ATTRS_TABLE_VALUE_MAX_WIDTH,
     };
     const {sizes: valueLabelSizes, updatedLabel} =

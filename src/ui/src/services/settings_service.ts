@@ -225,7 +225,7 @@ export const ALL_SETTINGS = [
  */
 @Injectable({providedIn: 'root'})
 export class SettingsService {
-  private defaultSettings: Record<SettingKey, boolean | number | string> = {
+  defaultSettings: Record<SettingKey, boolean | number | string> = {
     [SettingKey.API_HOST]: SETTING_API_HOST.defaultValue,
     [SettingKey.CONST_ELEMENT_COUNT_LIMIT]: SETTING_MAX_CONST_ELEMENT_COUNT_LIMIT.defaultValue,
     [SettingKey.HIDE_OP_NODES_WITH_LABELS]: SETTING_HIDE_OP_NODES_WITH_LABELS.defaultValue,

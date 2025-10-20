@@ -77,7 +77,9 @@ export class GraphProcessor {
     private readonly keepLayersWithASingleChild = false,
   ) {
     this.nodeLabelsToHide = new Set<string>(
-      (this.config?.nodeLabelsToHide || []).map((label) => label.toLowerCase()),
+      (this.graph.nodeLabelsToHide ?? this.config?.nodeLabelsToHide ?? []).map(
+        (label) => label.toLowerCase(),
+      ),
     );
   }
 
@@ -756,6 +758,8 @@ export class GraphProcessor {
       layoutGraphEdges: {},
       minDescendantOpNodeCount: -1,
       maxDescendantOpNodeCount: -1,
+      modelPath: this.graph.modelPath,
+      adapterId: this.graph.adapterId,
     };
     if (this.graph.groupNodeAttributes) {
       modelGraph.groupNodeAttributes = this.graph.groupNodeAttributes;

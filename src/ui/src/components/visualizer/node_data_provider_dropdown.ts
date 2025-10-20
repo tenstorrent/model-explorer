@@ -23,13 +23,14 @@ import {
   ChangeDetectorRef,
   Component,
   ViewChild,
+  output,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
 
-import {Bubble} from '../bubble/bubble';
+import {RunNdpExtensionData} from '../../common/types';
 import {BubbleClick} from '../bubble/bubble_click';
 
 import {AppService} from './app_service';
@@ -37,6 +38,7 @@ import {ModelGraph} from './common/model_graph';
 import {NodeDataProviderData} from './common/types';
 import {genUid} from './common/utils';
 import {LocalStorageService} from './local_storage_service';
+import {NodeDataProviderExtensionsPanel} from './ndp_extensions_panel';
 import {NodeDataProviderExtensionService} from './node_data_provider_extension_service';
 import type { Extension } from '../../common/types.js';
 
@@ -45,13 +47,13 @@ import type { Extension } from '../../common/types.js';
   standalone: true,
   selector: 'node-data-provider-dropdown',
   imports: [
-    Bubble,
     BubbleClick,
     CommonModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    NodeDataProviderExtensionsPanel,
   ],
   templateUrl: 'node_data_provider_dropdown.ng.html',
   styleUrls: ['./node_data_provider_dropdown.scss'],
@@ -60,7 +62,8 @@ import type { Extension } from '../../common/types.js';
 export class NodeDataProviderDropdown {
   @ViewChild(BubbleClick) dropdown?: BubbleClick;
 
-  extensions: Extension[] = [];
+  readonly onRunNdpExtension = output<RunNdpExtensionData>();
+
   loadingExtensions = true;
 
   readonly helpPopupSize: OverlaySizeConfig = {
@@ -75,6 +78,7 @@ export class NodeDataProviderDropdown {
   };
 
   readonly remoteSourceLoading;
+  readonly hasExtensionRunning;
 
   constructor(
     private readonly appService: AppService,
@@ -84,6 +88,8 @@ export class NodeDataProviderDropdown {
   ) {
     this.remoteSourceLoading =
       this.nodeDataProviderExtensionService.remoteSourceLoading;
+    this.hasExtensionRunning =
+      this.nodeDataProviderExtensionService.hasExtensionRunning;
   }
 
   handleClickUpload(input: HTMLInputElement) {
@@ -133,6 +139,11 @@ export class NodeDataProviderDropdown {
       fileReader.readAsText(file);
     }
     input.value = '';
+  }
+
+  handleRunNdpExtension(data: RunNdpExtensionData) {
+    this.dropdown?.closeDialog();
+    this.onRunNdpExtension.emit(data);
   }
 
   private getNodeDataProviderData(str: string, modelGraph: ModelGraph) {
