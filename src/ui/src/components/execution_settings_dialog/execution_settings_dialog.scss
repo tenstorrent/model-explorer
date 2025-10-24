@@ -36,7 +36,7 @@
 
 .settings-container {
   font-size: 13px;
-  color: black;
+  color: var(--me-on-surface-color);
   margin-top: 20px;
   margin-bottom: 10px;
 }
@@ -93,16 +93,20 @@
   border-top: 1px solid #ddd;
 }
 
-::ng-deep {
-  .model-explorer-settings-help-popup {
-    font-size: 12px;
-    padding: 8px;
-    background-color: white;
-    line-height: normal;
+::ng-deep .model-explorer-settings-help-popup {
+  padding: 12px;
+  font-weight: normal;
+  background-color: var(--me-surface-container-low-color);
+  color: var(--me-on-surface-color);
+  line-height: 15px;
+  font-size: 12px;
+  font-family: 'Google Sans Text', Arial, Helvetica, sans-serif;
+  width: fit-content;
+  min-width: 15ch;
+  max-width: 40ch;
 
-    .bold {
-      font-weight: 700;
-    }
+  .bold {
+    font-weight: 700;
   }
 }
 
