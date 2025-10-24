@@ -143,11 +143,11 @@ export class RendererWrapper {
     }
 
     // Toggle and re-process the graph.
-    this.appService.toggleFlattenLayers(this.paneId);
     this.appService.processGraph(
       this.paneId,
-      this.appService.getFlattenLayers(this.paneId),
+      !this.appService.getFlattenLayers(this.paneId),
     );
+    this.appService.toggleFlattenLayers(this.paneId);
 
     // Clear init graph state.
     this.appService.curInitialUiState.set(undefined);
