@@ -121,21 +121,30 @@
     list-style-type: none;
     padding: 0.2rem 0.5rem;
     margin-block: 0.2rem;
-    background: color-mix(in hwb, var(--log-color), white 85%);
-    color: color-mix(in hwb, var(--log-color), black 55%);
+    background: light-dark(
+      color-mix(in hwb, var(--log-color), white 85%),
+      color-mix(in hwb, var(--log-color), black 82%)
+    );
+    color: light-dark(
+      color-mix(in hwb, var(--log-color), black 55%),
+      color-mix(in hwb, var(--log-color), white 65%)
+    );
     width: 100%;
     box-sizing: border-box;
 
-    &[data-log-level="info"] { --log-color: royalblue; }
-    &[data-log-level="warn"] { --log-color: goldenrod; }
-    &[data-log-level="error"] { --log-color: orangered; }
-    &[data-log-level="debug"] { --log-color: deeppink; }
+    &[data-log-level="info"] { --log-color: light-dark(royalblue, skyblue); }
+    &[data-log-level="warn"] { --log-color: light-dark(goldenrod, yellow); }
+    &[data-log-level="error"] { --log-color: light-dark(orangered, tomato); }
+    &[data-log-level="debug"] { --log-color: light-dark(deeppink, hotpink); }
 
     .log-message-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: color-mix(in hwb, var(--log-color), black 40%);
+      color: light-dark(
+        color-mix(in hwb, var(--log-color), black 40%),
+        color-mix(in hwb, var(--log-color), white 30%)
+      );
     }
 
     .log-message-timestamp {
