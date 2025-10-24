@@ -26,6 +26,7 @@ import {
   effect,
   ElementRef,
   HostBinding,
+  inject,
   Input,
   QueryList,
   ViewChildren,
@@ -78,6 +79,10 @@ import {NodeDataProviderExtensionService} from './node_data_provider_extension_s
 import {NodeDataProviderSummaryPanel} from './node_data_provider_summary_panel';
 import {Paginator} from './paginator';
 import {SplitPaneService} from './split_pane_service';
+import {
+  ColorVariable,
+  VisualizerThemeService,
+} from './visualizer_theme_service';
 
 interface InfoSection {
   label: SectionLabel;
@@ -245,6 +250,8 @@ export class InfoPanel {
   private curSearchInputMatches: SearchMatchInputMetadata[] = [];
   private curSearchOutputMatches: SearchMatchOutputMetadata[] = [];
   private savedWidth = 0;
+
+  private readonly visualizerThemeService = inject(VisualizerThemeService);
 
   constructor(
     private readonly appService: AppService,
@@ -726,6 +733,10 @@ export class InfoPanel {
     );
   }
 
+  get onSurfaceColor(): string {
+    return this.visualizerThemeService.getColor(ColorVariable.ON_SURFACE_COLOR);
+  }
+
   private handleNodeSelected(nodeId: string) {
     if (!this.curModelGraph || !nodeId) {
       this.curSelectedNode = undefined;
@@ -956,7 +967,9 @@ export class InfoPanel {
         }
         const strValue = nodeResult?.strValue || '-';
         const bgColor = nodeResult?.bgColor || 'transparent';
-        const textColor = nodeResult?.textColor || 'black';
+        const textColor =
+          nodeResult?.textColor ||
+          this.visualizerThemeService.getColor(ColorVariable.ON_SURFACE_COLOR);
         nodeDataProvidersSection.items.push({
           id: run.runId,
           section: nodeDataProvidersSection,

@@ -27,16 +27,22 @@ import {
   EventEmitter,
   HostListener,
   Inject,
+  inject,
   Input,
+  input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  untracked,
+  SimpleChanges,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {AppService} from './app_service';
 import {BenchmarkRunner} from './benchmark_runner';
+import {GLOBAL_KEY} from './common/consts';
 import {Graph, GraphCollection} from './common/input_graph';
 import {ModelGraph, OpNode} from './common/model_graph';
 import {
@@ -60,6 +66,7 @@ import {SyncNavigationService} from './sync_navigation_service';
 import {ThreejsService} from './threejs_service';
 import {TitleBar} from './title_bar';
 import {UiStateService} from './ui_state_service';
+import {VisualizerThemeService} from './visualizer_theme_service';
 import {WorkerService} from './worker_service';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface';
 import { SettingKey, SettingsService } from '../../services/settings_service.js';
@@ -71,12 +78,16 @@ import { SettingKey, SettingsService } from '../../services/settings_service.js'
   imports: [BenchmarkRunner, CommonModule, TitleBar, SplitPanesContainer],
   templateUrl: './model_graph_visualizer.ng.html',
   styleUrls: ['./model_graph_visualizer.scss'],
+  host: {
+    '[attr.data-metheme]': 'theme()',
+  },
   providers: [
     AppService,
     NodeDataProviderExtensionService,
     NodeStylerService,
     SyncNavigationService,
     UiStateService,
+    VisualizerThemeService,
     WorkerService,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -92,6 +103,9 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
 
   /** Benchmark mode. */
   @Input() benchmark = false;
+
+  /** The theme ('light' or 'dark') of the visualizer.*/
+  readonly theme = input<string>('light');
 
   /** The sources (file paths) of node data. */
   @Input() nodeDataSources: string[] = [];
@@ -140,6 +154,8 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
     );
   };
 
+  private readonly visualizerThemeService = inject(VisualizerThemeService);
+
   constructor(
     private readonly settingsService: SettingsService,
     @Inject('ModelLoaderService')
@@ -183,6 +199,14 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
       this.doubleClickedNodeChanged.emit(this.appService.doubleClickedNode());
     });
 
+    effect(() => {
+      const curTheme = this.theme();
+      document.body.dataset['metheme'] = curTheme;
+      untracked(() => {
+        this.appService.theme.update(() => curTheme);
+      });
+    });
+
     // Listen to postMessage.
     window.addEventListener('message', (e) => {
       const data = e.data;
@@ -223,9 +247,20 @@ export class ModelGraphVisualizer implements OnInit, OnDestroy {
       });
 
     this.initThreejs();
+
+    // Data and functions needed for testing.
+    // tslint:disable-next-line:no-any Allow arbitrary types.
+    const windowAny = window as any;
+    if (windowAny[GLOBAL_KEY] == null) {
+      windowAny[GLOBAL_KEY] = {
+        renderers: {},
+      };
+    }
   }
 
   ngOnInit() {
+    this.visualizerThemeService.init(this.el);
+
     this.appService.config.set(this.config || {});
     this.appService.addGraphCollections(this.graphCollections);
     this.appService.curInitialUiState.set(this.initialUiState);

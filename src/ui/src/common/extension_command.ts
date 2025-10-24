@@ -16,16 +16,21 @@
  * ==============================================================================
  */
 
-import {Graph, GraphCollection,} from '../components/visualizer/common/input_graph';
+import {
+  Graph,
+  GraphCollection,
+} from '../components/visualizer/common/input_graph';
+import {NodeDataProviderGraphData} from '../components/visualizer/common/types';
+import {ConfigEditor, ConfigValue} from './types';
 import type { OverridesPerNode } from './model_loader_service_interface';
 
 /** A command sent to extension. */
 export declare interface ExtensionCommand {
   cmdId: string;
   extensionId: string;
-  modelPath: string;
-  settings: Record<string, any>;
-  deleteAfterConversion: boolean;
+  modelPath?: string;
+  settings?: Record<string, any>;
+  deleteAfterConversion?: boolean;
 }
 
 interface ExtensionGraphResponse<G extends Array<unknown>> {
@@ -100,3 +105,27 @@ export interface AdapterStatusCheckResults {
 
 /** Adapter's "status check" command response. */
 export type AdapterStatusCheckResponse = ExtensionResponse<[AdapterStatusCheckResults], never>;
+
+/** Node data provider's "get_config_editors" command. */
+export declare interface NdpGetConfigEditorsCommand extends ExtensionCommand {
+  cmdId: 'get_config_editors';
+}
+
+/** Node data provider's "get_config_editors" command response. */
+export declare interface NdpGetConfigEditorsResponse {
+  configEditors?: ConfigEditor[];
+  error?: string;
+}
+
+/** Node data provider's "run" command. */
+export declare interface NdpRunCommand extends ExtensionCommand {
+  cmdId: 'run';
+  modelPath: string;
+  configValues: Record<string, ConfigValue>;
+}
+
+/** Node data provider's "run" command response. */
+export declare interface NdpRunResponse {
+  result?: NodeDataProviderGraphData;
+  error?: string;
+}

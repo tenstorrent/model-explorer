@@ -101,9 +101,6 @@ export class GraphSelector {
     }
 
     const collections = this.appService.curGraphCollections();
-    this.nodeLabelsToHide = new Set<string>(
-      (config.nodeLabelsToHide || []).map((label) => label.toLowerCase()),
-    );
 
     // Calculate count for non-hidden nodes in each graph.
     const graphCollectionItems: GraphCollectionItem[] = [];
@@ -118,8 +115,13 @@ export class GraphSelector {
         if (filterText !== '' && !graph.id.toLowerCase().includes(filterText)) {
           continue;
         }
+        const nodeLabelsToHide = new Set<string>(
+          (graph.nodeLabelsToHide ?? config.nodeLabelsToHide ?? []).map(
+            (label) => label.toLowerCase(),
+          ),
+        );
         const nonHiddenNodeCount = graph.nodes.filter(
-          (node) => !this.nodeLabelsToHide.has(node.label.toLowerCase()),
+          (node) => !nodeLabelsToHide.has(node.label.toLowerCase()),
         ).length;
         const width =
           this.getLabelWidth(` ${graph.id}    ${nonHiddenNodeCount} nodes`) +
@@ -158,7 +160,6 @@ export class GraphSelector {
     return count;
   });
 
-  private nodeLabelsToHide = new Set<string>();
   private readonly curFilterText = signal<string>('');
   private portal: ComponentPortal<GraphSelectorPanel> | null = null;
 

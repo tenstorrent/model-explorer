@@ -124,6 +124,8 @@ export class AppService {
 
   readonly command = new Subject<Command>();
 
+  readonly theme = signal<string>('light');
+
   testMode = false;
 
   private groupNodeChildrenCountThresholdFromUrl: string | null = null;

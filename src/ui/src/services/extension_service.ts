@@ -18,8 +18,21 @@
 
 import {Injectable, signal} from '@angular/core';
 
-import {type ExtensionCommand} from '../common/extension_command';
-import {type Extension, type ExtensionSettings, type SelectedExtensionSettings} from '../common/types';
+import {
+  ExtensionCommand,
+  NdpGetConfigEditorsCommand,
+  NdpGetConfigEditorsResponse,
+  NdpRunCommand,
+  NdpRunResponse,
+} from '../common/extension_command';
+import {
+  ConfigValue,
+  Extension,
+  NodeDataProviderExtension,
+  ExtensionSettings,
+  SelectedExtensionSettings,
+  type AdapterExtension,
+} from '../common/types';
 import {INTERNAL_COLAB} from '../common/utils';
 import { SettingKey, SettingsService } from './settings_service.js';
 
@@ -76,7 +89,7 @@ export class ExtensionService {
       }
 
       if (!resp.ok) {
-        return {otherError: `Failed to convert model. ${resp.status}`};
+        return {otherError: `Failed to run extension: ${resp.status}`};
       }
 
       let json = await resp.json();
@@ -101,7 +114,7 @@ export class ExtensionService {
   }
 
   private processExtensionSettings(extensions: Extension[]) {
-    extensions.forEach(({ id, settings }) => {
+    (extensions as AdapterExtension[]).forEach(({ id, settings }) => {
       this.extensionSettings.set(id, settings ?? {});
     });
   }
@@ -113,6 +126,43 @@ export class ExtensionService {
    */
   getCustomExtensions(): Extension[] {
     return this.extensions.filter((ext) => !ext.id.startsWith('builtin_'));
+  }
+
+  async getNdpConfigEditors(extension: NodeDataProviderExtension): Promise<{
+    cmdResp?: NdpGetConfigEditorsResponse;
+    otherError?: string;
+  }> {
+    const cmd: NdpGetConfigEditorsCommand = {
+      cmdId: 'get_config_editors',
+      extensionId: extension.id,
+    };
+    const resp =
+      await this.sendCommandToExtension<NdpGetConfigEditorsResponse>(cmd);
+    return {
+      cmdResp: resp.cmdResp,
+      otherError: resp.otherError,
+    };
+  }
+
+  async runNdpExtension(
+    extension: NodeDataProviderExtension,
+    modelPath: string,
+    configValues: Record<string, ConfigValue>,
+  ): Promise<{
+    cmdResp?: NdpRunResponse;
+    otherError?: string;
+  }> {
+    const cmd: NdpRunCommand = {
+      cmdId: 'run',
+      extensionId: extension.id,
+      modelPath,
+      configValues,
+    };
+    const resp = await this.sendCommandToExtension<NdpRunResponse>(cmd);
+    return {
+      cmdResp: resp.cmdResp,
+      otherError: resp.otherError,
+    };
   }
 
   private async loadExtensions() {
