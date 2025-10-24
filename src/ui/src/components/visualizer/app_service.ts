@@ -450,7 +450,8 @@ export class AppService {
     const processedGraph = this.modelGraphs().find(({ collectionLabel, id }) => collectionLabel === graph.collectionLabel && id === graph.id);
     const pane = this.getPaneById(paneId);
 
-    if (processedGraph && pane?.flattenLayers === flattenLayers) {
+    // Skip processing if the graph is cached and all parameters are kept the same
+    if (processedGraph && pane?.flattenLayers === flattenLayers && !snapshotToRestore && !initialLayout) {
       return;
     }
 
