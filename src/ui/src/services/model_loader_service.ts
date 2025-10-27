@@ -503,15 +503,14 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
     const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload', stubModelItem);
 
-    if (!result) {
+    if (!result?.graphs?.[0]?.graphPaths) {
+      stubModelItem.status.set(ModelItemStatus.ERROR);
+      stubModelItem.errorMessage = "The server doesn't have graphs available.";
+
       return [stubModelItem];
     }
 
-    if (result.graphs?.length === 0) {
-      return [stubModelItem];
-    }
-
-    const modelItems = (result.graphs ?? []).map((graphPath) => {
+    const modelItems = (result.graphs?.[0]?.graphPaths ?? []).map((graphPath) => {
       const modelItem: ModelItem = {
         label: graphPath.split('/').pop() ?? 'untitled',
         path: graphPath,

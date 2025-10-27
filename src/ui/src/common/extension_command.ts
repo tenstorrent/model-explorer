@@ -140,5 +140,10 @@ export interface AdapterPreloadCommand extends ExtensionCommand {
   deleteAfterConversion: false;
 }
 
+/** Adapter's "preload" results inside the response. */
+export interface AdapterPreloadResults {
+	graphPaths: string[];
+}
+
 /** Adapter's "preload" command response. */
-export type AdapterPreloadResponse = ExtensionResponse<string[], never>;
+export type AdapterPreloadResponse = ExtensionResponse<[AdapterPreloadResults], never>;
