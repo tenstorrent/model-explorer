@@ -130,6 +130,8 @@ limitations under the License.
           (change)="handleClickUpload(uploadInput)">
     </div>
 
+    <graph-preload></graph-preload>
+
     <!-- Warning message when maximum models count has been reached. -->
     @if (hasReachedMaxModelsCount) {
       <div class="model-count-warning">

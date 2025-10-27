@@ -83,6 +83,7 @@ import {AdapterSelectorPanel} from './adapter_selector_panel';
 import {getAdapterCandidates} from './utils';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
+import { GraphPreload } from '../graph_preload/graph_preload.js';
 
 interface SavedModelPath {
   path: string;
@@ -112,6 +113,7 @@ const MAX_SAVED_MODEL_PATHS_COUNT = 50;
     MatTooltipModule,
     MatIconModule,
     ReactiveFormsModule,
+    GraphPreload
   ],
   templateUrl: './model_source_input.ng.html',
   styleUrls: ['./model_source_input.scss'],
