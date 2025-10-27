@@ -52,6 +52,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import {
   DATA_NEXUS_MODEL_SOURCE_PREFIX,
@@ -196,6 +197,7 @@ export class ModelSourceInput {
     private readonly dialog: MatDialog,
     private readonly urlService: UrlService,
     private readonly viewContainerRef: ViewContainerRef,
+    private readonly snackBar: MatSnackBar,
   ) {
     // Filter autocomplete options based on user's input.
     this.curFilePath.valueChanges
@@ -790,17 +792,35 @@ export class ModelSourceInput {
             height: 'clamp(10rem, 60vh, 60rem)',
             data: {
               errorMessages: errors.map(({ graph, error}) => `${graph ? `Graph: "${graph}"\n` : ''}Error: ${error}`).join('\n'),
-              title: 'Error Loading Graphs from Server'
+              title: 'Error loading graphs from server'
             }
           });
+          return;
         }
+
+        if (modelItems.length === 0) {
+          this.snackBar.open('No graphs available on the server', 'Dismiss', {
+            duration: 5000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+          return;
+        }
+
+        this.addModelItems(modelItems);
+
+        this.snackBar.open('Graphs loaded from server', 'Dismiss', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
       } catch (err) {
         this.dialog.open(GraphErrorsDialog, {
           width: 'clamp(10rem, 60vw, 60rem)',
           height: 'clamp(10rem, 60vh, 60rem)',
           data: {
             errorMessages: (err as Error).message ?? (err as Error).toString(),
-            title: 'Error Loading Graphs from Server'
+            title: 'Error loading graphs from server'
           }
         });
       } finally {

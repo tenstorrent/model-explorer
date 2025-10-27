@@ -506,7 +506,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
     if (!result?.graphs?.[0]?.graphPaths) {
       stubModelItem.status.set(ModelItemStatus.ERROR);
-      stubModelItem.errorMessage = "The server doesn't have graphs available.";
+      stubModelItem.errorMessage = 'The server response is in an incorrect format.\nPlease check if the server supports the "preload" command.';
 
       return [stubModelItem];
     }
