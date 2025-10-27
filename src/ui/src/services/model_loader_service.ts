@@ -486,13 +486,19 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   private async sendPreloadRequest() {
+    const adapter = this.extensionService.extensions.find(({ settings }) => settings?.supportsPreload);
+
+    if (!adapter) {
+      return [];
+    }
+
     const stubModelItem: ModelItem = {
         label: 'STUB',
         path: '',
         selected: true,
         status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
         type: ModelItemType.FILE_PATH,
-        selectedAdapter: { id: '', name: '', description: '', fileExts: [], type: ExtensionType.ADAPTER }
+        selectedAdapter: adapter
     };
 
     const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload', stubModelItem);
@@ -501,19 +507,18 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       return [stubModelItem];
     }
 
-    if (result.graphs![0].graphPaths.length === 0) {
+    if (result.graphs?.length === 0) {
       return [stubModelItem];
     }
 
-    const adapterInfo = result.graphs![0].adapterInfo;
-    const modelItems = result.graphs![0].graphPaths.map((graphPath) => {
+    const modelItems = (result.graphs ?? []).map((graphPath) => {
       const modelItem: ModelItem = {
         label: graphPath.split('/').pop() ?? 'untitled',
         path: graphPath,
         selected: true,
         status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
         type: ModelItemType.FILE_PATH,
-        selectedAdapter: adapterInfo
+        selectedAdapter: adapter
       };
 
       return modelItem;
