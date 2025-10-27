@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface.js';
+import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
+
+const SERVER_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
 
 @Component({
   selector: 'graph-preload',
@@ -24,21 +27,44 @@ import type { ModelLoaderServiceInterface } from '../../common/model_loader_serv
 export class GraphPreload {
   constructor(
     @Inject('ModelLoaderService')
-    private readonly modelLoaderService: ModelLoaderServiceInterface
+    private readonly modelLoaderService: ModelLoaderServiceInterface,
+    private readonly dialog: MatDialog,
   ) {}
 
-  isLoadingGraphs = false;
+  isLoadingGraphs = signal(false);
 
   async handleLoadGraphsFromServer() {
-    this.isLoadingGraphs = true;
+    this.isLoadingGraphs.set(true);
 
     try {
-      const errors = await this.modelLoaderService.preloadModels();
-      // TODO: display error modal
+      const errors = await Promise.race([
+        this.modelLoaderService.preloadModels(),
+        new Promise<{ graph: string, error: string }[]>((_, reject) => {
+          setTimeout(() => reject(new Error('Server request took too long and timed out.')), SERVER_REQUEST_TIMEOUT_MS);
+        })
+      ]);
+
+      if (errors.length > 0) {
+        this.dialog.open(GraphErrorsDialog, {
+          width: 'clamp(10rem, 60vw, 60rem)',
+          height: 'clamp(10rem, 60vh, 60rem)',
+          data: {
+            errorMessages: errors.map(({ graph, error}) => `${graph ? `Graph: "${graph}"\n` : ''}Error: ${error}`).join('\n'),
+            title: 'Error Loading Graphs from Server'
+          }
+        });
+      }
     } catch (err) {
-      // TODO: handle errors
+      this.dialog.open(GraphErrorsDialog, {
+        width: 'clamp(10rem, 60vw, 60rem)',
+        height: 'clamp(10rem, 60vh, 60rem)',
+        data: {
+          errorMessages: (err as Error).message ?? (err as Error).toString(),
+          title: 'Error Loading Graphs from Server'
+        }
+      });
     } finally {
-      this.isLoadingGraphs = false;
+      this.isLoadingGraphs.set(false);
     }
   }
 }
