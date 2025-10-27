@@ -130,7 +130,24 @@ limitations under the License.
           (change)="handleClickUpload(uploadInput)">
     </div>
 
-    <graph-preload></graph-preload>
+    <!-- Graph preload -->
+    <div class="preload-container" [hidden]="!supportsPreload">
+      <button
+        mat-flat-button
+        (click)="handleLoadGraphsFromServer()"
+        [disabled]="loading()"
+      >
+        <mat-icon [ngStyle]="{ display: !loading() ? 'block' : 'none' }">refresh</mat-icon>
+        <span [hidden]="loading()">
+          Load Graphs from server
+        </span>
+        <mat-progress-spinner
+          diameter="24"
+          mode="indeterminate"
+          [ngStyle]="{ display: loading() ? 'block' : 'none' }"
+        >Loading Graphs...</mat-progress-spinner>
+      </button>
+    </div>
 
     <!-- Warning message when maximum models count has been reached. -->
     @if (hasReachedMaxModelsCount) {
