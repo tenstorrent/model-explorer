@@ -490,9 +490,10 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   private async sendPreloadRequest() {
-    const adapter = (this.extensionService.extensions as AdapterExtension[]).find(({ settings }) => settings?.supportsPreload);
+    const availableAdapters = (this.extensionService.extensions as AdapterExtension[]).filter(({ settings }) => settings?.supportsPreload);
+    const adapter = availableAdapters[0];
 
-    if (!adapter) {
+    if (availableAdapters.length === 0) {
       return [];
     }
 
@@ -502,7 +503,8 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         selected: true,
         status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
         type: ModelItemType.FILE_PATH,
-        selectedAdapter: adapter
+        selectedAdapter: adapter,
+        adapterCandidates: availableAdapters
     };
 
     const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload', stubModelItem);
@@ -521,13 +523,12 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         selected: true,
         status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
         type: ModelItemType.FILE_PATH,
-        selectedAdapter: adapter
+        selectedAdapter: adapter,
+        adapterCandidates: availableAdapters,
       };
 
       return modelItem;
     });
-
-    await this.loadModels(modelItems);
 
     return modelItems;
   }
