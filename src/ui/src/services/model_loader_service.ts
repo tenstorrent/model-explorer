@@ -45,6 +45,7 @@ import {
   ModelItem,
   ModelItemStatus,
   ModelItemType,
+  type AdapterExtension,
 } from '../common/types';
 import {processJson, processUploadedJsonFile} from '../common/utils';
 import {
@@ -486,7 +487,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   }
 
   private async sendPreloadRequest() {
-    const adapter = this.extensionService.extensions.find(({ settings }) => settings?.supportsPreload);
+    const adapter = (this.extensionService.extensions as AdapterExtension[]).find(({ settings }) => settings?.supportsPreload);
 
     if (!adapter) {
       return [];

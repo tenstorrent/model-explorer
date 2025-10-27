@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ModelLoaderServiceInterface } from '../../common/model_loader_service_interface.js';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
 import { ExtensionService } from '../../services/extension_service.js';
+import type { AdapterExtension } from '../../common/types.js';
 
 const SERVER_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
 
@@ -36,7 +37,7 @@ export class GraphPreload {
   isLoadingGraphs = signal(false);
 
   get supportsPreload() {
-    return this.extensionService.extensions.findIndex(({ settings }) => settings?.supportsPreload) !== -1;
+    return (this.extensionService.extensions as AdapterExtension[]).findIndex(({ settings }) => settings?.supportsPreload) !== -1;
   }
 
   async handleLoadGraphsFromServer() {
