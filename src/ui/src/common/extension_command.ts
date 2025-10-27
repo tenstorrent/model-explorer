@@ -23,6 +23,7 @@ import {
 import {NodeDataProviderGraphData} from '../components/visualizer/common/types';
 import {ConfigEditor, ConfigValue} from './types';
 import type { OverridesPerNode } from './model_loader_service_interface';
+import type { AdapterExtension } from './types.js';
 
 /** A command sent to extension. */
 export declare interface ExtensionCommand {
@@ -129,3 +130,21 @@ export declare interface NdpRunResponse {
   result?: NodeDataProviderGraphData;
   error?: string;
 }
+
+/** Adapter's "preload" command. */
+export interface AdapterPreloadCommand extends ExtensionCommand {
+  cmdId: 'preload'
+  extensionId: '';
+  modelPath: '';
+  settings: {};
+  deleteAfterConversion: false;
+}
+
+/** Adapter's "preload" results inside the response. */
+export interface AdapterPreloadResults {
+  graphPaths: string[];
+  adapterInfo: AdapterExtension;
+}
+
+/** Adapter's "preload" command response. */
+export type AdapterPreloadResponse = ExtensionResponse<[AdapterPreloadResults], never>;

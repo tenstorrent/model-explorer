@@ -31,6 +31,8 @@ import {
   type AdapterExecuteCommand,
   type AdapterExecuteResponse,
   type AdapterExecuteSettings,
+  type AdapterPreloadCommand,
+  type AdapterPreloadResponse,
   type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
@@ -198,6 +200,22 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     );
 
     return result;
+  }
+
+  async preloadModels() {
+    const modelItems = await this.sendPreloadRequest();
+
+    const errors: { graph: string, error: string }[] = [];
+    modelItems.forEach(({ status, errorMessage, path }) => {
+      if (status() === ModelItemStatus.ERROR && errorMessage) {
+        errors.push({
+          error: errorMessage,
+          graph: path
+        });
+      }
+    });
+
+    return errors;
   }
 
   async loadModels(modelItems: ModelItem[]) {
@@ -427,15 +445,15 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   private async sendExtensionRequest<Res extends ExtensionResponse<any[], any[]>, Req extends ExtensionCommand>(
     command: Req['cmdId'],
-    modelItem: ModelItem,
-    path: string,
-    settings?: Req['settings'],
+    modelItem?: ModelItem,
+    path: string = '',
+    settings: Req['settings'] = {},
   ) {
     try {
-      modelItem.status.set(ModelItemStatus.PROCESSING);
+      modelItem?.status.set(ModelItemStatus.PROCESSING);
       const extensionCommand: ExtensionCommand = {
         cmdId: command,
-        extensionId: modelItem.selectedAdapter?.id || '',
+        extensionId: modelItem?.selectedAdapter?.id || '',
         modelPath: path,
         settings: settings ?? {},
         deleteAfterConversion: false,
@@ -455,15 +473,47 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         throw new Error(cmdResp.error);
       }
 
-      modelItem.status.set(ModelItemStatus.DONE);
+      modelItem?.status.set(ModelItemStatus.DONE);
       return cmdResp;
     } catch (err) {
-      modelItem.selected = false;
-      modelItem.errorMessage = (err as Partial<Error>)?.message ?? err?.toString() ?? `An error has occured when running command "${command}"`;
-      modelItem.status.set(ModelItemStatus.ERROR);
+      if (modelItem) {
+        modelItem.selected = false;
+        modelItem.errorMessage = (err as Partial<Error>)?.message ?? err?.toString() ?? `An error has occured when running command "${command}"`;
+        modelItem.status.set(ModelItemStatus.ERROR);
+      }
 
       return undefined;
     }
+  }
+
+  private async sendPreloadRequest() {
+    const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload');
+
+    if (!result) {
+      return [];
+    }
+
+    if (result.graphs![0].graphPaths.length === 0) {
+      return [];
+    }
+
+    const adapterInfo = result.graphs![0].adapterInfo;
+    const modelItems = result.graphs![0].graphPaths.map((graphPath) => {
+      const modelItem: ModelItem = {
+        label: graphPath.split('/').pop() ?? 'untitled',
+        path: graphPath,
+        selected: true,
+        status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
+        type: ModelItemType.FILE_PATH,
+        selectedAdapter: adapterInfo
+      };
+
+      return modelItem;
+    });
+
+    await this.loadModels(modelItems);
+
+    return modelItems;
   }
 
   private async sendConvertRequest(
