@@ -134,7 +134,7 @@ limitations under the License.
     <div class="preload-container" [hidden]="!supportsPreload">
       <button
         mat-flat-button
-        (click)="handleLoadGraphsFromServer()"
+        (click)="handlePreloadGraphsFromServer()"
         [disabled]="loading()"
       >
         <mat-icon [ngStyle]="{ display: !loading() ? 'block' : 'none' }">refresh</mat-icon>

@@ -775,13 +775,13 @@ export class ModelSourceInput {
     return overlayRef;
   }
 
-  async handleLoadGraphsFromServer() {
+  async handlePreloadGraphsFromServer() {
       this.loading.set(true);
 
       try {
-        const errors = await Promise.race([
+        const { errors, modelItems } = await Promise.race([
           this.modelLoaderService.preloadModels(),
-          new Promise<{ graph: string, error: string }[]>((_, reject) => {
+          new Promise<ReturnType<typeof this.modelLoaderService.preloadModels>>((_, reject) => {
             setTimeout(() => reject(new Error('Server request took too long and timed out.')), PRELOAD_REQUEST_TIMEOUT_MS);
           })
         ]);
