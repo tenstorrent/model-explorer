@@ -40,6 +40,7 @@ import {
 } from '../common/extension_command';
 import {ModelLoaderServiceInterface, type CppCodePerCollection, type OverridesPerCollection, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
+  ExtensionType,
   InternalAdapterExtId,
   ModelItem,
   ModelItemStatus,
@@ -445,7 +446,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
   private async sendExtensionRequest<Res extends ExtensionResponse<any[], any[]>, Req extends ExtensionCommand>(
     command: Req['cmdId'],
-    modelItem?: ModelItem,
+    modelItem: ModelItem,
     path: string = '',
     settings: Req['settings'] = {},
   ) {
@@ -476,25 +477,32 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
       modelItem?.status.set(ModelItemStatus.DONE);
       return cmdResp;
     } catch (err) {
-      if (modelItem) {
-        modelItem.selected = false;
-        modelItem.errorMessage = (err as Partial<Error>)?.message ?? err?.toString() ?? `An error has occured when running command "${command}"`;
-        modelItem.status.set(ModelItemStatus.ERROR);
-      }
+      modelItem.selected = false;
+      modelItem.errorMessage = (err as Partial<Error>)?.message ?? err?.toString() ?? `An error has occured when running command "${command}"`;
+      modelItem.status.set(ModelItemStatus.ERROR);
 
       return undefined;
     }
   }
 
   private async sendPreloadRequest() {
-    const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload');
+    const stubModelItem: ModelItem = {
+        label: 'STUB',
+        path: '',
+        selected: true,
+        status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
+        type: ModelItemType.FILE_PATH,
+        selectedAdapter: { id: '', name: '', description: '', fileExts: [], type: ExtensionType.ADAPTER }
+    };
+
+    const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload', stubModelItem);
 
     if (!result) {
-      return [];
+      return [stubModelItem];
     }
 
     if (result.graphs![0].graphPaths.length === 0) {
-      return [];
+      return [stubModelItem];
     }
 
     const adapterInfo = result.graphs![0].adapterInfo;
