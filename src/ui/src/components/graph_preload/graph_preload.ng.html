@@ -1,4 +1,4 @@
-<div>
+<div [hidden]="!supportsPreload">
   <button
     mat-flat-button
     (click)="handleLoadGraphsFromServer()"
