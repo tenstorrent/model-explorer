@@ -89,7 +89,7 @@ interface SavedModelPath {
   ts: number;
 }
 
-const MAX_MODELS_COUNT = 10;
+const MAX_MODELS_COUNT = 20;
 const SAVED_MODEL_PATHS_KEY = 'model_explorer_model_paths';
 const MAX_SAVED_MODEL_PATHS_COUNT = 50;
 
