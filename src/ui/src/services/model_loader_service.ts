@@ -31,6 +31,8 @@ import {
   type AdapterExecuteCommand,
   type AdapterExecuteResponse,
   type AdapterExecuteSettings,
+  type AdapterPreloadCommand,
+  type AdapterPreloadResponse,
   type AdapterStatusCheckCommand,
   type AdapterStatusCheckResponse,
   type ExtensionCommand,
@@ -38,10 +40,12 @@ import {
 } from '../common/extension_command';
 import {ModelLoaderServiceInterface, type CppCodePerCollection, type OverridesPerCollection, type OverridesPerNode } from '../common/model_loader_service_interface';
 import {
+  ExtensionType,
   InternalAdapterExtId,
   ModelItem,
   ModelItemStatus,
   ModelItemType,
+  type AdapterExtension,
 } from '../common/types';
 import {processJson, processUploadedJsonFile} from '../common/utils';
 import {
@@ -198,6 +202,25 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
     );
 
     return result;
+  }
+
+  async preloadModels() {
+    const modelItems = await this.sendPreloadRequest();
+
+    const errors: { graph: string, error: string }[] = [];
+    modelItems.forEach(({ status, errorMessage, path }) => {
+      if (status() === ModelItemStatus.ERROR && errorMessage) {
+        errors.push({
+          error: errorMessage,
+          graph: path
+        });
+      }
+    });
+
+    return {
+      modelItems,
+      errors
+    };
   }
 
   async loadModels(modelItems: ModelItem[]) {
@@ -428,14 +451,14 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
   private async sendExtensionRequest<Res extends ExtensionResponse<any[], any[]>, Req extends ExtensionCommand>(
     command: Req['cmdId'],
     modelItem: ModelItem,
-    path: string,
-    settings?: Req['settings'],
+    path: string = '',
+    settings: Req['settings'] = {},
   ) {
     try {
-      modelItem.status.set(ModelItemStatus.PROCESSING);
+      modelItem?.status.set(ModelItemStatus.PROCESSING);
       const extensionCommand: ExtensionCommand = {
         cmdId: command,
-        extensionId: modelItem.selectedAdapter?.id || '',
+        extensionId: modelItem?.selectedAdapter?.id || '',
         modelPath: path,
         settings: settings ?? {},
         deleteAfterConversion: false,
@@ -455,7 +478,7 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
         throw new Error(cmdResp.error);
       }
 
-      modelItem.status.set(ModelItemStatus.DONE);
+      modelItem?.status.set(ModelItemStatus.DONE);
       return cmdResp;
     } catch (err) {
       modelItem.selected = false;
@@ -464,6 +487,50 @@ export class ModelLoaderService implements ModelLoaderServiceInterface {
 
       return undefined;
     }
+  }
+
+  private async sendPreloadRequest() {
+    const availableAdapters = (this.extensionService.extensions as AdapterExtension[]).filter(({ settings }) => settings?.supportsPreload);
+    const adapter = availableAdapters[0];
+
+    if (availableAdapters.length === 0) {
+      return [];
+    }
+
+    const stubModelItem: ModelItem = {
+        label: 'STUB',
+        path: '',
+        selected: true,
+        status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
+        type: ModelItemType.FILE_PATH,
+        selectedAdapter: adapter,
+        adapterCandidates: availableAdapters
+    };
+
+    const result = await this.sendExtensionRequest<AdapterPreloadResponse, AdapterPreloadCommand>('preload', stubModelItem);
+
+    if (!result?.graphs?.[0]?.graphPaths) {
+      stubModelItem.status.set(ModelItemStatus.ERROR);
+      stubModelItem.errorMessage = 'The server response is in an incorrect format.\nPlease check if the server supports the "preload" command.';
+
+      return [stubModelItem];
+    }
+
+    const modelItems = (result.graphs?.[0]?.graphPaths ?? []).map((graphPath) => {
+      const modelItem: ModelItem = {
+        label: graphPath.split('/').pop() ?? 'untitled',
+        path: graphPath,
+        selected: true,
+        status: signal<ModelItemStatus>(ModelItemStatus.NOT_STARTED),
+        type: ModelItemType.FILE_PATH,
+        selectedAdapter: adapter,
+        adapterCandidates: availableAdapters,
+      };
+
+      return modelItem;
+    });
+
+    return modelItems;
   }
 
   private async sendConvertRequest(

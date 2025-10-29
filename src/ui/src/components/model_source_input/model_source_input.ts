@@ -52,6 +52,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import {
   DATA_NEXUS_MODEL_SOURCE_PREFIX,
@@ -89,9 +90,10 @@ interface SavedModelPath {
   ts: number;
 }
 
-const MAX_MODELS_COUNT = 10;
+const MAX_MODELS_COUNT = 20;
 const SAVED_MODEL_PATHS_KEY = 'model_explorer_model_paths';
 const MAX_SAVED_MODEL_PATHS_COUNT = 50;
+const PRELOAD_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
 
 /**
  * The component where users enter the source of the model.
@@ -195,6 +197,7 @@ export class ModelSourceInput {
     private readonly dialog: MatDialog,
     private readonly urlService: UrlService,
     private readonly viewContainerRef: ViewContainerRef,
+    private readonly snackBar: MatSnackBar,
   ) {
     // Filter autocomplete options based on user's input.
     this.curFilePath.valueChanges
@@ -619,6 +622,10 @@ export class ModelSourceInput {
       .join(' ');
   }
 
+  get supportsPreload() {
+    return (this.extensionService.extensions as AdapterExtension[]).findIndex(({ settings }) => settings?.supportsPreload) !== -1;
+  }
+
   get disableAddEnteredModelPathButton(): boolean {
     if (this.hasReachedMaxModelsCount) {
       return true;
@@ -767,4 +774,57 @@ export class ModelSourceInput {
     });
     return overlayRef;
   }
+
+  async handlePreloadGraphsFromServer() {
+      this.loading.set(true);
+
+      try {
+        const { errors, modelItems } = await Promise.race([
+          this.modelLoaderService.preloadModels(),
+          new Promise<ReturnType<typeof this.modelLoaderService.preloadModels>>((_, reject) => {
+            setTimeout(() => reject(new Error('Server request took too long and timed out.')), PRELOAD_REQUEST_TIMEOUT_MS);
+          })
+        ]);
+
+        if (errors.length > 0) {
+          this.dialog.open(GraphErrorsDialog, {
+            width: 'clamp(10rem, 60vw, 60rem)',
+            height: 'clamp(10rem, 60vh, 60rem)',
+            data: {
+              errorMessages: errors.map(({ graph, error}) => `${graph ? `Graph: "${graph}"\n` : ''}Error: ${error}`).join('\n'),
+              title: 'Error loading graphs from server'
+            }
+          });
+          return;
+        }
+
+        if (modelItems.length === 0) {
+          this.snackBar.open('No graphs available on the server', 'Dismiss', {
+            duration: 5000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+          return;
+        }
+
+        this.addModelItems(modelItems);
+
+        this.snackBar.open('Graphs loaded from server', 'Dismiss', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+      } catch (err) {
+        this.dialog.open(GraphErrorsDialog, {
+          width: 'clamp(10rem, 60vw, 60rem)',
+          height: 'clamp(10rem, 60vh, 60rem)',
+          data: {
+            errorMessages: (err as Error).message ?? (err as Error).toString(),
+            title: 'Error loading graphs from server'
+          }
+        });
+      } finally {
+        this.loading.set(false);
+      }
+    }
 }
