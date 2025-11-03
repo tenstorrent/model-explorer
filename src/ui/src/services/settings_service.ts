@@ -68,7 +68,7 @@ export const SETTING_API_HOST = {
   label: 'API Server',
   key: SettingKey.API_HOST,
   type: SettingType.TEXT,
-  defaultValue: 'https://localhost:8080/',
+  defaultValue: new URL(window.location.origin).href,
   help: 'Sets the server where the API is running. This is used to enable the UI and API to live in diferent servers.'
 } satisfies Setting;
 

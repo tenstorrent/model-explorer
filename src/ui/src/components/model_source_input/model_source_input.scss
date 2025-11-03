@@ -208,6 +208,25 @@
     }
   }
 
+  .preload-container:not([hidden]) {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+
+    button {
+      min-height: 40px;
+      height: 100%;
+      border-radius: 99px;
+      background-color: var(--me-secondary-container-color);
+      color: var(--me-on-secondary-container-color);
+
+      &[disabled] {
+        background-color: rgba(31, 31, 31, 0.12);
+        color: rgba(31, 31, 31, 0.38);
+      }
+    }
+  }
+
   .model-count-warning {
     color: var(--me-warning-text-color);
     background-color: var(--me-warning-container-color);
@@ -582,4 +601,14 @@
       }
     }
   }
+}
+
+::ng-deep {
+  .mat-mdc-snackbar-surface {
+    /* stylelint-disable-next-line declaration-no-important -- override MDC */
+    background-color: var(--me-surface-variant-color) !important;
+  }
+
+  /* stylelint-disable-next-line declaration-no-important -- override MDC */
+  .mat-mdc-snack-bar-label { color: var(--me-on-surface-color) !important; }
 }
