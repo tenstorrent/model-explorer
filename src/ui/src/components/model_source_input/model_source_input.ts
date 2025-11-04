@@ -90,7 +90,7 @@ interface SavedModelPath {
   ts: number;
 }
 
-const MAX_MODELS_COUNT = 20;
+const MAX_MODELS_COUNT = 50;
 const SAVED_MODEL_PATHS_KEY = 'model_explorer_model_paths';
 const MAX_SAVED_MODEL_PATHS_COUNT = 50;
 const PRELOAD_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
@@ -827,4 +827,13 @@ export class ModelSourceInput {
         this.loading.set(false);
       }
     }
+
+  async handlePasteFromClipboard() {
+    const text = await navigator.clipboard.readText();
+    const now = new Date();
+    const timeFormatter = new Intl.DateTimeFormat('en-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+    const file = new File([text], `clipboard-${timeFormatter.format(now)}.mlir`, { lastModified: now.getTime(), type: 'text/plain' });
+
+    this.addFiles([file]);
+  }
 }
