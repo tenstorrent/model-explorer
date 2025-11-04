@@ -37,6 +37,7 @@ import {
   Signal,
   ViewChild,
   ViewContainerRef,
+  type OnDestroy,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -119,7 +120,7 @@ const PRELOAD_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
   styleUrls: ['./model_source_input.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModelSourceInput {
+export class ModelSourceInput implements OnDestroy {
   @ViewChild('modelPathInput') modelPathInput!: ElementRef<HTMLInputElement>;
   @ViewChild(MatAutocompleteTrigger)
   matAutocompleteTrigger?: MatAutocompleteTrigger;
@@ -185,6 +186,27 @@ export class ModelSourceInput {
 
   private portal: ComponentPortal<AdapterSelectorPanel> | null = null;
 
+  pasteEventHandler = (evt: ClipboardEvent) => {
+    const text = evt.clipboardData?.getData('text');
+
+    if (!text) {
+      return;
+    }
+
+    const loadedGraphCollections = this.modelLoaderService.loadedGraphCollections();
+    console.log(loadedGraphCollections);
+
+    if (loadedGraphCollections && loadedGraphCollections?.length > 0) {
+      return;
+    }
+
+    const now = new Date();
+    const timeFormatter = new Intl.DateTimeFormat('en-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+    const file = new File([text], `clipboard-${timeFormatter.format(now)}.mlir`, { lastModified: now.getTime(), type: 'text/plain' });
+
+    this.addFiles([file]);
+  };
+
   constructor(
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly adapterExtensionService: AdapterExtensionService,
@@ -210,6 +232,12 @@ export class ModelSourceInput {
     this.modelInputAutocompleteOptions =
       this.loadSavedModelPathsForAutocomplete();
     this.updateFilteredAutocompleteOptions();
+
+    window.addEventListener('paste', this.pasteEventHandler);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('paste', this.pasteEventHandler);
   }
 
   /** Called by homepage to start processing model sources restored from URL. */
