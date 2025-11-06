@@ -85,6 +85,7 @@ import {AdapterSelectorPanel} from './adapter_selector_panel';
 import {getAdapterCandidates} from './utils';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
+import { SourcePasteDialog } from '../source_paste_dialog/source_paste_dialog.js';
 
 interface SavedModelPath {
   path: string;
@@ -858,10 +859,13 @@ export class ModelSourceInput implements OnDestroy {
 
   async handlePasteFromClipboard() {
     const text = await navigator.clipboard.readText();
-    const now = new Date();
-    const timeFormatter = new Intl.DateTimeFormat('en-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-    const file = new File([text], `clipboard-${timeFormatter.format(now)}.mlir`, { lastModified: now.getTime(), type: 'text/plain' });
 
-    this.addFiles([file]);
+    this.dialog.open(SourcePasteDialog, {
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)',
+      data: text
+    });
+
+    // this.addFiles([file]);
   }
 }

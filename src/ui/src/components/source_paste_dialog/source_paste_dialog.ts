@@ -17,14 +17,14 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ViewChild} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'logging-dialog',
+  selector: 'source-paste-dialog',
   standalone: true,
   imports: [
     CommonModule,
@@ -36,7 +36,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './source_paste_dialog.ng.html',
   styleUrls: ['./source_paste_dialog.scss'],
 })
-export class CppCodeDialog {
+export class SourcePasteDialog {
+  @ViewChild('modelSourceElement', {static: false})
+  modelSourceElement!: HTMLPreElement;
+
   timestamp = new Date();
 
   extension = '.mlir';
@@ -51,22 +54,32 @@ export class CppCodeDialog {
     return `clipboard-${this.formattedTimestamp}${this.extension}`;
   }
 
+  get modelText() {
+    return this.modelSourceElement.textContent;
+  }
+
   constructor(
       @Inject(MAT_DIALOG_DATA)
       public data?: string
-  ){}
+  ){
+    this.modelSourceElement.textContent = data ?? '';
+  }
 
-  downloadCode() {
-    if (this.data && this.data?.length > 0) {
-      const tempElement = document.createElement('a');
-      const textUrl = URL.createObjectURL(new Blob([this.data], { type: 'text/plain' }));
+  downloadModel() {
+    const tempElement = document.createElement('a');
+    const textUrl = URL.createObjectURL(new Blob([this.data ?? ''], { type: 'text/plain' }));
 
-      tempElement.hidden = true;
-      tempElement.download = this.fileName;
-      tempElement.href = textUrl;
-      tempElement.click();
+    tempElement.hidden = true;
+    tempElement.download = this.fileName;
+    tempElement.href = textUrl;
+    tempElement.click();
 
-      URL.revokeObjectURL(textUrl);
-    }
+    URL.revokeObjectURL(textUrl);
+  }
+
+  addFile() {
+    const file = new File([this.data ?? ''], this.fileName, { lastModified: this.timestamp.getTime(), type: 'text/plain' });
+
+    // this.addFiles([file]);
   }
 }

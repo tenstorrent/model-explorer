@@ -20,19 +20,28 @@ limitations under the License.
   <h2>Pasted Model Source</h2>
   <div class="button-container">
     <label for="pasted-code-extension-select">Extension:</label>
-    <select name="extension" id="pasted-code-extension-select" [(ngModel)]="extension">
+    <select name="extension" id="pasted-code-extension-select" [(value)]="extension">
       <option value=".mlir" selected>MLIR</option>
       <option value=".ttir">TTIR</option>
       <option value=".ttnn">TTNN</option>
     </select>
-    <button mat-icon-button matTooltip="Download" (click)="downloadCode()">
+    <button
+      mat-icon-button
+      matTooltip="Download Model"
+      (click)="downloadModel()"
+    >
       <mat-icon>download</mat-icon>
     </button>
   </div>
 </div>
 <div mat-dialog-content class="dialog-content">
-  <pre contenteditable="plaintext-only">{{data}}</pre>
+  <pre
+    #modelSourceElement
+    contenteditable="plaintext-only"
+  ></pre>
 </div>
 <div mat-dialog-actions align="end" class="buttons-container">
+  <button mat-button (click)="addFile()">Add File</button>
+  <hr />
   <button mat-button mat-dialog-close>Close</button>
 </div>
