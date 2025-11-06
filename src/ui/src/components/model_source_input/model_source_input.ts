@@ -201,11 +201,13 @@ export class ModelSourceInput implements OnDestroy {
       return;
     }
 
-    const now = new Date();
-    const timeFormatter = new Intl.DateTimeFormat('en-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-    const file = new File([text], `clipboard-${timeFormatter.format(now)}.mlir`, { lastModified: now.getTime(), type: 'text/plain' });
+    this.dialog.open(SourcePasteDialog, {
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)',
+      data: text
+    });
 
-    this.addFiles([file]);
+    // this.addFiles([file]);
   };
 
   constructor(
