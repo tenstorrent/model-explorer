@@ -85,7 +85,7 @@ import {AdapterSelectorPanel} from './adapter_selector_panel';
 import {getAdapterCandidates} from './utils';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
-import { SourcePasteDialog } from '../source_paste_dialog/source_paste_dialog.js';
+import { SourcePasteDialog, type SourceDialogData } from '../source_paste_dialog/source_paste_dialog.js';
 
 interface SavedModelPath {
   path: string;
@@ -201,13 +201,18 @@ export class ModelSourceInput implements OnDestroy {
       return;
     }
 
+    if (this.dialog.openDialogs.length > 0) {
+      return;
+    }
+
     this.dialog.open(SourcePasteDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
       height: 'clamp(10rem, 80vh, 100rem)',
-      data: text
+      data: {
+        text,
+        addFile: (file) => this.addFiles([file])
+      } satisfies SourceDialogData
     });
-
-    // this.addFiles([file]);
   };
 
   constructor(
@@ -865,9 +870,10 @@ export class ModelSourceInput implements OnDestroy {
     this.dialog.open(SourcePasteDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
       height: 'clamp(10rem, 80vh, 100rem)',
-      data: text
+      data: {
+        text,
+        addFile: (file) => this.addFiles([file])
+      } satisfies SourceDialogData
     });
-
-    // this.addFiles([file]);
   }
 }
