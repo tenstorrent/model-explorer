@@ -17,11 +17,16 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject, ViewChild} from '@angular/core';
+import {Component, Inject, ViewChild, type AfterViewInit, type ElementRef } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
+export interface SourceDialogData {
+  text: string;
+  addFile: (file: File) => void;
+}
 
 @Component({
   selector: 'source-paste-dialog',
@@ -36,9 +41,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './source_paste_dialog.ng.html',
   styleUrls: ['./source_paste_dialog.scss'],
 })
-export class SourcePasteDialog {
+export class SourcePasteDialog implements AfterViewInit {
   @ViewChild('modelSourceElement', {static: false})
-  modelSourceElement!: HTMLPreElement;
+  modelSourceElement!: ElementRef<HTMLPreElement>;
 
   timestamp = new Date();
 
@@ -55,19 +60,25 @@ export class SourcePasteDialog {
   }
 
   get modelText() {
-    return this.modelSourceElement.textContent;
+    return this.modelSourceElement.nativeElement.textContent ?? '';
+  }
+
+  set modelText(newText: string) {
+    this.modelSourceElement.nativeElement.textContent = newText;
   }
 
   constructor(
       @Inject(MAT_DIALOG_DATA)
-      public data?: string
-  ){
-    this.modelSourceElement.textContent = data ?? '';
+      public data?: SourceDialogData
+  ){}
+
+  ngAfterViewInit() {
+    this.modelText = this.data?.text ?? '';
   }
 
   downloadModel() {
     const tempElement = document.createElement('a');
-    const textUrl = URL.createObjectURL(new Blob([this.data ?? ''], { type: 'text/plain' }));
+    const textUrl = URL.createObjectURL(new Blob([this.modelText], { type: 'text/plain' }));
 
     tempElement.hidden = true;
     tempElement.download = this.fileName;
@@ -77,9 +88,9 @@ export class SourcePasteDialog {
     URL.revokeObjectURL(textUrl);
   }
 
-  addFile() {
-    const file = new File([this.data ?? ''], this.fileName, { lastModified: this.timestamp.getTime(), type: 'text/plain' });
+  async addFile() {
+    const file = new File([this.modelText], this.fileName, { lastModified: this.timestamp.getTime(), type: 'text/plain' });
 
-    // this.addFiles([file]);
+    this.data?.addFile(file);
   }
 }
