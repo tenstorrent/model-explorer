@@ -31,7 +31,7 @@ export interface CppCodedialogData {
 }
 
 @Component({
-  selector: 'logging-dialog',
+  selector: 'cpp-dialog',
   standalone: true,
   imports: [
     CommonModule,

@@ -75,7 +75,26 @@ limitations under the License.
       }
     </div>
 
-    <div class="source-input-container" [class.reverse]="isExternal">
+    <div class="source-input-container">
+      <!-- Upload button -->
+      @if (!internalColab) {
+        <button
+            mat-flat-button
+            class="btn-upload"
+            (click)="uploadInput.click()"
+            [disabled]="hasReachedMaxModelsCount || loading()">
+          <mat-icon>upload_file</mat-icon>
+          <span>Select from your computer</span>
+        </button>
+      }
+      <input class="upload-input" type="file" multiple #uploadInput
+          (change)="handleClickUpload(uploadInput)">
+
+      <!-- Or -->
+      @if (!internalColab) {
+        <div class="or-label">or</div>
+      }
+
       <!-- User entered model paths -->
       <div class="input-container">
         <mat-autocomplete #auto="matAutocomplete"
@@ -112,22 +131,17 @@ limitations under the License.
       </div>
 
       <!-- Or -->
-      @if (!internalColab) {
-        <div class="or-label">or</div>
-      }
+      <div class="or-label">or</div>
 
-      <!-- Upload button -->
-      @if (!internalColab) {
-        <button
-            mat-flat-button
-            class="btn-upload"
-            (click)="uploadInput.click()"
-            [disabled]="hasReachedMaxModelsCount || loading()">
-          Select from your computer
-        </button>
-      }
-      <input class="upload-input" type="file" multiple #uploadInput
-          (change)="handleClickUpload(uploadInput)">
+      <!-- Paste from clipboard -->
+      <button
+          mat-flat-button
+          class="btn-upload"
+          (click)="handlePasteFromClipboard()"
+          [disabled]="hasReachedMaxModelsCount || loading()">
+        <mat-icon>content_paste</mat-icon>
+        <span>Paste MLIR contents</span>
+      </button>
     </div>
 
     <!-- Graph preload -->
