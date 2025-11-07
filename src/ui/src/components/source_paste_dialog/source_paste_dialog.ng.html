@@ -17,7 +17,7 @@ limitations under the License.
 -->
 
 <div mat-dialog-title class="title-container">
-  <h2>Pasted Model Source</h2>
+  <h2>Pasted Model: <code>clipboard-{{formattedTimestamp}}</code></h2>
   <div class="button-container">
     <label for="pasted-code-extension-select">Extension:</label>
     <select name="extension" id="pasted-code-extension-select" [(value)]="extension">
@@ -41,7 +41,7 @@ limitations under the License.
   ></pre>
 </div>
 <div mat-dialog-actions align="end" class="buttons-container">
-  <button mat-button (click)="addFile()">Add File</button>
-  <hr />
   <button mat-button mat-dialog-close>Close</button>
+  <hr />
+  <button mat-button mat-dialog-close class="primary-button" (click)="addFile()">Add File</button>
 </div>
