@@ -37,6 +37,7 @@ import {
   Signal,
   ViewChild,
   ViewContainerRef,
+  type OnDestroy,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -84,13 +85,14 @@ import {AdapterSelectorPanel} from './adapter_selector_panel';
 import {getAdapterCandidates} from './utils';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { GraphErrorsDialog } from '../graph_error_dialog/graph_error_dialog.js';
+import { SourcePasteDialog, type SourceDialogData } from '../source_paste_dialog/source_paste_dialog.js';
 
 interface SavedModelPath {
   path: string;
   ts: number;
 }
 
-const MAX_MODELS_COUNT = 20;
+const MAX_MODELS_COUNT = 50;
 const SAVED_MODEL_PATHS_KEY = 'model_explorer_model_paths';
 const MAX_SAVED_MODEL_PATHS_COUNT = 50;
 const PRELOAD_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
@@ -119,7 +121,7 @@ const PRELOAD_REQUEST_TIMEOUT_MS = 2 * 60 * 1000; // Two minutes
   styleUrls: ['./model_source_input.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModelSourceInput {
+export class ModelSourceInput implements OnDestroy {
   @ViewChild('modelPathInput') modelPathInput!: ElementRef<HTMLInputElement>;
   @ViewChild(MatAutocompleteTrigger)
   matAutocompleteTrigger?: MatAutocompleteTrigger;
@@ -185,6 +187,36 @@ export class ModelSourceInput {
 
   private portal: ComponentPortal<AdapterSelectorPanel> | null = null;
 
+  pasteEventHandler = (evt: ClipboardEvent) => {
+    if (!document.activeElement || document.activeElement.matches('input, select, textarea, [contenteditable]')) {
+      return;
+    }
+
+    if (this.dialog.openDialogs.length > 0) {
+      return;
+    }
+
+    // There is no loaded collection, this is a proxy for the user being in the home screen
+    const loadedGraphCollections = this.modelLoaderService.loadedGraphCollections();
+    if (loadedGraphCollections && loadedGraphCollections?.length > 0) {
+      return;
+    }
+
+    const text = evt.clipboardData?.getData('text');
+    if (!text) {
+      return;
+    }
+
+    this.dialog.open(SourcePasteDialog, {
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)',
+      data: {
+        text,
+        addFile: (file) => this.addFiles([file])
+      } satisfies SourceDialogData
+    });
+  };
+
   constructor(
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly adapterExtensionService: AdapterExtensionService,
@@ -210,6 +242,12 @@ export class ModelSourceInput {
     this.modelInputAutocompleteOptions =
       this.loadSavedModelPathsForAutocomplete();
     this.updateFilteredAutocompleteOptions();
+
+    window.addEventListener('paste', this.pasteEventHandler);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('paste', this.pasteEventHandler);
   }
 
   /** Called by homepage to start processing model sources restored from URL. */
@@ -827,4 +865,24 @@ export class ModelSourceInput {
         this.loading.set(false);
       }
     }
+
+  async handlePasteFromClipboard() {
+    if (this.dialog.openDialogs.length > 0) {
+      return;
+    }
+
+    const text = await navigator.clipboard.readText();
+    if (!text) {
+      return;
+    }
+
+    this.dialog.open(SourcePasteDialog, {
+      width: 'clamp(10rem, 80vw, 100rem)',
+      height: 'clamp(10rem, 80vh, 100rem)',
+      data: {
+        text,
+        addFile: (file) => this.addFiles([file])
+      } satisfies SourceDialogData
+    });
+  }
 }
