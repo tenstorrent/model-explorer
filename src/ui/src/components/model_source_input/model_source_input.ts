@@ -188,20 +188,22 @@ export class ModelSourceInput implements OnDestroy {
   private portal: ComponentPortal<AdapterSelectorPanel> | null = null;
 
   pasteEventHandler = (evt: ClipboardEvent) => {
-    const text = evt.clipboardData?.getData('text');
-
-    if (!text) {
-      return;
-    }
-
-    const loadedGraphCollections = this.modelLoaderService.loadedGraphCollections();
-    console.log(loadedGraphCollections);
-
-    if (loadedGraphCollections && loadedGraphCollections?.length > 0) {
+    if (!document.activeElement || document.activeElement.matches('input, select, textarea, [contenteditable]')) {
       return;
     }
 
     if (this.dialog.openDialogs.length > 0) {
+      return;
+    }
+
+    // There is no loaded collection, this is a proxy for the user being in the home screen
+    const loadedGraphCollections = this.modelLoaderService.loadedGraphCollections();
+    if (loadedGraphCollections && loadedGraphCollections?.length > 0) {
+      return;
+    }
+
+    const text = evt.clipboardData?.getData('text');
+    if (!text) {
       return;
     }
 
@@ -865,7 +867,14 @@ export class ModelSourceInput implements OnDestroy {
     }
 
   async handlePasteFromClipboard() {
+    if (this.dialog.openDialogs.length > 0) {
+      return;
+    }
+
     const text = await navigator.clipboard.readText();
+    if (!text) {
+      return;
+    }
 
     this.dialog.open(SourcePasteDialog, {
       width: 'clamp(10rem, 80vw, 100rem)',
