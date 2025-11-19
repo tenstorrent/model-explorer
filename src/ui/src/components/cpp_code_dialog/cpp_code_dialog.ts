@@ -17,12 +17,13 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ViewChild, type AfterViewInit, type ElementRef} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CppHighlighter } from '../cpp_highlighter/cpp_highlighter.js';
+import { editor as monacoEditor } from 'monaco-editor';
+import { ThemeService } from '../../services/theme_service';
 
 export interface CppCodedialogData {
   curCollectionLabel: string;
@@ -39,17 +40,54 @@ export interface CppCodedialogData {
     MatDialogModule,
     MatIconModule,
     MatTooltipModule,
-    CppHighlighter,
   ],
   templateUrl: './cpp_code_dialog.ng.html',
   styleUrls: ['./cpp_code_dialog.scss'],
 })
-export class CppCodeDialog {
+export class CppCodeDialog implements AfterViewInit {
+  @ViewChild('cppCodeElement', { static: false })
+  cppCodeElement!: ElementRef<HTMLPreElement>;
+
+  editor?: monacoEditor.IStandaloneCodeEditor;
 
   constructor(
+      private themeService: ThemeService,
+
       @Inject(MAT_DIALOG_DATA)
       public data: CppCodedialogData
   ){}
+
+  ngAfterViewInit() {
+      const cppCodeElement = this.cppCodeElement.nativeElement;
+      const { width, height } = cppCodeElement.getBoundingClientRect();
+
+      this.editor = monacoEditor.create(cppCodeElement, {
+        codeLens: false,
+        colorDecorators: false,
+        value: this.data?.code ?? '',
+        language: 'cpp',
+        automaticLayout: true,
+        dimension: { width, height },
+        dragAndDrop: true,
+        dropIntoEditor: { enabled: false },
+        emptySelectionClipboard: false,
+        inlayHints: { enabled: 'off' },
+        inlineSuggest: { enabled: false },
+        lightbulb: { enabled: monacoEditor.ShowLightbulbIconMode.Off },
+        minimap: { renderCharacters: false },
+        parameterHints: { enabled: false },
+        quickSuggestions: false,
+        renderFinalNewline: 'dimmed',
+        renderWhitespace: 'boundary',
+        scrollBeyondLastLine: false,
+        theme: this.themeService.isDarkMode() ? 'vs-dark' : 'vs',
+        useShadowDOM: true,
+        wordBasedSuggestions: 'off',
+        wordWrap: 'on',
+        wrappingIndent: 'same',
+        readOnly: true,
+      });
+    }
 
   downloadCode() {
     if (this.data.code.length > 0) {

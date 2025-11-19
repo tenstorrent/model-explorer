@@ -45,4 +45,17 @@
   max-height: 100%;
   overflow: auto;
   overflow-anchor: auto;
+
+  pre {
+    height: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-all;
+    tab-size: 2;
+    line-height: 1lh;
+    font-size: 1rem;
+    font-family: monospace;
+    margin: 0;
+    box-sizing: border-box;
+  }
 }
