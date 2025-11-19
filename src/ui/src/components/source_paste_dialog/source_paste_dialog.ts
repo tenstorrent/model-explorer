@@ -22,6 +22,8 @@ import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { editor as monacoEditor } from 'monaco-editor';
+import { ThemeService } from '../../services/theme_service';
 
 export interface SourceDialogData {
   text: string;
@@ -49,6 +51,8 @@ export class SourcePasteDialog implements AfterViewInit {
 
   extension = '.mlir';
 
+  editor?: monacoEditor.IStandaloneCodeEditor;
+
   get formattedTimestamp() {
     const timeFormatter = new Intl.DateTimeFormat('en-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
 
@@ -60,20 +64,49 @@ export class SourcePasteDialog implements AfterViewInit {
   }
 
   get modelText() {
-    return this.modelSourceElement.nativeElement.textContent ?? '';
+    return this.editor?.getValue({ preserveBOM: false, lineEnding: '\n' }) ?? '';
   }
 
   set modelText(newText: string) {
-    this.modelSourceElement.nativeElement.textContent = newText;
+    this.editor?.setValue(newText);
   }
 
   constructor(
+      private themeService: ThemeService,
+
       @Inject(MAT_DIALOG_DATA)
-      public data?: SourceDialogData
+      public data?: SourceDialogData,
   ){}
 
   ngAfterViewInit() {
-    this.modelText = this.data?.text ?? '';
+    const modelSourceElement = this.modelSourceElement.nativeElement;
+    const { width, height } = modelSourceElement.getBoundingClientRect();
+
+    this.editor = monacoEditor.create(modelSourceElement, {
+      codeLens: false,
+      colorDecorators: false,
+      value: this.data?.text ?? '',
+      language: 'plaintext',
+      automaticLayout: true,
+      dimension: { width, height },
+      dragAndDrop: true,
+      dropIntoEditor: { enabled: false },
+      emptySelectionClipboard: false,
+      inlayHints: { enabled: 'off' },
+      inlineSuggest: { enabled: false },
+      lightbulb: { enabled: monacoEditor.ShowLightbulbIconMode.Off },
+      minimap: { renderCharacters: false },
+      parameterHints: { enabled: false },
+      quickSuggestions: false,
+      renderFinalNewline: 'dimmed',
+      renderWhitespace: 'boundary',
+      scrollBeyondLastLine: false,
+      theme: this.themeService.isDarkMode() ? 'vs-dark' : 'vs',
+      useShadowDOM: true,
+      wordBasedSuggestions: 'off',
+      wordWrap: 'on',
+      wrappingIndent: 'same',
+    });
   }
 
   downloadModel() {
