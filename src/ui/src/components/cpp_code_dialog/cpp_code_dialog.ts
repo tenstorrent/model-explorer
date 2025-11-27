@@ -17,12 +17,14 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ViewChild, type AfterViewInit, type ElementRef} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CppHighlighter } from '../cpp_highlighter/cpp_highlighter.js';
+import { editor as monacoEditor } from 'monaco-editor';
+import { ThemeService } from '../../services/theme_service';
+import { loadMonacoEditor } from '../monaco_editor/monaco_with_config.js';
 
 export interface CppCodedialogData {
   curCollectionLabel: string;
@@ -31,7 +33,7 @@ export interface CppCodedialogData {
 }
 
 @Component({
-  selector: 'logging-dialog',
+  selector: 'cpp-dialog',
   standalone: true,
   imports: [
     CommonModule,
@@ -39,17 +41,28 @@ export interface CppCodedialogData {
     MatDialogModule,
     MatIconModule,
     MatTooltipModule,
-    CppHighlighter,
   ],
   templateUrl: './cpp_code_dialog.ng.html',
   styleUrls: ['./cpp_code_dialog.scss'],
 })
-export class CppCodeDialog {
+export class CppCodeDialog implements AfterViewInit {
+  @ViewChild('cppCodeElement', { static: false })
+  cppCodeElement!: ElementRef<HTMLPreElement>;
+
+  editor?: monacoEditor.IStandaloneCodeEditor;
 
   constructor(
+      private themeService: ThemeService,
+
       @Inject(MAT_DIALOG_DATA)
       public data: CppCodedialogData
   ){}
+
+  ngAfterViewInit() {
+      const cppCodeElement = this.cppCodeElement.nativeElement;
+
+          this.editor = loadMonacoEditor(cppCodeElement, this.data?.code ?? '', 'cpp', this.themeService.isDarkMode() ? 'dark' : 'light', true);
+    }
 
   downloadCode() {
     if (this.data.code.length > 0) {
