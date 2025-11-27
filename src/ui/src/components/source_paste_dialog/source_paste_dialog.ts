@@ -22,8 +22,9 @@ import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { editor as monacoEditor } from 'monaco-editor';
+import type * as monaco from 'monaco-editor';
 import { ThemeService } from '../../services/theme_service';
+import { loadMonacoEditor } from '../monaco_editor/monaco_with_config.js';
 
 export interface SourceDialogData {
   text: string;
@@ -51,7 +52,7 @@ export class SourcePasteDialog implements AfterViewInit {
 
   extension = '.mlir';
 
-  editor?: monacoEditor.IStandaloneCodeEditor;
+  editor?: monaco.editor.IStandaloneCodeEditor;
 
   get formattedTimestamp() {
     const timeFormatter = new Intl.DateTimeFormat('en-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
@@ -78,35 +79,10 @@ export class SourcePasteDialog implements AfterViewInit {
       public data?: SourceDialogData,
   ){}
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
     const modelSourceElement = this.modelSourceElement.nativeElement;
-    const { width, height } = modelSourceElement.getBoundingClientRect();
 
-    this.editor = monacoEditor.create(modelSourceElement, {
-      codeLens: false,
-      colorDecorators: false,
-      value: this.data?.text ?? '',
-      language: 'plaintext',
-      automaticLayout: true,
-      dimension: { width, height },
-      dragAndDrop: true,
-      dropIntoEditor: { enabled: false },
-      emptySelectionClipboard: false,
-      inlayHints: { enabled: 'off' },
-      inlineSuggest: { enabled: false },
-      lightbulb: { enabled: monacoEditor.ShowLightbulbIconMode.Off },
-      minimap: { renderCharacters: false },
-      parameterHints: { enabled: false },
-      quickSuggestions: false,
-      renderFinalNewline: 'dimmed',
-      renderWhitespace: 'boundary',
-      scrollBeyondLastLine: false,
-      theme: this.themeService.isDarkMode() ? 'vs-dark' : 'vs',
-      useShadowDOM: true,
-      wordBasedSuggestions: 'off',
-      wordWrap: 'on',
-      wrappingIndent: 'same',
-    });
+    this.editor = loadMonacoEditor(modelSourceElement, this.data?.text ?? '', 'plaintext', this.themeService.isDarkMode() ? 'dark' : 'light')
   }
 
   downloadModel() {

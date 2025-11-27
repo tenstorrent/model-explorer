@@ -24,6 +24,7 @@ import {MatIconModule} from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { editor as monacoEditor } from 'monaco-editor';
 import { ThemeService } from '../../services/theme_service';
+import { loadMonacoEditor } from '../monaco_editor/monaco_with_config.js';
 
 export interface CppCodedialogData {
   curCollectionLabel: string;
@@ -59,34 +60,8 @@ export class CppCodeDialog implements AfterViewInit {
 
   ngAfterViewInit() {
       const cppCodeElement = this.cppCodeElement.nativeElement;
-      const { width, height } = cppCodeElement.getBoundingClientRect();
 
-      this.editor = monacoEditor.create(cppCodeElement, {
-        codeLens: false,
-        colorDecorators: false,
-        value: this.data?.code ?? '',
-        language: 'cpp',
-        automaticLayout: true,
-        dimension: { width, height },
-        dragAndDrop: true,
-        dropIntoEditor: { enabled: false },
-        emptySelectionClipboard: false,
-        inlayHints: { enabled: 'off' },
-        inlineSuggest: { enabled: false },
-        lightbulb: { enabled: monacoEditor.ShowLightbulbIconMode.Off },
-        minimap: { renderCharacters: false },
-        parameterHints: { enabled: false },
-        quickSuggestions: false,
-        renderFinalNewline: 'dimmed',
-        renderWhitespace: 'boundary',
-        scrollBeyondLastLine: false,
-        theme: this.themeService.isDarkMode() ? 'vs-dark' : 'vs',
-        useShadowDOM: true,
-        wordBasedSuggestions: 'off',
-        wordWrap: 'on',
-        wrappingIndent: 'same',
-        readOnly: true,
-      });
+          this.editor = loadMonacoEditor(cppCodeElement, this.data?.code ?? '', 'cpp', this.themeService.isDarkMode() ? 'dark' : 'light', true);
     }
 
   downloadCode() {
