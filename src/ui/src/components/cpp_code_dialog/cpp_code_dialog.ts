@@ -17,7 +17,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject, ViewChild, type AfterViewInit, type ElementRef} from '@angular/core';
+import {Component, CUSTOM_ELEMENTS_SCHEMA, Inject, ViewChild, type AfterViewInit, type ElementRef} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
@@ -44,6 +44,7 @@ export interface CppCodedialogData {
   ],
   templateUrl: './cpp_code_dialog.ng.html',
   styleUrls: ['./cpp_code_dialog.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CppCodeDialog implements AfterViewInit {
   @ViewChild('cppCodeElement', { static: false })

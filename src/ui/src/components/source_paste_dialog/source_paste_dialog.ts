@@ -17,7 +17,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Inject, ViewChild, type AfterViewInit, type ElementRef } from '@angular/core';
+import {Component, CUSTOM_ELEMENTS_SCHEMA, Inject, ViewChild, type AfterViewInit, type ElementRef } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
@@ -43,6 +43,7 @@ export interface SourceDialogData {
   ],
   templateUrl: './source_paste_dialog.ng.html',
   styleUrls: ['./source_paste_dialog.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SourcePasteDialog implements AfterViewInit {
   @ViewChild('modelSourceElement', {static: false})
