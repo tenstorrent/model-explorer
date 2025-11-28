@@ -83,7 +83,7 @@ export class SourcePasteDialog implements AfterViewInit {
   async ngAfterViewInit() {
     const modelSourceElement = this.modelSourceElement.nativeElement;
 
-    this.editor = await loadMonacoEditor(modelSourceElement, this.data?.text ?? '', 'plaintext', this.themeService.isDarkMode() ? 'dark' : 'light');
+    this.editor = await loadMonacoEditor(modelSourceElement, this.data?.text ?? '', 'mlir', this.themeService.isDarkMode() ? 'dark' : 'light');
   }
 
   downloadModel() {

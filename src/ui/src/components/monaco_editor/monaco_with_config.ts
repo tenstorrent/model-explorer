@@ -1,7 +1,9 @@
 // @ts-ignore - This has to be imported from a CDN because angular doesn't handle the npm import
 import { init } from "https://esm.sh/modern-monaco";
 import type * as monaco from 'monaco-editor';
+import type { InitOptions } from 'modern-monaco';
 
+import mlirGrammar from './mlir-grammar.json';
 
 export const editorSettings: Partial<monaco.editor.IStandaloneEditorConstructionOptions> = {
     codeLens: false,
@@ -31,13 +33,18 @@ export const editorSettings: Partial<monaco.editor.IStandaloneEditorConstruction
 
 export async function loadMonacoEditor(containerElement: HTMLElement, text = '', language: monaco.editor.IStandaloneEditorConstructionOptions['language'] = 'plaintext', theme: 'light' | 'dark' = 'light', isReadOnly = false) {
   const { width, height } = containerElement.getBoundingClientRect();
-  const monaco = await init();
+  const initOptions: InitOptions = {
+    theme: theme === 'light' ? 'light-plus' : 'dark-plus',
+    langs: [mlirGrammar],
+  };
+  debugger;
+  const monaco = await init(initOptions);
 
   const editor = monaco.editor.create(containerElement, {
     ...editorSettings,
     dimension: { width, height },
     language,
-    theme: theme === 'light' ? 'vs' : 'vs-dark',
+    theme: theme === 'light' ? 'light-plus' : 'dark-plus',
     value: text,
     readOnly: isReadOnly
   });
