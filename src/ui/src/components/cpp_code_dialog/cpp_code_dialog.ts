@@ -59,10 +59,10 @@ export class CppCodeDialog implements AfterViewInit {
       public data: CppCodedialogData
   ){}
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
       const cppCodeElement = this.cppCodeElement.nativeElement;
 
-          this.editor = loadMonacoEditor(cppCodeElement, this.data?.code ?? '', 'cpp', this.themeService.isDarkMode() ? 'dark' : 'light', true);
+          this.editor = await loadMonacoEditor(cppCodeElement, this.data?.code ?? '', 'cpp', this.themeService.isDarkMode() ? 'dark' : 'light', true);
     }
 
   downloadCode() {
