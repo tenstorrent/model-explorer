@@ -179,7 +179,6 @@ def _is_internal_colab() -> bool:
 
 
 def start(
-    enable_execution: bool,
     host=DEFAULT_HOST,
     port=DEFAULT_PORT,
     config: Union[ModelExplorerConfig, None] = None,
@@ -188,7 +187,8 @@ def start(
     colab_height: int = DEFAULT_COLAB_HEIGHT,
     cors_host: Union[str, None] = None,
     skip_health_check: bool = False,
-    silent: bool = False
+    enable_execution: bool = True,
+    silent: bool = False,
 ):
   """Starts the local server that serves the web app.
 

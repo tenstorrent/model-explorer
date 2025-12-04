@@ -113,5 +113,6 @@ def main():
       cors_host=args.cors_host,
       no_open_in_browser=args.no_open_in_browser,
       skip_health_check=args.skip_health_check,
+      enable_execution=True,
       silent=args.silent,
   )
