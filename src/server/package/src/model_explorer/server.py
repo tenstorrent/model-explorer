@@ -326,7 +326,7 @@ def start(
   @app.route('/apipost/v1/send_command', methods=['POST'])
   def send_command_post():
     try:
-      cmd_json = json.loads(request.json)
+      cmd_json = request.json
 
       # Initialize settings if it is not provided
       if "settings" not in cmd_json:
