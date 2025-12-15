@@ -326,7 +326,20 @@ def start(
   @app.route('/apipost/v1/send_command', methods=['POST'])
   def send_command_post():
     try:
-      resp = extension_manager.run_cmd(request.json)
+      cmd_json = json.loads(request.json)
+
+      # Initialize settings if it is not provided
+      if "settings" not in cmd_json:
+        cmd_json["settings"] = {}
+
+      # Overwrite settings with globals
+      cmd_json["settings"]["enable_execution"] = enable_execution
+      cmd_json["settings"]["silent"] = silent
+
+      # TODO: remove this line
+      print(cmd_json)
+
+      resp = extension_manager.run_cmd(cmd_json)
       return _make_json_response(resp)
     except Exception as err:
       traceback.print_exc()
