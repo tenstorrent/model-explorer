@@ -311,9 +311,6 @@ def start(
     cmd_json["settings"]["enable_execution"] = enable_execution
     cmd_json["settings"]["silent"] = silent
 
-    # TODO: remove this line
-    print(cmd_json)
-
     try:
       resp = extension_manager.run_cmd(cmd_json)
       return _make_json_response(resp)
@@ -335,9 +332,6 @@ def start(
       # Overwrite settings with globals
       cmd_json["settings"]["enable_execution"] = enable_execution
       cmd_json["settings"]["silent"] = silent
-
-      # TODO: remove this line
-      print(cmd_json)
 
       resp = extension_manager.run_cmd(cmd_json)
       return _make_json_response(resp)
