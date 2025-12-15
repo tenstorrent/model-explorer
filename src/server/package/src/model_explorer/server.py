@@ -271,7 +271,8 @@ def start(
 
   if not silent:
     print(
-        f'Loaded {num_extensions} extension{"" if num_extensions == 1 else "s"}:'
+        'Loaded'
+        f' {num_extensions} extension{"" if num_extensions == 1 else "s"}:'
     )
     for extension in extension_metadata_list:
       print(f' - {extension["name"]}')
@@ -304,12 +305,12 @@ def start(
     cmd_json = json.loads(request.args.get('json', '{}'))
 
     # Initialize settings if it is not provided
-    if "settings" not in cmd_json:
-      cmd_json["settings"] = {}
+    if 'settings' not in cmd_json:
+      cmd_json['settings'] = {}
 
     # Overwrite settings with globals
-    cmd_json["settings"]["enable_execution"] = enable_execution
-    cmd_json["settings"]["silent"] = silent
+    cmd_json['settings']['enable_execution'] = enable_execution
+    cmd_json['settings']['silent'] = silent
 
     try:
       resp = extension_manager.run_cmd(cmd_json)
@@ -326,12 +327,12 @@ def start(
       cmd_json = request.json
 
       # Initialize settings if it is not provided
-      if "settings" not in cmd_json:
-        cmd_json["settings"] = {}
+      if 'settings' not in cmd_json:
+        cmd_json['settings'] = {}
 
       # Overwrite settings with globals
-      cmd_json["settings"]["enable_execution"] = enable_execution
-      cmd_json["settings"]["silent"] = silent
+      cmd_json['settings']['enable_execution'] = enable_execution
+      cmd_json['settings']['silent'] = silent
 
       resp = extension_manager.run_cmd(cmd_json)
       return _make_json_response(resp)
