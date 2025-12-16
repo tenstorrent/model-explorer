@@ -179,7 +179,6 @@ def _is_internal_colab() -> bool:
 
 
 def start(
-    enable_execution: bool,
     host=DEFAULT_HOST,
     port=DEFAULT_PORT,
     config: Union[ModelExplorerConfig, None] = None,
@@ -188,6 +187,8 @@ def start(
     colab_height: int = DEFAULT_COLAB_HEIGHT,
     cors_host: Union[str, None] = None,
     skip_health_check: bool = False,
+    enable_execution: bool = True,
+    silent: bool = False,
 ):
   """Starts the local server that serves the web app.
 
@@ -253,23 +254,28 @@ def start(
   cli.show_server_banner = lambda *x: None
 
   # Print a info message when used in colab.
-  if colab:
+  if colab and not silent:
     print('ℹ️ Please re-run the cell in each new session')
     print()
 
   # Load extensions.
-  print('Loading extensions...')
+  if not silent:
+    print('Loading extensions...')
+
   extension_manager = ExtensionManager(extensions)
   extension_manager.load_extensions()
   extension_metadata_list = extension_manager.get_extensions_metadata(
       enable_execution
   )
   num_extensions = len(extension_metadata_list)
-  print(
-      f'Loaded {num_extensions} extension{"" if num_extensions == 1 else "s"}:'
-  )
-  for extension in extension_metadata_list:
-    print(f' - {extension["name"]}')
+
+  if not silent:
+    print(
+        'Loaded'
+        f' {num_extensions} extension{"" if num_extensions == 1 else "s"}:'
+    )
+    for extension in extension_metadata_list:
+      print(f' - {extension["name"]}')
 
   @app.route('/api/v1/check_new_version')
   def check_new_version():
@@ -297,6 +303,15 @@ def start(
   @app.route('/api/v1/send_command')
   def send_command():
     cmd_json = json.loads(request.args.get('json', '{}'))
+
+    # Initialize settings if it is not provided
+    if 'settings' not in cmd_json:
+      cmd_json['settings'] = {}
+
+    # Overwrite settings with globals
+    cmd_json['settings']['enable_execution'] = enable_execution
+    cmd_json['settings']['silent'] = silent
+
     try:
       resp = extension_manager.run_cmd(cmd_json)
       return _make_json_response(resp)
@@ -309,7 +324,17 @@ def start(
   @app.route('/apipost/v1/send_command', methods=['POST'])
   def send_command_post():
     try:
-      resp = extension_manager.run_cmd(request.json)
+      cmd_json = request.json
+
+      # Initialize settings if it is not provided
+      if 'settings' not in cmd_json:
+        cmd_json['settings'] = {}
+
+      # Overwrite settings with globals
+      cmd_json['settings']['enable_execution'] = enable_execution
+      cmd_json['settings']['silent'] = silent
+
+      resp = extension_manager.run_cmd(cmd_json)
       return _make_json_response(resp)
     except Exception as err:
       traceback.print_exc()
@@ -459,21 +484,25 @@ def start(
 
     if len(url_params) > 0:
       server_address = f'{server_address}/?{"&".join(url_params)}'
-    print(
-        f'\nStarting Model Explorer server at:\n{server_address}\n\nPress'
-        ' Ctrl+C to stop.'
-    )
+
+    if not silent:
+      print(
+          f'\nStarting Model Explorer server at:\n{server_address}\n\nPress'
+          ' Ctrl+C to stop.'
+      )
+
     if not no_open_in_browser:
       webbrowser.open_new_tab(f'{server_address}')
 
     # Check installed version vs published version.
-    threading.Thread(target=lambda: _check_new_version()).start()
+    threading.Thread(target=lambda: _check_new_version(not silent)).start()
 
     try:
       while app_thread.is_alive():
         sleep(1)
     except KeyboardInterrupt:
-      print('Stopping server...')
+      if not silent:
+        print('Stopping server...')
       pass
 
   def embed_in_colab():

@@ -68,6 +68,7 @@ def visualize(
     reuse_server_host: str = DEFAULT_HOST,
     reuse_server_port: Union[int, None] = None,
     enable_execution: bool = True,
+    silent: bool = False,
 ) -> None:
   """Starts the ME local server and visualizes the models by the given paths.
 
@@ -83,6 +84,7 @@ def visualize(
     reuse_server_host: the host of the server to reuse. Default to localhost.
     reuse_server_port: the port of the server to reuse. If unspecified, it will
         try to find a running server from port 8080 to 8099.
+    silent: If the server should be silent and only output error messages.
   """
   # Construct config.
   cur_config = config()
@@ -108,6 +110,7 @@ def visualize(
       colab_height=colab_height,
       extensions=extensions,
       enable_execution=enable_execution,
+      silent=silent,
   )
 
 
@@ -124,6 +127,7 @@ def visualize_pytorch(
     reuse_server_host: str = DEFAULT_HOST,
     reuse_server_port: Union[int, None] = None,
     enable_execution: bool = True,
+    silent: bool = False,
 ) -> None:
   """Visualizes a pytorch model.
 
@@ -141,6 +145,7 @@ def visualize_pytorch(
     reuse_server_host: the host of the server to reuse. Default to localhost.
     reuse_server_port: the port of the server to reuse. If unspecified, it will
         try to find a running server from port 8080 to 8099.
+    silent: If the server should be silent and only output error messages.
   """
   # Construct config.
   cur_config = config()
@@ -163,6 +168,7 @@ def visualize_pytorch(
       colab_height=colab_height,
       extensions=extensions,
       enable_execution=enable_execution,
+      silent=silent,
   )
 
 
@@ -175,6 +181,7 @@ def visualize_from_config(
     no_open_in_browser: bool = False,
     colab_height=DEFAULT_COLAB_HEIGHT,
     enable_execution: bool = True,
+    silent: bool = False,
 ) -> None:
   """Visualizes with a config.
 
@@ -187,6 +194,7 @@ def visualize_from_config(
       won't be present if it is None.
     no_open_in_browser: Don't open the web app in browser after server starts.
     colab_height: The height of the embedded iFrame when running in colab.
+    silent: If the server should be silent and only output error messages.
   """
   # Start server.
   server.start(
@@ -198,6 +206,7 @@ def visualize_from_config(
       no_open_in_browser=no_open_in_browser,
       colab_height=colab_height,
       enable_execution=enable_execution,
+      silent=silent,
   )
 
 
