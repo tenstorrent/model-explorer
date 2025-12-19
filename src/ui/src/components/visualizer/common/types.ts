@@ -577,7 +577,7 @@ export interface Pane {
   showOnNodeItemTypes?: Record<string, Record<string, ShowOnNodeItemData>>;
 
   // Renderer id -> data
-  showOnEdgeItems?: Record<string, ShowOnEdgeItemData>;
+  showOnEdgeItems: Record<string, ShowOnEdgeItemData>;
 
   modelGraph?: ModelGraph;
 }
