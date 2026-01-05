@@ -70,6 +70,8 @@ declare global {
   }
 }
 
+const initialPaneId = genUid();
+
 /**
  * A service to manage shared data and their updates.
  *
@@ -105,8 +107,9 @@ export class AppService {
   // Panes in the app. Create a single pane by default.
   readonly panes = signal<Pane[]>([
     {
-      id: genUid(),
+      id: initialPaneId,
       widthFraction: 1,
+      showOnEdgeItems: { [initialPaneId]: { type: ShowOnEdgeItemType.TENSOR_SHAPE } },
     },
   ]);
 
@@ -370,11 +373,8 @@ export class AppService {
         widthFraction: 0.5,
         flattenLayers,
         showOnNodeItemTypes: {[paneId]: this.getSavedShowOnNodeItemTypes()},
+        showOnEdgeItems: {[paneId]: this.getSavedShowOnEdgeItem() ?? { type: ShowOnEdgeItemType.TENSOR_SHAPE }}
       };
-      const savedShowOnEdgeItem = this.getSavedShowOnEdgeItem();
-      if (savedShowOnEdgeItem) {
-        newPane.showOnEdgeItems = {[paneId]: savedShowOnEdgeItem};
-      }
       if (openToLeft) {
         panes.unshift(newPane);
       } else {
@@ -990,6 +990,10 @@ export class AppService {
             };
           }
         }
+        // Falback to tensor shape
+        else {
+          curItem = { type: ShowOnEdgeItemType.TENSOR_SHAPE };
+        }
       }
     }
     return curItem;
@@ -1099,11 +1103,13 @@ export class AppService {
 
     const curModelGraph = this.getSelectedPane()?.modelGraph;
     const curRunId = this.panes()[0].selectedNodeDataProviderRunId;
+    const paneId = genUid();
     this.panes.set([{
-      id: genUid(),
+      id: paneId,
       widthFraction: 1,
       selectedNodeDataProviderRunId: curRunId,
       modelGraph: curModelGraph,
+      showOnEdgeItems: { [paneId]: { type: ShowOnEdgeItemType.TENSOR_SHAPE } }
     }]);
     this.selectedPaneId.set(this.panes()[0].id);
 
