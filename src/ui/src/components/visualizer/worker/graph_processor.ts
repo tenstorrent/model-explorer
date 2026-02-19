@@ -234,26 +234,7 @@ export class GraphProcessor {
       if (!opNode.hideInLayout && !this.flattenLayers) {
         const ancestorNamespaces = this.getAncestorNamespaces(opNode.namespace);
         for (const ns of ancestorNamespaces) {
-          if (seenNamespaces.has(ns)) {
-            continue;
-          }
-          seenNamespaces.add(ns);
-
-          const components = ns.split('/');
-          // Use the last component of the namespace as its display label.
-          const label = components.splice(-1)[0];
-          // Group node's namespace doesn't contain the last component.
-          const namespace = components.join('/');
-          const groupNode: GroupNode = {
-            nodeType: NodeType.GROUP_NODE,
-            id: this.getGroupNodeIdFromNamespace(ns),
-            namespace,
-            label,
-            level: components.length,
-            expanded: false,
-          };
-          modelGraph.nodes.push(groupNode);
-          modelGraph.nodesById[groupNode.id] = groupNode;
+          this.createGroupNodeForNamespace(modelGraph, ns, seenNamespaces);
         }
       }
     }
@@ -518,30 +499,7 @@ export class GraphProcessor {
       // Create ancestor group nodes (same pattern as processNodes)
       const ancestorNamespaces = this.getAncestorNamespaces(node.namespace);
       for (const ns of ancestorNamespaces) {
-        if (seenNamespaces.has(ns)) {
-          continue;
-        }
-        seenNamespaces.add(ns);
-
-        const groupId = this.getGroupNodeIdFromNamespace(ns);
-        if (modelGraph.nodesById[groupId]) {
-          continue;
-        }
-
-        const components = ns.split('/');
-        const label = components.splice(-1)[0];
-        const namespace = components.join('/');
-        const groupNode: GroupNode = {
-          nodeType: NodeType.GROUP_NODE,
-          id: groupId,
-          namespace,
-          label,
-          level: components.length,
-          expanded: false,
-        };
-
-        modelGraph.nodes.push(groupNode);
-        modelGraph.nodesById[groupNode.id] = groupNode;
+        this.createGroupNodeForNamespace(modelGraph, ns, seenNamespaces);
       }
     }
 
@@ -576,6 +534,42 @@ export class GraphProcessor {
     }
 
     this.removeSingleChildGroupNodes(modelGraph);
+  }
+
+  /**
+   * Creates a group node for the given namespace and adds it to the model graph.
+   * Skips creation if the namespace has already been seen.
+   *
+   * @param modelGraph The model graph to add the group node to
+   * @param namespace The namespace to create a group node for
+   * @param seenNamespaces Set to track already-seen namespaces
+   */
+  private createGroupNodeForNamespace(
+    modelGraph: ModelGraph,
+    namespace: string,
+    seenNamespaces: Set<string>,
+  ): void {
+    if (seenNamespaces.has(namespace)) {
+      return;
+    }
+
+    seenNamespaces.add(namespace);
+
+    const groupId = this.getGroupNodeIdFromNamespace(namespace);
+    const components = namespace.split('/');
+    const label = components.splice(-1)[0];
+    const parentNamespace = components.join('/');
+    const groupNode: GroupNode = {
+      nodeType: NodeType.GROUP_NODE,
+      id: groupId,
+      namespace: parentNamespace,
+      label,
+      level: components.length,
+      expanded: false,
+    };
+
+    modelGraph.nodes.push(groupNode);
+    modelGraph.nodesById[groupNode.id] = groupNode;
   }
 
   /**
