@@ -532,8 +532,6 @@ export class GraphProcessor {
         }
       }
     }
-
-    this.removeSingleChildGroupNodes(modelGraph);
   }
 
   /**
