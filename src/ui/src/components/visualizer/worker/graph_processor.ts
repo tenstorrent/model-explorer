@@ -453,13 +453,12 @@ export class GraphProcessor {
   }
 
   /**
-   * Finds all nodes with "const_eval" in their namespace and reorganizes them
+   * Finds all nodes whose namespace starts with "const_eval" and reorganizes them
    * under a separate "const_eval" root group, preserving their hierarchy.
    */
   addSeparateConstEvalLayer(modelGraph: ModelGraph) {
     const constEvalNodes: OpNode[] = [];
 
-    // Get all nodes that have "const_eval" in their namespace
     for (const node of modelGraph.nodes) {
       if (isOpNode(node) && node.fullNamespace?.startsWith(CONST_EVAL_LAYER_NAME)) {
         constEvalNodes.push(node);
