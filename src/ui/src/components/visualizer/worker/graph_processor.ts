@@ -52,6 +52,7 @@ import {getLayoutGraph} from './graph_layout';
 import {updateProcessingProgress} from './utils';
 
 const CONST_VALUE_REGEX = /dense<([^>]*)>/;
+const CONST_EVAL_LAYER_NAME = 'const_eval';
 
 /**
  * A class that processes a given `Graph` into a `ModelGraph`.
@@ -98,6 +99,10 @@ export class GraphProcessor {
       this.paneId,
       ProcessingLabel.PROCESSING_LAYER_NAMESPACES,
     );
+
+    if (this.flattenLayers) {
+      this.addSeparateConstEvalLayer(modelGraph);
+    }
 
     this.generateLayoutGraphConnections(modelGraph);
     updateProcessingProgress(
@@ -229,26 +234,7 @@ export class GraphProcessor {
       if (!opNode.hideInLayout && !this.flattenLayers) {
         const ancestorNamespaces = this.getAncestorNamespaces(opNode.namespace);
         for (const ns of ancestorNamespaces) {
-          if (seenNamespaces.has(ns)) {
-            continue;
-          }
-          seenNamespaces.add(ns);
-
-          const components = ns.split('/');
-          // Use the last component of the namespace as its display label.
-          const label = components.splice(-1)[0];
-          // Group node's namespace doesn't contain the last component.
-          const namespace = components.join('/');
-          const groupNode: GroupNode = {
-            nodeType: NodeType.GROUP_NODE,
-            id: this.getGroupNodeIdFromNamespace(ns),
-            namespace,
-            label,
-            level: components.length,
-            expanded: false,
-          };
-          modelGraph.nodes.push(groupNode);
-          modelGraph.nodesById[groupNode.id] = groupNode;
+          this.createGroupNodeForNamespace(modelGraph, ns, seenNamespaces);
         }
       }
     }
@@ -353,63 +339,7 @@ export class GraphProcessor {
       }
     }
 
-    // Find group nodes that only have one single op node as its child. For
-    // these nodes, remove the group node and move the child op node up a level
-    // from its namespace.
-    //
-    // Repeatedly do this until no such nodes are found.
-    if (!this.keepLayersWithASingleChild) {
-      while (true) {
-        let numNodeProcessed = 0;
-        for (const node of modelGraph.nodes) {
-          if (!isGroupNode(node)) {
-            continue;
-          }
-          if (node.nsChildrenIds != null && node.nsChildrenIds.length === 1) {
-            const opNode = modelGraph.nodesById[node.nsChildrenIds[0]];
-            if (isOpNode(opNode)) {
-              numNodeProcessed++;
-              // Delete group node.
-              const index = modelGraph.nodes.indexOf(node);
-              if (index >= 0) {
-                modelGraph.nodes.splice(index, 1);
-              }
-              delete modelGraph.nodesById[node.id];
-
-              // Move op node up one level in namespace.
-              const ns = opNode.namespace;
-              const parts = this.getNonEmptyNamespaceComponents(ns);
-              parts.pop();
-              opNode.namespace = parts.join('/');
-              opNode.savedNamespace = opNode.namespace;
-              opNode.level = parts.length;
-              opNode.nsParentId = node.nsParentId;
-
-              // Update root node if necessary.
-              const indexInRootNodes = modelGraph.rootNodes.indexOf(node);
-              if (indexInRootNodes >= 0) {
-                modelGraph.rootNodes.splice(indexInRootNodes, 1);
-                modelGraph.rootNodes.push(opNode);
-              }
-
-              // Remove this node from its NS parent node's nsChildrenIds, and add
-              // the op node to it.
-              if (node.nsParentId) {
-                const nsParent = modelGraph.nodesById[
-                  node.nsParentId
-                ] as GroupNode;
-                const index = nsParent.nsChildrenIds!.indexOf(node.id);
-                nsParent.nsChildrenIds!.splice(index, 1);
-                nsParent.nsChildrenIds!.push(opNode.id);
-              }
-            }
-          }
-        }
-        if (numNodeProcessed === 0) {
-          break;
-        }
-      }
-    }
+    this.removeSingleChildGroupNodes(modelGraph);
   }
 
   /**
@@ -518,6 +448,205 @@ export class GraphProcessor {
       for (const edge of outgoingEdges) {
         const targetNode = modelGraph.nodesById[edge.targetNodeId] as OpNode;
         queue.push(targetNode);
+      }
+    }
+  }
+
+  /**
+   * Finds all nodes whose namespace starts with "const_eval" and reorganizes them
+   * under a separate "const_eval" root group, preserving their hierarchy.
+   */
+  addSeparateConstEvalLayer(modelGraph: ModelGraph) {
+    const constEvalNodes: OpNode[] = [];
+
+    for (const node of modelGraph.nodes) {
+      if (isOpNode(node) && node.fullNamespace?.startsWith(CONST_EVAL_LAYER_NAME)) {
+        constEvalNodes.push(node);
+      }
+    }
+
+    if (constEvalNodes.length === 0) {
+      return;
+    }
+
+    // Create the const_eval root group node
+    const constEvalGroupId = `${CONST_EVAL_LAYER_NAME}___group___`;
+    const constEvalGroupNode: GroupNode = {
+      nodeType: NodeType.GROUP_NODE,
+      id: constEvalGroupId,
+      namespace: '',
+      label: CONST_EVAL_LAYER_NAME,
+      level: 0,
+      expanded: false,
+      nsChildrenIds: [],
+    };
+
+    modelGraph.nodes.push(constEvalGroupNode);
+    modelGraph.nodesById[constEvalGroupId] = constEvalGroupNode;
+
+    const seenNamespaces = new Set<string>();
+
+    // Remove nodes from old parents and update their namespaces
+    for (const node of constEvalNodes) {
+      this.removeFromParentOrRoot(modelGraph, node);
+
+      // Restore full namespace hierarchy
+      node.namespace = node.fullNamespace || node.namespace;
+      node.level = this.getNonEmptyNamespaceComponents(node.namespace).length;
+      node.nsParentId = undefined;
+
+      // Create ancestor group nodes (same pattern as processNodes)
+      const ancestorNamespaces = this.getAncestorNamespaces(node.namespace);
+      for (const ns of ancestorNamespaces) {
+        this.createGroupNodeForNamespace(modelGraph, ns, seenNamespaces);
+      }
+    }
+
+    // Rebuild parent-child relationships (same pattern as processNamespaceRelationships)
+    const nodesToLink = [
+      constEvalGroupNode,
+      ...Array.from(seenNamespaces).map(ns => modelGraph.nodesById[this.getGroupNodeIdFromNamespace(ns)]),
+      ...constEvalNodes,
+    ];
+
+    for (const node of nodesToLink) {
+      const ns = node.namespace;
+
+      if (ns === '') {
+        modelGraph.rootNodes.push(node);
+        continue;
+      }
+
+      const parentNodeId = this.getGroupNodeIdFromNamespace(ns);
+      const parentGroupNode = modelGraph.nodesById[parentNodeId] as GroupNode;
+      
+      if (parentGroupNode) {
+        node.nsParentId = parentGroupNode.id;
+        
+        if (!parentGroupNode.nsChildrenIds) {
+          parentGroupNode.nsChildrenIds = [];
+        }
+        if (!parentGroupNode.nsChildrenIds.includes(node.id)) {
+          parentGroupNode.nsChildrenIds.push(node.id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates a group node for the given namespace and adds it to the model graph.
+   * Skips creation if the namespace has already been seen.
+   *
+   * @param modelGraph The model graph to add the group node to
+   * @param namespace The namespace to create a group node for
+   * @param seenNamespaces Set to track already-seen namespaces
+   */
+  private createGroupNodeForNamespace(
+    modelGraph: ModelGraph,
+    namespace: string,
+    seenNamespaces: Set<string>,
+  ): void {
+    if (seenNamespaces.has(namespace)) {
+      return;
+    }
+
+    seenNamespaces.add(namespace);
+
+    const groupId = this.getGroupNodeIdFromNamespace(namespace);
+    const components = namespace.split('/');
+    const label = components.splice(-1)[0];
+    const parentNamespace = components.join('/');
+    const groupNode: GroupNode = {
+      nodeType: NodeType.GROUP_NODE,
+      id: groupId,
+      namespace: parentNamespace,
+      label,
+      level: components.length,
+      expanded: false,
+    };
+
+    modelGraph.nodes.push(groupNode);
+    modelGraph.nodesById[groupNode.id] = groupNode;
+  }
+
+  /**
+   * Removes a node from its parent's children list or from root nodes.
+   */
+  private removeFromParentOrRoot(modelGraph: ModelGraph, node: ModelNode) {
+    if (node.nsParentId) {
+      const parent = modelGraph.nodesById[node.nsParentId] as GroupNode;
+      if (parent?.nsChildrenIds) {
+        const index = parent.nsChildrenIds.indexOf(node.id);
+        if (index >= 0) {
+          parent.nsChildrenIds.splice(index, 1);
+        }
+      }
+    } else {
+      const index = modelGraph.rootNodes.indexOf(node);
+      if (index >= 0) {
+        modelGraph.rootNodes.splice(index, 1);
+      }
+    }
+  }
+
+  /**
+   * Find group nodes that only have one single op node as its child.
+   * For these nodes, remove the group node and move the child op node up a level.
+   * Repeatedly do this until no such nodes are found.
+   */
+  private removeSingleChildGroupNodes(modelGraph: ModelGraph) {
+    if (this.keepLayersWithASingleChild) {
+      return;
+    }
+
+    while (true) {
+      let numNodeProcessed = 0;
+      for (const node of modelGraph.nodes) {
+        if (!isGroupNode(node)) {
+          continue;
+        }
+        if (node.nsChildrenIds != null && node.nsChildrenIds.length === 1) {
+          const opNode = modelGraph.nodesById[node.nsChildrenIds[0]];
+          if (isOpNode(opNode)) {
+            numNodeProcessed++;
+            // Delete group node.
+            const index = modelGraph.nodes.indexOf(node);
+            if (index >= 0) {
+              modelGraph.nodes.splice(index, 1);
+            }
+            delete modelGraph.nodesById[node.id];
+
+            // Move op node up one level in namespace.
+            const ns = opNode.namespace;
+            const parts = this.getNonEmptyNamespaceComponents(ns);
+            parts.pop();
+            opNode.namespace = parts.join('/');
+            opNode.savedNamespace = opNode.namespace;
+            opNode.level = parts.length;
+            opNode.nsParentId = node.nsParentId;
+
+            // Update root node if necessary.
+            const indexInRootNodes = modelGraph.rootNodes.indexOf(node);
+            if (indexInRootNodes >= 0) {
+              modelGraph.rootNodes.splice(indexInRootNodes, 1);
+              modelGraph.rootNodes.push(opNode);
+            }
+
+            // Remove this node from its NS parent node's nsChildrenIds, and add
+            // the op node to it.
+            if (node.nsParentId) {
+              const nsParent = modelGraph.nodesById[
+                node.nsParentId
+              ] as GroupNode;
+              const index = nsParent.nsChildrenIds!.indexOf(node.id);
+              nsParent.nsChildrenIds!.splice(index, 1);
+              nsParent.nsChildrenIds!.push(opNode.id);
+            }
+          }
+        }
+      }
+      if (numNodeProcessed === 0) {
+        break;
       }
     }
   }
