@@ -461,7 +461,7 @@ export class GraphProcessor {
 
     // Get all nodes that have "const_eval" in their namespace
     for (const node of modelGraph.nodes) {
-      if (isOpNode(node) && node.fullNamespace?.includes(CONST_EVAL_LAYER_NAME)) {
+      if (isOpNode(node) && node.fullNamespace?.startsWith(CONST_EVAL_LAYER_NAME)) {
         constEvalNodes.push(node);
       }
     }
