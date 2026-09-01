@@ -93,11 +93,11 @@ const TFJS_DATA_TYPE_MAP = new Map<TfjsDataType, string>([
   [TfjsDataType.DT_INT64, 'int64'],
   [TfjsDataType.DT_BOOL, 'bool'],
   [TfjsDataType.DT_QINT8, 'qint8'],
-  [TfjsDataType.DT_QUINT8, 'qint8'],
+  [TfjsDataType.DT_QUINT8, 'quint8'],
   [TfjsDataType.DT_QINT32, 'qint32'],
   [TfjsDataType.DT_BFLOAT16, 'bfloat16'],
   [TfjsDataType.DT_QINT16, 'qint16'],
-  [TfjsDataType.DT_QUINT16, 'qint16'],
+  [TfjsDataType.DT_QUINT16, 'quint16'],
   [TfjsDataType.DT_UINT16, 'uint16'],
   [TfjsDataType.DT_COMPLEX128, 'complex128'],
   [TfjsDataType.DT_HALF, 'half'],
@@ -267,7 +267,7 @@ function decodeAttrValue(tfjsAttrValue: TfjsAttrValue): string {
   } else if (tfjsAttrValue.f != null) {
     value = `${tfjsAttrValue.f}`;
   } else if (tfjsAttrValue.b != null) {
-    value = tfjsAttrValue ? 'true' : 'false';
+    value = tfjsAttrValue.b ? 'true' : 'false';
   } else if (tfjsAttrValue.type != null) {
     value = TFJS_DATA_TYPE_MAP.get(tfjsAttrValue.type) || 'unknown';
   }
