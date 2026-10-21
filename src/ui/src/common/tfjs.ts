@@ -235,6 +235,10 @@ function genAttrs(tfjsNode: TfjsNode): KeyValueList {
         value = (tfjsAttrValue.list.i || [])
                     .map((v) => decodeAttrValue({i: v}))
                     .join(', ');
+      } else if ((tfjsAttrValue.list.type || []).length > 0) {
+        value = (tfjsAttrValue.list.type || [])
+                    .map((v) => decodeAttrValue({type: v}))
+                    .join(', ');
       } else {
         value = '[]';
       }
@@ -267,7 +271,7 @@ function decodeAttrValue(tfjsAttrValue: TfjsAttrValue): string {
   } else if (tfjsAttrValue.f != null) {
     value = `${tfjsAttrValue.f}`;
   } else if (tfjsAttrValue.b != null) {
-    value = tfjsAttrValue ? 'true' : 'false';
+    value = tfjsAttrValue.b ? 'true' : 'false';
   } else if (tfjsAttrValue.type != null) {
     value = TFJS_DATA_TYPE_MAP.get(tfjsAttrValue.type) || 'unknown';
   }
